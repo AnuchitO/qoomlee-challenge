@@ -56,16 +56,18 @@ spec:
             limits:
               cpu: 250m
               memory: 128Mi
+          # livenessProbe: lightweight — never checks DB, so a DB outage doesn't restart the pod
           livenessProbe:
             httpGet:
-              path: /health
+              path: /health/live
               port: 8081
             initialDelaySeconds: 10
             periodSeconds: 15
             failureThreshold: 3
+          # readinessProbe: checks DB ping — pod removed from Service if DB is unreachable
           readinessProbe:
             httpGet:
-              path: /health
+              path: /health/ready
               port: 8081
             initialDelaySeconds: 5
             periodSeconds: 10

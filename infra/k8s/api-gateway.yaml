@@ -46,16 +46,17 @@ spec:
             limits:
               cpu: 200m
               memory: 64Mi
+          # api-gateway has no DB — both probes use /health/live (always 200)
           livenessProbe:
             httpGet:
-              path: /health
+              path: /health/live
               port: 8080
             initialDelaySeconds: 5
             periodSeconds: 10
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /health
+              path: /health/live
               port: 8080
             initialDelaySeconds: 3
             periodSeconds: 5

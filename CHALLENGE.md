@@ -420,31 +420,55 @@ These are production-readiness requirements scored under **Pillar 4**.
 
 ### 6. Health Check Endpoints
 
-Every service must expose `GET /health`. Docker Compose, Kubernetes liveness/readiness probes, and the smoke test script all depend on it.
+Every service must expose **two** health endpoints — one for liveness, one for readiness. Using a single endpoint for both is an anti-pattern: if the DB goes down, a liveness check failure causes Kubernetes to **restart the pod**, which doesn't fix the DB and creates a crash-loop. Keep them separate.
 
-**Response `200 OK` (healthy):**
+| Endpoint | Purpose | Checks | Used by |
+|---|---|---|---|
+| `GET /health/live` | Is the process itself alive? | None — just returns 200 | K8s `livenessProbe`, api-gateway Docker healthcheck |
+| `GET /health/ready` | Is the service ready to serve traffic? | DB `PingContext` (2 s timeout) | K8s `readinessProbe`, all service Docker healthchecks |
+
+**`GET /health/live` — Response `200 OK` (always, unless process is frozen):**
 ```json
 { "status": "ok", "service": "flight-service" }
 ```
 
-**Response `503 Service Unavailable` (DB unreachable):**
+**`GET /health/ready` — Response `200 OK` (DB reachable):**
+```json
+{ "status": "ok", "service": "flight-service" }
+```
+
+**`GET /health/ready` — Response `503 Service Unavailable` (DB unreachable):**
 ```json
 { "status": "degraded", "service": "flight-service", "error": "database ping failed" }
 ```
 
-Check DB with `db.PingContext(ctx)` inside the handler. Set a short deadline (2 s).
-
 ```go
-ctx, cancel := context.WithTimeout(c.Request.Context(), 2*time.Second)
-defer cancel()
-if err := db.PingContext(ctx); err != nil {
-    c.JSON(http.StatusServiceUnavailable, gin.H{
-        "status": "degraded", "service": "flight-service", "error": "database ping failed",
-    })
-    return
+func (h *FlightHandler) RegisterRoutes(r *gin.Engine) {
+    r.GET("/health/live",  h.HealthLive)
+    r.GET("/health/ready", h.HealthReady)
+    // ... other routes
 }
-c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "flight-service"})
+
+func (h *FlightHandler) HealthLive(c *gin.Context) {
+    // Lightweight — just proves the process is running
+    c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "flight-service"})
+}
+
+func (h *FlightHandler) HealthReady(c *gin.Context) {
+    ctx, cancel := context.WithTimeout(c.Request.Context(), 2*time.Second)
+    defer cancel()
+    if err := h.db.PingContext(ctx); err != nil {
+        slog.Error("readiness check failed", "err", err)
+        c.JSON(http.StatusServiceUnavailable, gin.H{
+            "status": "degraded", "service": "flight-service", "error": "database ping failed",
+        })
+        return
+    }
+    c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "flight-service"})
+}
 ```
+
+> The api-gateway has no DB, so both `/health/live` and `/health/ready` return 200 unconditionally.
 
 ---
 

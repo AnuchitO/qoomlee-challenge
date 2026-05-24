@@ -137,7 +137,7 @@ Run against live `docker compose` stack. Use Go's `net/http`, `curl`, or any HTT
 | `GET /api/bookings/{validRef}` | 200; keys `bookingRef`, `status`, `flight`, `passenger` all present | | |
 | `POST /api/payments/charge` — success `4242…` | 201; `omiseChargeId` non-empty; `GET /api/bookings/{ref}` then shows `CONFIRMED` | | |
 | `POST /api/payments/charge` — decline `4111…` | 402; `failureCode` non-empty; `GET /api/bookings/{ref}` still shows `PENDING` | | |
-| `GET /health` on each service | All 3 services return 200 `{"status":"ok"}` when DB is up | | |
+| `GET /health/live` and `GET /health/ready` | All 3 services return 200 on both endpoints when DB is up | | |
 
 **Layer 3 subtotal: __ / 8**
 
@@ -205,10 +205,12 @@ Score 0–2 per criterion: 0 = absent, 1 = partial, 2 = complete.
 
 ### Health Check Endpoints (4 points)
 
+Two separate endpoints are required. Using one endpoint for both is scored as partial.
+
 | Check | Pass (2 pts) | Partial (1 pt) | Fail (0 pts) |
 |-------|---|---|---|
-| All 3 services have `GET /health` returning `{"status":"ok","service":"..."}` | | | |
-| `GET /health` returns 503 when DB is unreachable (evaluator: kill postgres container, re-check) | | | |
+| All 3 DB-connected services have `GET /health/live` (always 200) **and** `GET /health/ready` (200 when DB up, 503 when DB down) | Both present and correct | Only `/health` or only one of the two | Neither present |
+| `GET /health/ready` returns 503 when DB unreachable; `GET /health/live` still returns 200 (evaluator: `docker stop qoomlee-postgres-1`, re-check both endpoints) | Live=200, Ready=503 | One works correctly | Both return same result or both fail |
 
 **Health check subtotal: __ / 4**
 

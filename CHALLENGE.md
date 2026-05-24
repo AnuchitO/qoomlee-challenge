@@ -104,7 +104,7 @@ curl "http://localhost:8080/api/flights/search?origin=BKK&destination=SIN&date=2
 
 | Service | Language | Framework | Port |
 |---|---|---|---|
-| API Gateway | Go | std `net/http` | 8080 |
+| API Gateway | Go | Gin | 8080 |
 | flight-service | Go | Gin | 8081 |
 | booking-service | Go | Gin | 8082 |
 | payment-service | Go | Gin | 8084 |

@@ -6,6 +6,8 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -15,42 +17,29 @@ func main() {
 		"/api/payments": mustGetenv("PAYMENT_SERVICE_URL", "http://localhost:8084"),
 	}
 
-	mux := http.NewServeMux()
+	r := gin.Default()
+
+	r.GET("/health/live", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "api-gateway"})
+	})
+	r.GET("/health/ready", func(c *gin.Context) {
+		// api-gateway has no DB — ready when the process is running
+		c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "api-gateway"})
+	})
 
 	for prefix, target := range routes {
-		prefix := prefix // capture loop variable
 		targetURL, err := url.Parse(target)
 		if err != nil {
 			log.Fatalf("invalid target URL for %s: %v", prefix, err)
 		}
 		proxy := httputil.NewSingleHostReverseProxy(targetURL)
-		mux.HandleFunc(prefix+"/", withCORS(proxy))
-		mux.HandleFunc(prefix, withCORS(proxy))
+		r.Any(prefix+"/*path", gin.WrapH(proxy))
 	}
-
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":"ok"}`)) //nolint:errcheck
-	})
 
 	port := mustGetenv("PORT", "8080")
 	log.Printf("api-gateway listening on :%s", port)
-	log.Printf("routes: %v", routeKeys(routes))
-	if err := http.ListenAndServe(":"+port, mux); err != nil {
+	if err := r.Run(":" + port); err != nil {
 		log.Fatalf("server error: %v", err)
-	}
-}
-
-func withCORS(h http.Handler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
-		h.ServeHTTP(w, r)
 	}
 }
 
@@ -60,13 +49,3 @@ func mustGetenv(key, fallback string) string {
 	}
 	return fallback
 }
-
-func routeKeys(m map[string]string) []string {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	return keys
-}
-
-

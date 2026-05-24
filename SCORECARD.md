@@ -5,7 +5,7 @@ Date: _____________________
 Evaluator: _____________________
 
 > **Scope:** REST API only. No frontend. No check-in. No boarding pass.
-> **Stack:** Go + Gin. PostgreSQL. Omise (credit card, synchronous). K6 load tests.
+> **Stack:** Go + Gin for all services. PostgreSQL. Omise (credit card, synchronous). K6 load tests.
 
 ---
 
@@ -126,7 +126,7 @@ Run: `go test ./... -tags=integration`. Use `testcontainers-go` to spin up a rea
 
 ### Layer 3 — API Contract Tests (8 points)
 
-Run against live `docker compose` stack. Use Go's `net/http`, `curl`, or any HTTP client.
+Run against live `docker compose` stack. Use `curl` or Go's `net/http` test client.
 
 | Contract | Criteria | Pass (1 pt) | Fail (0 pts) |
 |----------|----------|---|---|

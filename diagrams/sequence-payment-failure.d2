@@ -1,0 +1,86 @@
+title: Sequence Diagram — Payment Failure & Retry {
+  near: top-center
+  shape: text
+  style.font-size: 18
+  style.bold: true
+}
+
+shape: sequence_diagram
+
+# ── Lifelines ─────────────────────────────────────────────────────────────────
+client: "API Client\n(curl / Postman)"
+gw: "API Gateway\n:8080 (Go+Gin)"
+bs: "booking-service\n:8082 (Go+Gin)"
+ps: "payment-service\n:8084 (Go+Gin)"
+omise: "Omise API\n(external)"
+db: PostgreSQL
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PRECONDITION — Booking already created (steps 1-3 from happy path)
+# ══════════════════════════════════════════════════════════════════════════════
+client -> gw: "[Assume booking QM7X2K already created]\nPOST /api/bookings → 201 {bookingRef:\"QM7X2K\", bookingId:42}\nBookings status = PENDING"
+gw -> client: "..."
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ATTEMPT 1 — Declined card
+# ══════════════════════════════════════════════════════════════════════════════
+client -> omise: "GET Omise token for DECLINE card\nPOST https://vault.omise.co/tokens\ncard[number]=4111111111111111"
+omise -> client: "{\"id\":\"tokn_test_decline_1\"}"
+
+client -> gw: "POST /api/payments/charge\n{\"bookingRef\":\"QM7X2K\",\"bookingId\":42,\n\"omiseToken\":\"tokn_test_decline_1\",\n\"amount\":350000,\"currency\":\"THB\"}"
+gw -> ps: proxy
+ps -> omise: "CreateCharge\n{amount:350000, card:\"tokn_test_decline_1\"}"
+omise -> ps: "charge.Status=\"failed\"\ncharge.FailureCode=\"insufficient_fund\"\ncharge.ID=\"chrg_test_failed_1\""
+ps -> db: "INSERT INTO payments\n(booking_ref='QM7X2K', amount=350000,\nstatus='FAILED',\nomise_charge_id='chrg_test_failed_1',\nfailure_code='insufficient_fund',\npaid_at=NULL)"
+db -> ps: "paymentId = 1"
+ps -> gw: "402 Payment Required"
+gw -> client: "402 Payment Required\n{\"error\":\"payment_failed\",\n\"failureCode\":\"insufficient_fund\",\n\"failureMessage\":\"The card has insufficient funds.\"}"
+
+# ── Verify booking is still PENDING ───────────────────────────────────────────
+client -> gw: "GET /api/bookings/QM7X2K"
+gw -> bs: proxy
+bs -> db: "SELECT ... WHERE booking_ref='QM7X2K'"
+db -> bs: "status='PENDING' (unchanged)"
+bs -> gw: "200 OK"
+gw -> client: "200 OK\n{\"bookingRef\":\"QM7X2K\",\n\"status\":\"PENDING\",\n...}\n✅ Booking stays PENDING — passenger can retry"
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ATTEMPT 2 — Retry with a different (valid) card
+# ══════════════════════════════════════════════════════════════════════════════
+client -> omise: "GET new Omise token for SUCCESS card\nPOST https://vault.omise.co/tokens\ncard[number]=4242424242424242\n⚠ must get a fresh token each attempt"
+omise -> client: "{\"id\":\"tokn_test_success_2\"}"
+
+client -> gw: "POST /api/payments/charge\n{\"bookingRef\":\"QM7X2K\",\"bookingId\":42,\n\"omiseToken\":\"tokn_test_success_2\",\n\"amount\":350000,\"currency\":\"THB\"}"
+gw -> ps: proxy
+
+ps -> db: "⚠ guard: SELECT status FROM bookings\nWHERE booking_ref='QM7X2K'\n→ must be PENDING to allow charge"
+db -> ps: "status='PENDING' ✅ allow retry"
+
+ps -> omise: "CreateCharge\n{amount:350000, card:\"tokn_test_success_2\"}"
+omise -> ps: "charge.Status=\"successful\"\ncharge.ID=\"chrg_test_ok_2\""
+ps -> db: "INSERT INTO payments\n(booking_ref='QM7X2K', amount=350000,\nstatus='SUCCEEDED',\nomise_charge_id='chrg_test_ok_2',\npaid_at=NOW())"
+db -> ps: "paymentId = 2"
+ps -> bs: "PUT /api/bookings/QM7X2K/status\n{\"status\":\"CONFIRMED\"}"
+bs -> db: "UPDATE bookings SET status='CONFIRMED'\nWHERE booking_ref='QM7X2K'"
+db -> bs: "1 row updated"
+bs -> ps: "200 OK"
+ps -> gw: "201 Created"
+gw -> client: "201 Created\n{\"omiseChargeId\":\"chrg_test_ok_2\",\n\"status\":\"SUCCEEDED\",\n\"amount\":350000,\n\"paidAt\":\"...\"}"
+
+# ── Final confirmation ─────────────────────────────────────────────────────────
+client -> gw: "GET /api/bookings/QM7X2K"
+gw -> bs: proxy
+bs -> db: "SELECT ... WHERE booking_ref='QM7X2K'"
+db -> bs: "status='CONFIRMED'"
+bs -> gw: "200 OK"
+gw -> client: "200 OK\n{\"bookingRef\":\"QM7X2K\",\n\"status\":\"CONFIRMED\",\n...}\n✅ Booking confirmed after retry"
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GUARD: Attempt to pay an already-CONFIRMED booking
+# ══════════════════════════════════════════════════════════════════════════════
+client -> gw: "[Edge case]\nPOST /api/payments/charge\n{\"bookingRef\":\"QM7X2K\", ...}"
+gw -> ps: proxy
+ps -> db: "SELECT status FROM bookings\nWHERE booking_ref='QM7X2K'"
+db -> ps: "status='CONFIRMED' ❌ reject"
+ps -> gw: "409 Conflict"
+gw -> client: "409 Conflict\n{\"error\":\"ALREADY_PAID\",\n\"message\":\"Booking QM7X2K has already been paid\"}"

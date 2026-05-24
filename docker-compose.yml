@@ -1,0 +1,88 @@
+version: "3.9"
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-qoomlee}
+      POSTGRES_USER: ${POSTGRES_USER:-qoomlee}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-qoomlee}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-qoomlee}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  flight-service:
+    build: ./services/flight-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-qoomlee}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-qoomlee}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-qoomlee}
+      SERVER_PORT: 8081
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  booking-service:
+    build: ./services/booking-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-qoomlee}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-qoomlee}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-qoomlee}
+      FLIGHT_SERVICE_URL: http://flight-service:8081
+      SERVER_PORT: 8082
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  payment-service:
+    build: ./services/payment-service
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-qoomlee}:${POSTGRES_PASSWORD:-qoomlee}@postgres:5432/${POSTGRES_DB:-qoomlee}?sslmode=disable
+      BOOKING_SERVICE_URL: http://booking-service:8082
+      OMISE_PUBLIC_KEY: ${OMISE_PUBLIC_KEY}
+      OMISE_SECRET_KEY: ${OMISE_SECRET_KEY}
+      PORT: 8084
+    ports:
+      - "8084:8084"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api-gateway:
+    build: ./services/api-gateway
+    environment:
+      FLIGHT_SERVICE_URL: http://flight-service:8081
+      BOOKING_SERVICE_URL: http://booking-service:8082
+      PAYMENT_SERVICE_URL: http://payment-service:8084
+      PORT: 8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      - flight-service
+      - booking-service
+      - payment-service
+
+volumes:
+  postgres_data:

@@ -1,0 +1,29 @@
+# Environment — never commit real keys
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+**/build/
+**/.next/
+**/node_modules/
+**/dist/
+
+# Go binaries
+services/flight-service/flight-service
+services/booking-service/booking-service
+services/payment-service/payment-service
+services/api-gateway/api-gateway
+
+# Coverage
+**/coverage/
+**/*.out
+**/coverage.xml
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store

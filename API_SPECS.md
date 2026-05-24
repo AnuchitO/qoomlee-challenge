@@ -1,30 +1,28 @@
 # Qoomlee Airline — API Specifications
 
 All public calls go through the **API Gateway: `http://localhost:8080`**.
-Internal service-to-service calls use the service URL directly (e.g. `http://booking-service:8082`).
+Internal service-to-service calls use the direct service URL (e.g. `http://booking-service:8082`).
 
-> **See diagrams/** for use case and sequence diagrams that show how all endpoints connect.
-
-> **Amount convention:** Omise and the payments table store amounts in **satang** (Thai smallest unit).
-> 1 THB = 100 satang. Always multiply/divide by 100 when converting.
-> Example: 3,500 THB → send `350000`.
+> **Amount convention:** All payment amounts are in **satang** (Thai smallest currency unit).
+> 1 THB = 100 satang. Always multiply when sending, divide when displaying.
+> Example: 3,500 THB → send `350000` to Omise and store `350000` in the DB.
 
 ---
 
-## Flight Service
+## Flight Service `:8081`
 
-### `GET /api/flights/search` — Already implemented
+### `GET /api/flights/search`
 
-Search available flights.
+Search available flights by route and date.
 
 **Query parameters**
 
 | Param | Type | Required | Notes |
 |---|---|---|---|
-| `origin` | string | Yes | IATA code, e.g. `BKK` |
-| `destination` | string | Yes | IATA code, e.g. `SIN` |
-| `date` | string | Yes | ISO date `YYYY-MM-DD` |
-| `passengers` | integer | No | Default `1` |
+| `origin` | string | Yes | IATA airport code, e.g. `BKK` |
+| `destination` | string | Yes | IATA airport code, e.g. `SIN` |
+| `date` | string | Yes | `YYYY-MM-DD` — use `2026-06-15` for all tests |
+| `passengers` | integer | No | Minimum seats required. Default `1` |
 
 **Request example**
 ```bash
@@ -42,20 +40,22 @@ curl "http://localhost:8080/api/flights/search?origin=BKK&destination=SIN&date=2
       "destination": "SIN",
       "departureTime": "2026-06-15T01:00:00Z",
       "arrivalTime": "2026-06-15T03:30:00Z",
-      "availableSeats": 142,
+      "durationMinutes": 150,
+      "availableSeats": 156,
       "basePrice": 3500.00,
       "currency": "THB",
       "status": "SCHEDULED"
     },
     {
-      "id": 2,
-      "flightNumber": "QM102",
+      "id": 3,
+      "flightNumber": "SC201",
       "origin": "BKK",
       "destination": "SIN",
-      "departureTime": "2026-06-15T07:00:00Z",
-      "arrivalTime": "2026-06-15T09:30:00Z",
-      "availableSeats": 30,
-      "basePrice": 2800.00,
+      "departureTime": "2026-06-15T03:00:00Z",
+      "arrivalTime": "2026-06-15T05:30:00Z",
+      "durationMinutes": 150,
+      "availableSeats": 78,
+      "basePrice": 2200.00,
       "currency": "THB",
       "status": "SCHEDULED"
     }
@@ -63,25 +63,27 @@ curl "http://localhost:8080/api/flights/search?origin=BKK&destination=SIN&date=2
 }
 ```
 
-> Times are in UTC. Bangkok (UTC+7): 08:00 local = 01:00 UTC.
+> All times are UTC. Bangkok (UTC+7): 08:00 local = 01:00 UTC.
+> An empty `flights` array (not 404) is returned when no flights match.
 
-**Response `400 Bad Request`** — missing `origin`
+**Response `400 Bad Request`** — missing required parameter
 ```json
-{
-  "error": "MISSING_REQUIRED_FIELD",
-  "message": "Required parameter 'origin' is not present."
-}
+{ "error": "MISSING_REQUIRED_FIELD", "message": "origin, destination, and date are required" }
+```
+
+**Response `400 Bad Request`** — invalid date format
+```json
+{ "error": "INVALID_DATE_FORMAT", "message": "date must be in YYYY-MM-DD format" }
 ```
 
 ---
 
-### `GET /api/flights/:id` — You implement this
+### `GET /api/flights/:id`
 
-Get full detail for one flight.
+Get full detail for one flight by its database ID.
 
-**Path parameter:** `id` — numeric flight ID from search results.
+**Path parameter:** `id` — integer, from search results.
 
-**Request example**
 ```bash
 curl "http://localhost:8080/api/flights/1"
 ```
@@ -96,31 +98,33 @@ curl "http://localhost:8080/api/flights/1"
   "departureTime": "2026-06-15T01:00:00Z",
   "arrivalTime": "2026-06-15T03:30:00Z",
   "durationMinutes": 150,
-  "availableSeats": 142,
+  "availableSeats": 156,
   "basePrice": 3500.00,
   "currency": "THB",
   "status": "SCHEDULED"
 }
 ```
 
+**Response `400 Bad Request`** — id is not an integer
+```json
+{ "error": "INVALID_FIELD", "message": "id must be an integer" }
+```
+
 **Response `404 Not Found`**
 ```json
-{
-  "error": "FLIGHT_NOT_FOUND",
-  "message": "Flight 999 not found"
-}
+{ "error": "FLIGHT_NOT_FOUND", "message": "Flight 999 not found" }
 ```
 
 ---
 
-## Booking Service
+## Booking Service `:8082`
 
-### `POST /api/bookings` — Already implemented
+### `POST /api/bookings`
 
-Create a booking. Booking is created with `status: "PENDING"` until payment succeeds.
+Create a booking for one passenger on one flight. Returns a 6-char PNR (`bookingRef`) and a numeric `bookingId`. Booking starts with `status: "PENDING"` until payment succeeds.
 
-> Only **one passenger per booking** in this challenge.
-> Pass `totalAmount` in **THB** (not satang) — set it to the flight's `basePrice`.
+> `totalAmount` is in **THB** (not satang). Set it to the flight's `basePrice`.
+> One passenger per booking.
 
 **Request body**
 ```json
@@ -140,26 +144,20 @@ Create a booking. Booking is created with `status: "PENDING"` until payment succ
 }
 ```
 
-**Required fields in `passenger`:** `firstName`, `lastName`, `email`
-**Optional fields in `passenger`:** `phone`, `passportNumber`, `dateOfBirth`, `nationality`
+**Required fields:** `flightId`, `totalAmount`, `passenger.firstName`, `passenger.lastName`, `passenger.email`
+**Optional fields:** `currency` (default `"THB"`), `passenger.phone`, `passenger.passportNumber`, `passenger.dateOfBirth`, `passenger.nationality`
 
-**Request example**
 ```bash
 curl -X POST http://localhost:8080/api/bookings \
   -H "Content-Type: application/json" \
   -d '{
     "flightId": 1,
     "passenger": {
-      "firstName": "Somchai",
-      "lastName": "Jaidee",
-      "email": "somchai@example.com",
-      "phone": "+66812345678",
-      "passportNumber": "AA123456",
-      "dateOfBirth": "1990-05-15",
-      "nationality": "TH"
+      "firstName": "Somchai", "lastName": "Jaidee",
+      "email": "somchai@example.com", "phone": "+66812345678",
+      "passportNumber": "AA123456", "dateOfBirth": "1990-05-15", "nationality": "TH"
     },
-    "totalAmount": 3500.00,
-    "currency": "THB"
+    "totalAmount": 3500.00, "currency": "THB"
   }'
 ```
 
@@ -173,23 +171,32 @@ curl -X POST http://localhost:8080/api/bookings \
 }
 ```
 
-> `bookingRef` = the 6-character PNR (e.g. `QM7X2K`). Always uppercase alphanumeric, no I/O/0/1 to avoid confusion.
-> `bookingId` = numeric DB row ID. **You need both values for the payment call.**
+> `bookingRef` — 6-char PNR, always uppercase alphanumeric (no I, O, 0, 1 to avoid confusion).
+> `bookingId` — numeric DB row id. **Save both — you need both for the payment call.**
+
+**Response `400 Bad Request`** — missing required field
+```json
+{ "error": "MISSING_REQUIRED_FIELD", "message": "passenger.email is required" }
+```
+
+**Response `409 Conflict`** — no available seats
+```json
+{ "error": "NO_SEATS_AVAILABLE", "message": "No seats available on this flight." }
+```
 
 ---
 
-### `GET /api/bookings/:bookingRef` — You implement this
+### `GET /api/bookings/:bookingRef`
 
-Get full booking detail including passenger and flight info.
+Get full booking detail including passenger and flight information.
 
-**Path parameter:** `bookingRef` — 6-character PNR, case-insensitive (normalise to uppercase internally).
+**Path parameter:** `bookingRef` — 6-char PNR, case-insensitive (normalise to uppercase internally).
 
-**Request example**
 ```bash
 curl "http://localhost:8080/api/bookings/QM7X2K"
 ```
 
-**Response `200 OK`** (before payment)
+**Response `200 OK`** — before payment (`status: "PENDING"`)
 ```json
 {
   "bookingRef": "QM7X2K",
@@ -216,36 +223,20 @@ curl "http://localhost:8080/api/bookings/QM7X2K"
 }
 ```
 
-**Response `200 OK`** (after successful payment — `status` changes to `CONFIRMED`)
-```json
-{
-  "bookingRef": "QM7X2K",
-  "status": "CONFIRMED",
-  "flight": { ... },
-  "passenger": { ... },
-  "totalAmount": 3500.00,
-  "currency": "THB",
-  "createdAt": "2026-05-22T10:00:00Z"
-}
-```
+> After a successful payment, `status` changes to `"CONFIRMED"`. The rest of the response is identical.
 
 **Response `404 Not Found`**
 ```json
-{
-  "error": "BOOKING_NOT_FOUND",
-  "message": "Booking QM9999 not found"
-}
+{ "error": "BOOKING_NOT_FOUND", "message": "Booking QM9999 not found" }
 ```
 
 ---
 
-### `PUT /api/bookings/:bookingRef/status` — You implement this (internal only)
+### `PUT /api/bookings/:bookingRef/status` — internal only
 
-> **This endpoint is not called by end users.** It is called only by the payment-service after a successful Omise charge. Do not expose it through the API Gateway if you want to be strict — but for this challenge it is acceptable either way.
+Called by **payment-service** after a successful Omise charge. Not called by end users.
 
-**Path parameter:** `bookingRef` — 6-character PNR.
-
-**Called by:** `payment-service` → `http://booking-service:8082/api/bookings/{bookingRef}/status`
+**Called via:** `PUT http://booking-service:8082/api/bookings/{bookingRef}/status`
 
 **Request body**
 ```json
@@ -257,7 +248,7 @@ curl "http://localhost:8080/api/bookings/QM7X2K"
 { "bookingRef": "QM7X2K", "status": "CONFIRMED" }
 ```
 
-**Response `400 Bad Request`** — invalid status value
+**Response `400 Bad Request`** — value other than `CONFIRMED`
 ```json
 { "error": "INVALID_STATUS", "message": "Only CONFIRMED is accepted" }
 ```
@@ -269,29 +260,31 @@ curl "http://localhost:8080/api/bookings/QM7X2K"
 
 ---
 
-## Payment Service
+## Payment Service `:8084`
 
-### `POST /api/payments/charge` — Already implemented
+### `POST /api/payments/charge`
 
-Charge via Omise. On success, the service must also update booking status to `CONFIRMED`.
+Charge a credit card via Omise. On success, the service also calls booking-service to set status `CONFIRMED`.
 
-> **Amount is in satang.** Convert: multiply THB by 100.
-> Example: 3,500 THB → `350000`
+> **Amount is in satang.** `3,500 THB` → send `350000`.
+> The charge is **synchronous** — Omise returns success/failure immediately. No webhook needed.
 
-**How to get an Omise test token (required before each charge attempt):**
+#### Step A — Get a single-use Omise token
+
 ```bash
-# Replace pkey_test_xxx with your actual public key from .env
 curl https://vault.omise.co/tokens \
-  -u pkey_test_xxx: \
+  -u YOUR_OMISE_PUBLIC_KEY: \
   -d "card[number]=4242424242424242" \
   -d "card[expiration_month]=12" \
   -d "card[expiration_year]=2028" \
   -d "card[security_code]=123" \
   -d "card[name]=SOMCHAI JAIDEE"
+# Response: { "id": "tokn_test_xxxx", ... }  ← use the "id" field
 ```
 
-This returns `{"object":"token","id":"tokn_test_xxxx",...}` — use the `id` field.
-> Each token is single-use. Create a new token for each charge attempt.
+> Each token is **single-use**. Get a new one for every charge attempt.
+
+#### Step B — Charge
 
 **Request body**
 ```json
@@ -304,20 +297,15 @@ This returns `{"object":"token","id":"tokn_test_xxxx",...}` — use the `id` fie
 }
 ```
 
-**Request example**
+**Required fields:** `bookingRef`, `bookingId`, `omiseToken`, `amount`
+
 ```bash
 curl -X POST http://localhost:8080/api/payments/charge \
   -H "Content-Type: application/json" \
-  -d '{
-    "bookingRef": "QM7X2K",
-    "bookingId": 42,
-    "omiseToken": "tokn_test_5fzddg8p5j3qhp1w5jg",
-    "amount": 350000,
-    "currency": "THB"
-  }'
+  -d '{"bookingRef":"QM7X2K","bookingId":42,"omiseToken":"tokn_test_xxxx","amount":350000,"currency":"THB"}'
 ```
 
-**Response `201 Created`** — payment succeeded
+**Response `201 Created`** — charge succeeded
 ```json
 {
   "paymentId": 1,
@@ -338,24 +326,26 @@ curl -X POST http://localhost:8080/api/payments/charge \
 }
 ```
 
-> When a charge succeeds, the payment service calls booking-service:
-> `PUT http://booking-service:8082/api/bookings/{bookingRef}/status` with `{"status":"CONFIRMED"}`
-> You need to implement that PUT endpoint on the booking-service side.
+> On decline: payment is recorded as `FAILED`, booking stays `PENDING`. Client can retry with a new token.
+
+**Response `409 Conflict`** — booking already paid
+```json
+{ "error": "ALREADY_PAID", "message": "Booking QM7X2K has already been paid" }
+```
 
 ---
 
-### `GET /api/payments/:bookingRef` — You implement this
+### `GET /api/payments/:bookingRef`
 
-Get payment status for a booking.
+Get the most recent payment record for a booking.
 
-**Path parameter:** `bookingRef` — 6-character PNR.
+**Path parameter:** `bookingRef` — 6-char PNR.
 
-**Request example**
 ```bash
 curl "http://localhost:8080/api/payments/QM7X2K"
 ```
 
-**Response `200 OK`**
+**Response `200 OK`** — successful payment
 ```json
 {
   "bookingRef": "QM7X2K",
@@ -367,9 +357,7 @@ curl "http://localhost:8080/api/payments/QM7X2K"
 }
 ```
 
-> `amount` is in satang (same unit that was sent to Omise and stored in the DB).
-
-**Response `200 OK`** — failed payment
+**Response `200 OK`** — failed payment attempt
 ```json
 {
   "bookingRef": "QM7X2K",
@@ -385,45 +373,53 @@ curl "http://localhost:8080/api/payments/QM7X2K"
 
 **Response `404 Not Found`** — no payment attempt yet
 ```json
-{
-  "error": "PAYMENT_NOT_FOUND",
-  "message": "No payment found for booking QM9999"
-}
+{ "error": "PAYMENT_NOT_FOUND", "message": "No payment found for booking QM9999" }
 ```
+
+---
+
+## Health Endpoints (all services)
+
+| Endpoint | Returns | When |
+|---|---|---|
+| `GET /health/live` | `{"status":"ok","service":"..."}` 200 | Always — proves the process is running |
+| `GET /health/ready` | `{"status":"ok","service":"..."}` 200 | DB is reachable |
+| `GET /health/ready` | `{"status":"degraded","service":"...","error":"database ping failed"}` 503 | DB is unreachable |
 
 ---
 
 ## Test Cards
 
-| Card number | CVV | Expiry | Result |
-|---|---|---|---|
-| `4242 4242 4242 4242` | any 3 digits | any future date | Success |
-| `4111 1111 1111 1111` | any 3 digits | any future date | Decline: `insufficient_fund` |
+| Card number | Expiry | CVV | Result | failureCode |
+|---|---|---|---|---|
+| `4242 4242 4242 4242` | any future | any 3-digit | Success | — |
+| `4111 1111 1111 1111` | any future | any 3-digit | Decline | `insufficient_fund` |
 
 ---
 
 ## Booking Status Lifecycle
 
 ```
-PENDING  →  CONFIRMED   (payment succeeded — payment-service updates booking-service)
-PENDING  →  PENDING     (payment failed — booking stays PENDING, can retry payment)
+                         payment-service calls PUT /status
+PENDING ──── charge succeeds ────────────────────────────► CONFIRMED
+PENDING ──── charge fails ──────────────────────────────► PENDING (can retry)
 ```
 
 ---
 
 ## Error Response Format
 
-All error responses:
+All `4xx` and `5xx` responses:
 ```json
-{
-  "error": "ERROR_CODE",
-  "message": "Human-readable description"
-}
+{ "error": "ERROR_CODE", "message": "Human-readable description." }
 ```
 
-| HTTP Status | When |
+| Status | When |
 |---|---|
-| `400` | Missing/invalid request fields |
-| `402` | Omise card declined |
-| `404` | Resource not found |
-| `500` | Unexpected server error |
+| `400 Bad Request` | Missing or invalid request fields |
+| `402 Payment Required` | Omise card declined |
+| `404 Not Found` | Resource not found |
+| `409 Conflict` | Business rule violation (already paid, no seats) |
+| `429 Too Many Requests` | Per-IP rate limit exceeded |
+| `500 Internal Server Error` | Unexpected server error |
+| `503 Service Unavailable` | Health check — DB unreachable |

@@ -205,6 +205,17 @@ Response `201 Created`:
 > **Omise amounts are in satang** (1 THB = 100 satang). Always multiply THB by 100.
 > 3,500 THB → send `350000`.
 
+> **Why is this synchronous? Why credit card only?**
+>
+> Omise credit card charges return the final result **immediately** in the same API call.
+> You call `CreateCharge(...)` → Omise responds in ~300 ms with `charge.Status = "successful"` or `"failed"`.
+> No webhook. No callback URL. No public endpoint needed on your side.
+>
+> Other Omise payment methods (PromptPay, internet banking, instalments) are **async** — Omise calls
+> _your_ server via webhook when the customer completes payment on their end. That requires a publicly
+> reachable URL and a separate webhook handler. Those methods are out of scope for this challenge.
+> **Credit card = synchronous = no webhook needed.**
+
 **Step A — Get a single-use Omise token first:**
 
 ```bash
@@ -398,6 +409,144 @@ GET http://booking-service:8082/api/bookings/{bookingRef}
 ```
 
 Or query the `payments` table directly for an existing `SUCCEEDED` row.
+
+---
+
+## Infrastructure Requirements
+
+These are production-readiness requirements scored under **Pillar 4**.
+
+---
+
+### 6. Health Check Endpoints
+
+Every service must expose `GET /health`. Docker Compose, Kubernetes liveness/readiness probes, and the smoke test script all depend on it.
+
+**Response `200 OK` (healthy):**
+```json
+{ "status": "ok", "service": "flight-service" }
+```
+
+**Response `503 Service Unavailable` (DB unreachable):**
+```json
+{ "status": "degraded", "service": "flight-service", "error": "database ping failed" }
+```
+
+Check DB with `db.PingContext(ctx)` inside the handler. Set a short deadline (2 s).
+
+```go
+ctx, cancel := context.WithTimeout(c.Request.Context(), 2*time.Second)
+defer cancel()
+if err := db.PingContext(ctx); err != nil {
+    c.JSON(http.StatusServiceUnavailable, gin.H{
+        "status": "degraded", "service": "flight-service", "error": "database ping failed",
+    })
+    return
+}
+c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "flight-service"})
+```
+
+---
+
+### 7. Rate Limiting
+
+Apply per-IP rate limiting using `golang.org/x/time/rate` or any Gin middleware. Add it as a middleware registered before the route handlers.
+
+| Endpoint | Limit | Burst |
+|---|---|---|
+| `GET /api/flights/search` | 100 req/min | 20 |
+| `POST /api/bookings` | 30 req/min | 5 |
+| `POST /api/payments/charge` | 10 req/min | 3 |
+
+When the limit is exceeded return **429 Too Many Requests**:
+```json
+{ "error": "RATE_LIMIT_EXCEEDED", "message": "Too many requests. Please try again later." }
+```
+
+> You may use a simple in-memory store (map of IP → `rate.Limiter`). Production would use Redis — out of scope here.
+
+---
+
+### 8. Graceful Shutdown
+
+Replace the bare `r.Run(":PORT")` call in every service `main.go` with a proper shutdown sequence. The service must:
+
+1. Listen for `SIGTERM` or `SIGINT`
+2. Stop accepting new connections
+3. Allow in-flight requests up to **10 seconds** to finish
+4. Close the database connection cleanly
+
+```go
+srv := &http.Server{Addr: ":" + port, Handler: r}
+
+go func() {
+    if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+        log.Fatalf("listen: %v", err)
+    }
+}()
+
+quit := make(chan os.Signal, 1)
+signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+<-quit
+log.Println("shutting down...")
+
+ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+defer cancel()
+if err := srv.Shutdown(ctx); err != nil {
+    log.Fatalf("forced shutdown: %v", err)
+}
+```
+
+---
+
+### 9. Structured Logging (JSON)
+
+Replace all `log.Printf(...)` with JSON-structured logs using Go's stdlib `log/slog` (available since Go 1.21). Kubernetes log aggregators (Loki, ELK) expect JSON.
+
+Every log entry must include: `time`, `level`, `service`, `msg`.
+
+```go
+// main.go — initialise once at startup
+logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
+slog.SetDefault(logger)
+
+// In handlers
+slog.Error("GetFlightByID failed", "id", id, "err", err)
+slog.Info("charge succeeded", "bookingRef", req.BookingRef, "chargeId", charge.ID)
+```
+
+Add a Gin logging middleware that emits one JSON log line per request:
+```json
+{"time":"2026-05-24T10:00:00Z","level":"INFO","service":"flight-service","msg":"request",
+ "method":"GET","path":"/api/flights/1","status":200,"latency_ms":4}
+```
+
+---
+
+### 10. Kubernetes Manifests
+
+Complete the skeleton manifests in `infra/k8s/`. When applied to a cluster with `kubectl apply -f infra/k8s/`, all services must start and be reachable through the `api-gateway` Service.
+
+```bash
+# Verify (minikube / kind / any cluster)
+kubectl apply -f infra/k8s/
+kubectl get pods -n qoomlee
+# All pods → Running
+kubectl get svc -n qoomlee
+# api-gateway exposed as NodePort or LoadBalancer
+```
+
+**Each service manifest must have:**
+- Docker image reference (fill in your registry path)
+- All env vars wired from the `ConfigMap` and `Secret`
+- CPU and memory `requests` + `limits`
+- `livenessProbe` and `readinessProbe` pointing to `GET /health`
+
+**api-gateway must have:**
+- `replicas: 2`
+- A `HorizontalPodAutoscaler` targeting 70% CPU → max 5 replicas
+
+Skeleton files are in `infra/k8s/`. Lines marked `# TODO` must be filled in.
 
 ---
 
@@ -662,6 +811,9 @@ After a successful Omise charge, the payment service calls `PUT /api/bookings/:r
 - Omise must be in **test mode only** — never use live keys
 - `bookingRef` must be exactly 6 uppercase alphanumeric characters
 - The `.env` file must not be committed (it is in `.gitignore`)
+- Rate limiting must use per-IP limiting (not global)
+- K8s manifests must use the `qoomlee` namespace
+- Omise is **credit card / synchronous only** — do not add webhook handlers
 
 ---
 
@@ -671,10 +823,10 @@ See `SCORECARD.md` for the full rubric.
 
 | Pillar | Points |
 |---|---|
-| Working Software — all 7 endpoints return correct responses end-to-end | 30 |
-| Testing — unit (Layer 1) + integration (Layer 2) + contract (Layer 3) + K6 load (Layer 4) | 40 |
+| Working Software — all 7 endpoints return correct responses end-to-end | 25 |
+| Testing — unit (Layer 1) + integration (Layer 2) + contract (Layer 3) + K6 load (Layer 4) | 35 |
 | Code Quality — layered arch, error handling, no hardcoded secrets | 20 |
-| Shippable Software — `docker compose up --build` succeeds, no secrets in code | 10 |
+| Infrastructure & Shippable — health checks, rate limiting, graceful shutdown, structured logs, K8s | 20 |
 
 ---
 

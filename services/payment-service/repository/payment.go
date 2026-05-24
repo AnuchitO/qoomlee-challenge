@@ -46,8 +46,12 @@ func (r *PaymentRepository) UpdateStatus(id int64, status, failureCode, failureM
 	return err
 }
 
-// GetByBookingRef retrieves payment record for a booking — TODO: implement full version.
+// GetByBookingRef retrieves the most recent payment for a booking.
+// Return ErrNotFound if no payment record exists for bookingRef.
+//
+// Hint: ORDER BY created_at DESC LIMIT 1
+//
+// TODO: implement
 func (r *PaymentRepository) GetByBookingRef(bookingRef string) (*model.Payment, error) {
-	// TODO: implement
 	return nil, errors.New("not implemented")
 }

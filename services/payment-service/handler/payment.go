@@ -1,15 +1,11 @@
 package handler
 
 import (
-	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	omise "github.com/omise/omise-go"
-	"github.com/omise/omise-go/operations"
-	"gitlab.com/arise-by-infinitas/qoomlee/payment-service/model"
 	"gitlab.com/arise-by-infinitas/qoomlee/payment-service/repository"
 )
 
@@ -31,112 +27,57 @@ func NewPaymentHandler(repo *repository.PaymentRepository) (*PaymentHandler, err
 
 // RegisterRoutes wires handler methods to a gin.Engine.
 func (h *PaymentHandler) RegisterRoutes(r *gin.Engine) {
+	r.GET("/health/live",  h.HealthLive)
+	r.GET("/health/ready", h.HealthReady)
+
 	api := r.Group("/api/payments")
 	api.POST("/charge", h.Charge)
 	api.GET("/:bookingRef", h.GetByBookingRef)
 }
 
-// Charge — WORKING: calls real Omise test API, records payment in DB.
-//
-// POST /api/payments/charge
-func (h *PaymentHandler) Charge(c *gin.Context) {
-	var req model.ChargeRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "MISSING_REQUIRED_FIELD",
-			"message": err.Error(),
-		})
-		return
-	}
-	if req.Currency == "" {
-		req.Currency = "THB"
-	}
-
-	// Create charge via Omise
-	charge := &omise.Charge{}
-	err := h.omiseClient.Do(charge, &operations.CreateCharge{
-		Amount:   req.Amount,
-		Currency: req.Currency,
-		Card:     req.OmiseToken,
-	})
-
-	// Record payment attempt regardless of outcome
-	status := "PENDING"
-	var paidAt *time.Time
-	var failureCode, failureMessage string
-
-	if err != nil {
-		status = "FAILED"
-		if omiseErr, ok := err.(*omise.Error); ok {
-			failureCode = omiseErr.Code
-			failureMessage = omiseErr.Message
-		} else {
-			failureMessage = err.Error()
-		}
-	} else if charge.Status == "successful" {
-		status = "SUCCEEDED"
-		now := time.Now()
-		paidAt = &now
-	} else {
-		status = "FAILED"
-		failureCode = charge.FailureCode
-		failureMessage = charge.FailureMessage
-	}
-
-	payment, dbErr := h.repo.Insert(&model.Payment{
-		BookingRef:     req.BookingRef,
-		BookingID:      req.BookingID,
-		Amount:         req.Amount,
-		Currency:       req.Currency,
-		Status:         status,
-		OmiseChargeID:  charge.ID,
-		FailureCode:    failureCode,
-		FailureMessage: failureMessage,
-		PaidAt:         paidAt,
-	})
-	if dbErr != nil {
-		log.Printf("ERROR Charge db insert bookingRef=%s: %v", req.BookingRef, dbErr)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "INTERNAL_ERROR",
-			"message": "An unexpected error occurred.",
-		})
-		return
-	}
-
-	if status == "FAILED" {
-		c.JSON(http.StatusPaymentRequired, model.ChargeErrorResponse{
-			Error:          "payment_failed",
-			FailureCode:    failureCode,
-			FailureMessage: failureMessage,
-		})
-		return
-	}
-
-	c.JSON(http.StatusCreated, model.ChargeResponse{
-		PaymentID:     payment.ID,
-		OmiseChargeID: charge.ID,
-		Status:        status,
-		Amount:        req.Amount,
-		Currency:      req.Currency,
-		PaidAt:        paidAt,
-	})
+func (h *PaymentHandler) HealthLive(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "payment-service"})
 }
 
-// GetByBookingRef — TODO: implement.
-//
-// GET /api/payments/:bookingRef
-// Response: Payment object
-func (h *PaymentHandler) GetByBookingRef(c *gin.Context) {
-	bookingRef := c.Param("bookingRef")
-	if bookingRef == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "MISSING_REQUIRED_FIELD",
-			"message": "bookingRef is required",
-		})
-		return
-	}
+// HealthReady checks the DB connection.
+// TODO: inject *sql.DB so you can call db.PingContext here.
+func (h *PaymentHandler) HealthReady(c *gin.Context) {
+	// TODO: implement — ping DB, return 503 if unreachable
+	c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "payment-service"})
+}
 
-	// TODO: implement
-	_ = bookingRef
+// Charge — POST /api/payments/charge
+//
+// Flow:
+//  1. Parse and validate request (bookingRef, bookingId, omiseToken, amount)
+//  2. Check booking is not already CONFIRMED → 409 ALREADY_PAID
+//  3. Call Omise CreateCharge with amount (satang) + omiseToken
+//  4. Record the payment in the DB (SUCCEEDED or FAILED)
+//  5. If SUCCEEDED: call PUT /api/bookings/:ref/status {"status":"CONFIRMED"}
+//     (if this call fails: log it, but still return 201)
+//  6. If FAILED: return 402 with failureCode and failureMessage
+//     (booking status stays PENDING — the client can retry with a new token)
+//
+// See CHALLENGE.md for Omise SDK usage and the satang explanation.
+//
+// Response 201: ChargeResponse
+// Response 400: MISSING_REQUIRED_FIELD / INVALID_FIELD
+// Response 402: payment_failed (card declined)
+// Response 409: ALREADY_PAID
+//
+// TODO: implement
+func (h *PaymentHandler) Charge(c *gin.Context) {
+	c.JSON(http.StatusNotImplemented, gin.H{"error": "not implemented"})
+}
+
+// GetByBookingRef — GET /api/payments/:bookingRef
+//
+// Returns the most recent payment record for a booking.
+//
+// Response 200: Payment
+// Response 404: { "error": "PAYMENT_NOT_FOUND", ... }
+//
+// TODO: implement
+func (h *PaymentHandler) GetByBookingRef(c *gin.Context) {
 	c.JSON(http.StatusNotImplemented, gin.H{"error": "not implemented"})
 }

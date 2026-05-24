@@ -12,7 +12,7 @@ passenger: Passenger {
   shape: person
 }
 
-omise: Omise\nPayment Gateway {
+omise: "Omise\nPayment Gateway" {
   shape: cloud
 }
 
@@ -21,37 +21,37 @@ system: Qoomlee Booking REST API {
   style.stroke-dash: 4
 
   # Flight domain
-  uc1: UC1\nSearch Flights {
+  uc1: "UC1\nSearch Flights" {
     shape: oval
     style.fill: "#e8f4fd"
   }
-  uc2: UC2\nView Flight Detail {
+  uc2: "UC2\nView Flight Detail" {
     shape: oval
     style.fill: "#e8f4fd"
   }
 
   # Booking domain
-  uc3: UC3\nCreate Booking\n→ receive PNR {
+  uc3: "UC3\nCreate Booking\n→ receive PNR" {
     shape: oval
     style.fill: "#e8f8e8"
   }
-  uc5: UC5\nView Booking & PNR {
+  uc5: "UC5\nView Booking & PNR" {
     shape: oval
     style.fill: "#e8f8e8"
   }
 
   # Payment domain
-  uc4: UC4\nPay for Booking {
+  uc4: "UC4\nPay for Booking" {
     shape: oval
     style.fill: "#fff3e0"
   }
-  uc6: UC6\nView Payment Receipt {
+  uc6: "UC6\nView Payment Receipt" {
     shape: oval
     style.fill: "#fff3e0"
   }
 
   # Internal (service-to-service only, not called by passenger)
-  uc7: UC7\nUpdate Booking Status\n(PENDING → CONFIRMED)\n«internal» {
+  uc7: "UC7\nUpdate Booking Status\n(PENDING → CONFIRMED)\n«internal»" {
     shape: oval
     style.fill: "#f5f5f5"
     style.stroke-dash: 4
@@ -77,7 +77,7 @@ legend: Endpoint Mapping {
   shape: text
   near: bottom-left
   style.font-size: 13
-  label: |md
+  label: |||md
     | Use Case | Endpoint | Status |
     |---|---|---|
     | UC1 | GET /api/flights/search | ✅ working |
@@ -87,5 +87,5 @@ legend: Endpoint Mapping {
     | UC5 | GET /api/bookings/:ref | 🔨 build |
     | UC6 | GET /api/payments/:ref | 🔨 build |
     | UC7 | PUT /api/bookings/:ref/status | 🔨 build (internal) |
-  |
+  |||
 }

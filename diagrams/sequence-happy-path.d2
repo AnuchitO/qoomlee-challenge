@@ -9,10 +9,10 @@ shape: sequence_diagram
 
 # ── Lifelines ─────────────────────────────────────────────────────────────────
 client: "API Client\n(curl / Postman)"
-gw: "API Gateway\n:8080 (Go+Gin)"
-fs: "flight-service\n:8081 (Go+Gin)"
-bs: "booking-service\n:8082 (Go+Gin)"
-ps: "payment-service\n:8084 (Go+Gin)"
+gw: "API Gateway\n:8080"
+fs: "flight-service\n:8081"
+bs: "booking-service\n:8082"
+ps: "payment-service\n:8084"
 omise: "Omise API\n(external)"
 db: PostgreSQL
 
@@ -21,71 +21,71 @@ db: PostgreSQL
 # ══════════════════════════════════════════════════════════════════════════════
 client -> gw: "GET /api/flights/search\n?origin=BKK&destination=SIN\n&date=2026-06-15&passengers=1"
 gw -> fs: proxy
-fs -> db: "SELECT f.*, r.origin_iata, r.destination_iata\nFROM flights f\nJOIN routes r ON f.route_id = r.id\nWHERE r.origin_iata='BKK'\n  AND r.destination_iata='SIN'\n  AND f.departure_time BETWEEN ... \n  AND f.available_seats >= 1"
-db -> fs: "[]{id, flightNumber, basePrice, ...}"
+fs -> db: "SELECT f.*, r.origin_iata, r.destination_iata\nFROM flights f JOIN routes r\nWHERE r.origin_iata='BKK'\n  AND r.destination_iata='SIN'\n  AND departure_time BETWEEN ...\n  AND available_seats >= 1"
+db -> fs: "rows: id, flightNumber, basePrice, ..."
 fs -> gw: "200 OK"
-gw -> client: "200 OK\n{\"flights\": [{\"id\":1, \"flightNumber\":\"QM101\",\n\"basePrice\":3500.00, ...}]}"
+gw -> client: "200 OK\nflights: [id:1, flightNumber:QM101, basePrice:3500.00, ...]"
 
 # ══════════════════════════════════════════════════════════════════════════════
-# STEP 2 — View Flight Detail
+# STEP 2 — View Flight Detail  [🔨 TODO]
 # ══════════════════════════════════════════════════════════════════════════════
 client -> gw: "GET /api/flights/1"
 gw -> fs: proxy
 fs -> db: "SELECT f.*, r.origin_iata, r.destination_iata\nFROM flights f JOIN routes r\nWHERE f.id = 1"
 db -> fs: "flight row"
 fs -> gw: "200 OK"
-gw -> client: "200 OK\n{\"id\":1, \"flightNumber\":\"QM101\",\n\"origin\":\"BKK\", \"destination\":\"SIN\",\n\"departureTime\":\"2026-06-15T01:00:00Z\",\n\"durationMinutes\":150,\n\"basePrice\":3500.00}"
+gw -> client: "200 OK\nid:1, flightNumber:QM101\norigin:BKK, destination:SIN\ndepartureTime:2026-06-15T01:00:00Z\ndurationMinutes:150, basePrice:3500.00"
 
 # ══════════════════════════════════════════════════════════════════════════════
 # STEP 3 — Create Booking
 # ══════════════════════════════════════════════════════════════════════════════
-client -> gw: "POST /api/bookings\n{\"flightId\":1,\n\"passenger\":{\"firstName\":\"Somchai\",\n  \"lastName\":\"Jaidee\",\n  \"email\":\"somchai@example.com\", ...},\n\"totalAmount\":3500.00, \"currency\":\"THB\"}"
+client -> gw: "POST /api/bookings\nflightId:1\npassenger: firstName:Somchai, lastName:Jaidee\n  email:somchai@example.com\ntotalAmount:3500.00, currency:THB"
 gw -> bs: proxy
 bs -> db: "INSERT INTO passengers\n(first_name, last_name, email, ...)"
 db -> bs: "passengerId = 7"
-bs -> db: "INSERT INTO bookings\n(booking_ref='QM7X2K', flight_id=1,\npassenger_id=7, status='PENDING',\ntotal_amount=3500.00)"
+bs -> db: "INSERT INTO bookings\nbooking_ref=QM7X2K, flight_id=1\npassenger_id=7, status=PENDING\ntotal_amount=3500.00"
 db -> bs: "bookingId = 42"
 bs -> gw: "201 Created"
-gw -> client: "201 Created\n{\"bookingRef\":\"QM7X2K\",\n\"bookingId\":42,\n\"status\":\"PENDING\",\n\"message\":\"Booking created. Proceed to payment.\"}"
+gw -> client: "201 Created\nbookingRef:QM7X2K, bookingId:42\nstatus:PENDING\nmessage:Booking created. Proceed to payment."
 
 # ══════════════════════════════════════════════════════════════════════════════
 # STEP 4 — Get Omise Token (external, outside API)
 # ══════════════════════════════════════════════════════════════════════════════
 client -> omise: "POST https://vault.omise.co/tokens\ncard[number]=4242424242424242\ncard[expiration_month]=12\ncard[expiration_year]=2028\ncard[security_code]=123\n(auth: pkey_test_xxx)"
-omise -> client: "{\"id\":\"tokn_test_abc123\", ...}\n⚠ single-use token"
+omise -> client: "id: tokn_test_abc123\n⚠ single-use token"
 
 # ══════════════════════════════════════════════════════════════════════════════
 # STEP 5 — Pay (success path)
 # ══════════════════════════════════════════════════════════════════════════════
-client -> gw: "POST /api/payments/charge\n{\"bookingRef\":\"QM7X2K\",\n\"bookingId\":42,\n\"omiseToken\":\"tokn_test_abc123\",\n\"amount\":350000,\n\"currency\":\"THB\"}"
+client -> gw: "POST /api/payments/charge\nbookingRef:QM7X2K, bookingId:42\nomiseToken:tokn_test_abc123\namount:350000, currency:THB"
 gw -> ps: proxy
-ps -> omise: "CreateCharge\n{amount:350000, currency:\"THB\",\ncard:\"tokn_test_abc123\"}\n(auth: skey_test_xxx)"
-omise -> ps: "charge.Status=\"successful\"\ncharge.ID=\"chrg_test_xyz\""
-ps -> db: "INSERT INTO payments\n(booking_ref='QM7X2K', booking_id=42,\namount=350000, status='SUCCEEDED',\nomise_charge_id='chrg_test_xyz',\npaid_at=NOW())"
+ps -> omise: "CreateCharge\namount:350000, currency:THB\ncard:tokn_test_abc123\n(auth: skey_test_xxx)"
+omise -> ps: "charge.Status=successful\ncharge.ID=chrg_test_xyz"
+ps -> db: "INSERT INTO payments\nbooking_ref=QM7X2K, booking_id=42\namount=350000, status=SUCCEEDED\nomise_charge_id=chrg_test_xyz\npaid_at=NOW()"
 db -> ps: "paymentId = 1"
-ps -> bs: "PUT /api/bookings/QM7X2K/status\n{\"status\":\"CONFIRMED\"}\n(internal service call)"
-bs -> db: "UPDATE bookings\nSET status='CONFIRMED', updated_at=NOW()\nWHERE booking_ref='QM7X2K'"
+ps -> bs: "PUT /api/bookings/QM7X2K/status\nstatus:CONFIRMED\n(internal service call)"
+bs -> db: "UPDATE bookings\nSET status=CONFIRMED, updated_at=NOW()\nWHERE booking_ref=QM7X2K"
 db -> bs: "1 row updated"
 bs -> ps: "200 OK"
 ps -> gw: "201 Created"
-gw -> client: "201 Created\n{\"paymentId\":1,\n\"omiseChargeId\":\"chrg_test_xyz\",\n\"status\":\"SUCCEEDED\",\n\"amount\":350000,\n\"currency\":\"THB\",\n\"paidAt\":\"2026-05-22T10:05:00Z\"}"
+gw -> client: "201 Created\npaymentId:1, omiseChargeId:chrg_test_xyz\nstatus:SUCCEEDED\namount:350000, currency:THB\npaidAt:2026-05-22T10:05:00Z"
 
 # ══════════════════════════════════════════════════════════════════════════════
-# STEP 6 — View Booking Confirmation
+# STEP 6 — View Booking Confirmation  [🔨 TODO]
 # ══════════════════════════════════════════════════════════════════════════════
 client -> gw: "GET /api/bookings/QM7X2K"
 gw -> bs: proxy
-bs -> db: "SELECT b.*, p.first_name, p.last_name,\np.email, p.passport_number,\nf.flight_number, r.origin_iata,\nr.destination_iata, f.departure_time\nFROM bookings b\nJOIN passengers p ON b.passenger_id=p.id\nJOIN flights f ON b.flight_id=f.id\nJOIN routes r ON f.route_id=r.id\nWHERE b.booking_ref='QM7X2K'"
+bs -> db: "SELECT b.*, p.first_name, p.last_name, p.email\nf.flight_number, r.origin_iata, r.destination_iata\nFROM bookings b\nJOIN passengers p ON b.passenger_id=p.id\nJOIN flights f ON b.flight_id=f.id\nJOIN routes r ON f.route_id=r.id\nWHERE b.booking_ref=QM7X2K"
 db -> bs: "booking + passenger + flight"
 bs -> gw: "200 OK"
-gw -> client: "200 OK\n{\"bookingRef\":\"QM7X2K\",\n\"status\":\"CONFIRMED\",\n\"flight\":{\"flightNumber\":\"QM101\", ...},\n\"passenger\":{\"firstName\":\"Somchai\", ...},\n\"totalAmount\":3500.00}"
+gw -> client: "200 OK\nbookingRef:QM7X2K, status:CONFIRMED\nflight.flightNumber:QM101\npassenger.firstName:Somchai\ntotalAmount:3500.00"
 
 # ══════════════════════════════════════════════════════════════════════════════
-# STEP 7 — View Payment Receipt
+# STEP 7 — View Payment Receipt  [🔨 TODO]
 # ══════════════════════════════════════════════════════════════════════════════
 client -> gw: "GET /api/payments/QM7X2K"
 gw -> ps: proxy
-ps -> db: "SELECT * FROM payments\nWHERE booking_ref='QM7X2K'"
+ps -> db: "SELECT * FROM payments\nWHERE booking_ref=QM7X2K"
 db -> ps: "payment row"
 ps -> gw: "200 OK"
-gw -> client: "200 OK\n{\"bookingRef\":\"QM7X2K\",\n\"status\":\"SUCCEEDED\",\n\"omiseChargeId\":\"chrg_test_xyz\",\n\"amount\":350000,\n\"paidAt\":\"2026-05-22T10:05:00Z\"}"
+gw -> client: "200 OK\nbookingRef:QM7X2K, status:SUCCEEDED\nomiseChargeId:chrg_test_xyz\namount:350000\npaidAt:2026-05-22T10:05:00Z"

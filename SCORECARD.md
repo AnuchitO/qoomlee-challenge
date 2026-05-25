@@ -16,7 +16,7 @@ Evaluator: _____________________
 | [1] Working Software | 25 | All 7 endpoints work end-to-end |
 | [2] Testing | 35 | Unit → Integration → Contract → K6 Load |
 | [3] Code Quality | 20 | Architecture, error handling, clean Go |
-| [4] Infrastructure & Shippable | 20 | Health checks, rate limiting, graceful shutdown, structured logs, K8s |
+| [4] Infrastructure & Shippable | 20 | Health checks, rate limiting, graceful shutdown, structured logs |
 | **Total** | **100** | |
 
 ---
@@ -203,16 +203,16 @@ Score 0–2 per criterion: 0 = absent, 1 = partial, 2 = complete.
 
 ## Pillar 4 — Infrastructure & Shippable (20 points)
 
-### Health Check Endpoints (4 points)
+### Health Check Endpoints (6 points)
 
 Two separate endpoints are required. Using one endpoint for both is scored as partial.
 
-| Check | Pass (2 pts) | Partial (1 pt) | Fail (0 pts) |
+| Check | Pass (3 pts) | Partial (1 pt) | Fail (0 pts) |
 |-------|---|---|---|
 | All 3 DB-connected services have `GET /health/live` (always 200) **and** `GET /health/ready` (200 when DB up, 503 when DB down) | Both present and correct | Only `/health` or only one of the two | Neither present |
 | `GET /health/ready` returns 503 when DB unreachable; `GET /health/live` still returns 200 (evaluator: `docker stop qoomlee-postgres-1`, re-check both endpoints) | Live=200, Ready=503 | One works correctly | Both return same result or both fail |
 
-**Health check subtotal: __ / 4**
+**Health check subtotal: __ / 6**
 
 ---
 
@@ -227,38 +227,28 @@ Two separate endpoints are required. Using one endpoint for both is scored as pa
 
 ---
 
-### Graceful Shutdown (3 points)
+### Graceful Shutdown (5 points)
 
-| Check | Pass (3 pts) | Partial (1 pt) | Fail (0 pts) |
+| Check | Pass (5 pts) | Partial (2 pts) | Fail (0 pts) |
 |-------|---|---|---|
 | Each service uses `http.Server` + `signal.Notify(SIGTERM/SIGINT)` + `srv.Shutdown(ctx)` with 10 s timeout; bare `r.Run()` is gone | | | |
 
-**Graceful shutdown subtotal: __ / 3**
+**Graceful shutdown subtotal: __ / 5**
 
 ---
 
-### Structured Logging (3 points)
+### Structured Logging (5 points)
 
-| Check | Pass (1 pt) | Fail (0 pts) |
+| Check | Pass (2 pts) | Fail (0 pts) |
 |-------|---|---|
 | `log.Printf` replaced with `slog` JSON output; each log line is valid JSON | | |
 | Log line for each inbound request includes `method`, `path`, `status`, `latency_ms` | | |
+
+| Check | Pass (1 pt) | Fail (0 pts) |
+|-------|---|---|
 | Error logs include relevant context (e.g. `bookingRef`, `id`, `err`) — never just `"error occurred"` | | |
 
-**Structured logging subtotal: __ / 3**
-
----
-
-### Kubernetes Manifests (6 points)
-
-Run: `kubectl apply -f infra/k8s/` on a clean cluster (minikube or kind is fine).
-
-| Check | Pass (2 pts) | Partial (1 pt) | Fail (0 pts) |
-|-------|---|---|---|
-| All 3 service Deployments start (`kubectl get pods -n qoomlee` → all Running) | | | |
-| Each Deployment has `livenessProbe` and `readinessProbe` pointing to `GET /health`; CPU + memory `requests` and `limits` are set | | | |
-
-**K8s subtotal: __ / 6**
+**Structured logging subtotal: __ / 5**
 
 ---
 
@@ -266,11 +256,10 @@ Run: `kubectl apply -f infra/k8s/` on a clean cluster (minikube or kind is fine)
 
 | Area | Max | Score |
 |------|-----|-------|
-| Health Check Endpoints | 4 | |
+| Health Check Endpoints | 6 | |
 | Rate Limiting | 4 | |
-| Graceful Shutdown | 3 | |
-| Structured Logging | 3 | |
-| Kubernetes Manifests | 6 | |
+| Graceful Shutdown | 5 | |
+| Structured Logging | 5 | |
 | **Pillar 4 Total** | **20** | |
 
 ---

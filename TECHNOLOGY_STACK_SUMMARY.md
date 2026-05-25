@@ -15,8 +15,7 @@
 | Component | Technology | Purpose |
 |-----------|------------|---------|
 | Database | PostgreSQL 16 | Single shared DB for all services |
-| Container (local) | Docker Compose | `docker compose up --build` |
-| Container (prod) | Kubernetes | Manifests in `infra/k8s/` |
+| Container | Docker Compose | `docker compose up --build` |
 
 ## Testing Stack
 

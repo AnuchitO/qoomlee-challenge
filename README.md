@@ -42,8 +42,7 @@ curl "http://localhost:8081/api/flights/search?origin=BKK&destination=SIN&date=2
 │   ├── booking/            Go + Gin, port 8082
 │   └── payment/            Go + Gin + Omise SDK, port 8084
 ├── infra/
-│   ├── db/                 PostgreSQL schema (01_schema.sql) + seed data (02_seed.sql)
-│   └── k8s/                Kubernetes manifests skeleton — fill in the TODOs
+│   └── db/                 PostgreSQL schema (01_schema.sql) + seed data (02_seed.sql)
 ├── tests/k6/               K6 load test scripts
 └── scripts/                Smoke, contract, and check-all scripts
 ```
@@ -55,7 +54,6 @@ curl "http://localhost:8081/api/flights/search?origin=BKK&destination=SIN&date=2
 | Provided | What's inside |
 |---|---|
 | `infra/db/` | Schema for all tables + 5 seed flights |
-| `infra/k8s/` | K8s Deployment/Service/ConfigMap/Secret skeletons |
 | `docker-compose.yml` | Spins up postgres + all 3 services |
 | `API_SPECS.md` | Exact request/response shape for every endpoint |
 

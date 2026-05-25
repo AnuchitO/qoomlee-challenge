@@ -28,7 +28,6 @@ You are given:
 | Seed data | `infra/db/02_seed.sql` | 5 real flights in the DB on 2026-06-15 — **do not modify** |
 | API specifications | `API_SPECS.md` | Exact request/response shape for every endpoint |
 | Docker Compose | `docker-compose.yml` | Spins up postgres + all 3 services |
-| K8s manifests skeleton | `infra/k8s/` | Fill in the TODOs |
 | Test scripts | `scripts/`, `tests/k6/` | Smoke, contract, and load tests |
 
 You are **not** given any working business logic. Build everything from scratch.
@@ -54,7 +53,7 @@ payment-service  :8084
   GET  /api/payments/:bookingRef        View payment receipt
 ```
 
-### Infrastructure (all 5)
+### Infrastructure (all 4)
 
 ```
 All services     GET /health/live        Liveness probe  — always 200
@@ -62,7 +61,6 @@ All services     GET /health/ready       Readiness probe — 503 when DB is down
 All services     Rate limiting           Per-IP limits on sensitive endpoints
 All services     Graceful shutdown       Drain connections on SIGTERM (10 s)
 All services     Structured logging      JSON logs via slog
-infra/k8s/       Kubernetes manifests    Complete the TODO sections
 ```
 
 ---
@@ -330,7 +328,7 @@ The `payments.amount` column stores satang. So does the API response.
 #### After a successful charge
 
 Call `PUT http://booking-service:8082/api/bookings/{bookingRef}/status` with `{"status":"CONFIRMED"}`.
-- Use `BOOKING_SERVICE_URL` env var (already set in docker-compose and K8s configmap).
+- Use `BOOKING_SERVICE_URL` env var (already set in docker-compose).
 - If this call fails: **do not return 500**. Log it and return 201 anyway — the charge already succeeded.
 
 #### Guard: reject duplicate payment
@@ -414,8 +412,8 @@ Two endpoints per service — **do not use a single `/health` for both**. They s
 
 | Endpoint | Checks | Returns | Used by |
 |---|---|---|---|
-| `GET /health/live` | Nothing — just proves the process is running | Always `200` | K8s livenessProbe |
-| `GET /health/ready` | `db.PingContext` with 2 s timeout | `200` OK / `503` degraded | K8s readinessProbe, Docker healthcheck |
+| `GET /health/live` | Nothing — just proves the process is running | Always `200` | Docker healthcheck |
+| `GET /health/ready` | `db.PingContext` with 2 s timeout | `200` OK / `503` degraded | Docker healthcheck |
 
 ```go
 r.GET("/health/live",  h.HealthLive)
@@ -487,7 +485,7 @@ db.Close()
 
 ### Structured Logging (JSON)
 
-Replace all `log.Printf` with `slog` (Go stdlib since 1.21). Kubernetes log aggregators expect JSON.
+Replace all `log.Printf` with `slog` (Go stdlib since 1.21). JSON output is required.
 
 ```go
 // main.go — set once at startup
@@ -499,24 +497,6 @@ slog.Info("charge succeeded", "bookingRef", req.BookingRef, "chargeId", charge.I
 ```
 
 Add a Gin middleware that logs one JSON line per request with `method`, `path`, `status`, `latency_ms`.
-
----
-
-### Kubernetes Manifests
-
-Complete the skeleton manifests in `infra/k8s/`. Lines marked `# TODO` must be filled in.
-
-```bash
-kubectl apply -f infra/k8s/
-kubectl get pods -n qoomlee   # all pods → Running
-```
-
-Requirements per service Deployment:
-- Docker image reference (your registry path)
-- All env vars from the `ConfigMap` and `Secret`
-- CPU and memory `requests` + `limits`
-- `livenessProbe` → `GET /health/live`
-- `readinessProbe` → `GET /health/ready`
 
 ---
 
@@ -676,7 +656,6 @@ k6 run tests/k6/booking-flow.js   # 20 VUs × 60 s
 - `bookingRef` must be exactly 6 uppercase alphanumeric characters
 - `.env` must not be committed (it is in `.gitignore`)
 - Rate limiting must be per-IP (not global)
-- K8s manifests must use the `qoomlee` namespace
 - Payment is **credit card only** — do not add webhook handlers
 
 ---
@@ -690,7 +669,7 @@ See `SCORECARD.md` for the full rubric.
 | Working Software — all 7 endpoints return correct responses end-to-end | 25 |
 | Testing — unit + integration + contract + K6 | 35 |
 | Code Quality — layered arch, error handling, clean Go | 20 |
-| Infrastructure — health probes, rate limiting, graceful shutdown, logs, K8s | 20 |
+| Infrastructure — health probes, rate limiting, graceful shutdown, logs | 20 |
 
 ---
 

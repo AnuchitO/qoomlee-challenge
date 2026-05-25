@@ -68,7 +68,6 @@ Cards are tokenised client-side via Omise Vault (`https://vault.omise.co/tokens`
 | Graceful shutdown | `SIGTERM` / `SIGINT` → drain in-flight requests (10 s timeout) |
 | Structured logging | `slog` JSON output; every request logged with `method`, `path`, `status`, `latency_ms` |
 | Containerised | `docker compose up --build` starts all services and DB |
-| Kubernetes-ready | Manifests in `infra/k8s/` with liveness/readiness probes per service |
 
 ---
 

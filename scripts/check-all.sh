@@ -71,7 +71,7 @@ fi
 section "Unit + Integration Tests"
 PASS_COUNT=0; FAIL_COUNT=0; WARN_COUNT=0
 
-for svc in flight-service booking-service payment-service; do
+for svc in flight booking payment; do
   if [ -f "services/$svc/go.mod" ]; then
     echo "  Running: go test ./... in services/$svc"
     if (cd "services/$svc" && go test ./... 2>&1); then
@@ -95,7 +95,7 @@ PILLAR_WARN["unit"]=$WARN_COUNT
 section "Code Quality — go vet + secret scan"
 PASS_COUNT=0; FAIL_COUNT=0; WARN_COUNT=0
 
-for svc in flight-service booking-service payment-service; do
+for svc in flight booking payment; do
   if [ -f "services/$svc/go.mod" ]; then
     if (cd "services/$svc" && go vet ./... 2>&1); then
       PASS_COUNT=$((PASS_COUNT + 1))
@@ -108,7 +108,7 @@ for svc in flight-service booking-service payment-service; do
 done
 
 # Secret scan
-if grep -rn "skey_test\|pkey_test" services/ --include="*.go" 2>/dev/null | grep -v "_test.go" | grep -q .; then
+if grep -rn "skey_test\|pkey_test" . --include="*.go" 2>/dev/null | grep -v "_test.go" | grep -q .; then
   FAIL_COUNT=$((FAIL_COUNT + 1))
   fail "Secret scan: Omise keys found hardcoded in .go files"
 else
@@ -124,7 +124,7 @@ PILLAR_WARN["quality"]=$WARN_COUNT
 section "Shippable — go build + .env check"
 PASS_COUNT=0; FAIL_COUNT=0; WARN_COUNT=0
 
-for svc in flight-service booking-service payment-service api-gateway; do
+for svc in flight booking payment; do
   if [ -f "services/$svc/go.mod" ]; then
     if (cd "services/$svc" && go build ./... 2>&1); then
       PASS_COUNT=$((PASS_COUNT + 1))

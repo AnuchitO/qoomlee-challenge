@@ -6,7 +6,6 @@
 
 | Service | Language | Framework | Port |
 |---------|----------|-----------|------|
-| API Gateway | Go | Gin | 8080 |
 | flight-service | Go | Gin | 8081 |
 | booking-service | Go | Gin | 8082 |
 | payment-service | Go | Gin + Omise SDK | 8084 |
@@ -66,7 +65,7 @@ Add a `service/` layer if your business logic grows complex enough to warrant it
 
 | Variable | Used by | Value in docker-compose |
 |---|---|---|
-| `PORT` | All services | 8080 / 8081 / 8082 / 8084 |
+| `PORT` | All services | 8081 / 8082 / 8084 |
 | `DB_HOST` | All services | `postgres` |
 | `DB_PORT` | All services | `5432` |
 | `DB_NAME` | All services | `qoomlee` |
@@ -75,9 +74,6 @@ Add a `service/` layer if your business logic grows complex enough to warrant it
 | `OMISE_PUBLIC_KEY` | payment-service | `pkey_test_...` — set in `.env` |
 | `OMISE_SECRET_KEY` | payment-service | `skey_test_...` — set in `.env` |
 | `BOOKING_SERVICE_URL` | payment-service | `http://booking-service:8082` |
-| `FLIGHT_SERVICE_URL` | api-gateway | `http://flight-service:8081` |
-| `BOOKING_SERVICE_URL` | api-gateway | `http://booking-service:8082` |
-| `PAYMENT_SERVICE_URL` | api-gateway | `http://payment-service:8084` |
 
 ## Go Patterns Used in This Project
 

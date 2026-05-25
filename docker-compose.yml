@@ -20,7 +20,7 @@ services:
       retries: 10
 
   flight-service:
-    build: ./services/flight-service
+    build: ./services/flight
     environment:
       PORT:    8081
       DB_HOST: postgres
@@ -41,7 +41,7 @@ services:
       start_period: 15s
 
   booking-service:
-    build: ./services/booking-service
+    build: ./services/booking
     environment:
       PORT:    8082
       DB_HOST: postgres
@@ -62,7 +62,7 @@ services:
       start_period: 15s
 
   payment-service:
-    build: ./services/payment-service
+    build: ./services/payment
     environment:
       PORT:    8084
       DB_HOST: postgres
@@ -87,28 +87,6 @@ services:
       retries: 5
       start_period: 15s
 
-  api-gateway:
-    build: ./services/api-gateway
-    environment:
-      PORT: 8080
-      FLIGHT_SERVICE_URL:  http://flight-service:8081
-      BOOKING_SERVICE_URL: http://booking-service:8082
-      PAYMENT_SERVICE_URL: http://payment-service:8084
-    ports:
-      - "8080:8080"
-    depends_on:
-      flight-service:
-        condition: service_healthy
-      booking-service:
-        condition: service_healthy
-      payment-service:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health/live || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
 
 volumes:
   postgres_data:

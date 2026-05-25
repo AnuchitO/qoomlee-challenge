@@ -24,7 +24,7 @@ export const options = {
   },
 };
 
-const BASE_URL = __ENV.API_BASE || "http://localhost:8080";
+const BASE_URL = __ENV.FLIGHT_SERVICE_URL || "http://localhost:8081";
 
 const SEARCH_PARAMS = [
   { origin: "BKK", destination: "SIN", date: "2026-06-15" },

@@ -27,12 +27,11 @@ You are given:
 | Database schema | `infra/db/01_schema.sql` | Table definitions — **do not modify** |
 | Seed data | `infra/db/02_seed.sql` | 5 real flights in the DB on 2026-06-15 — **do not modify** |
 | API specifications | `API_SPECS.md` | Exact request/response shape for every endpoint |
-| Service skeletons | `services/*/` | Go project structure, model structs, stub handlers |
-| Docker Compose | `docker-compose.yml` | Spins up postgres + all 4 services |
+| Docker Compose | `docker-compose.yml` | Spins up postgres + all 3 services |
 | K8s manifests skeleton | `infra/k8s/` | Fill in the TODOs |
 | Test scripts | `scripts/`, `tests/k6/` | Smoke, contract, and load tests |
 
-You are **not** given any working business logic. Every endpoint starts as a `501 Not Implemented` stub.
+You are **not** given any working business logic. Build everything from scratch.
 
 ---
 
@@ -93,7 +92,7 @@ cp .env.example .env
 docker compose up --build
 
 # 4. Verify postgres is up (services will return 501 until you implement them)
-curl "http://localhost:8080/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"
+curl "http://localhost:8081/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"
 # Expected before implementation: HTTP 501
 # Expected after implementation:  HTTP 200 with flights array
 ```
@@ -104,7 +103,6 @@ curl "http://localhost:8080/api/flights/search?origin=BKK&destination=SIN&date=2
 
 | Service | Language | Framework | Port |
 |---|---|---|---|
-| API Gateway | Go | Gin | 8080 |
 | flight-service | Go | Gin | 8081 |
 | booking-service | Go | Gin | 8082 |
 | payment-service | Go | Gin | 8084 |
@@ -113,8 +111,6 @@ curl "http://localhost:8080/api/flights/search?origin=BKK&destination=SIN&date=2
 **Unit tests:** `go test ./...` with `testify` + `testify/mock`
 **Integration tests:** `testcontainers-go` (real PostgreSQL container)
 **Load tests:** K6
-
-> All requests go through the **API Gateway on port 8080**. Never call services directly in tests.
 
 ---
 
@@ -214,8 +210,8 @@ Below are the key implementation notes for each.
 
 ### 1. `GET /api/flights/search`
 
-**File:** `services/flight-service/handler/flight.go` → `Search`
-**Repo:** `services/flight-service/repository/flight.go` → `Search`
+**File:** `services/flight/handler/flight.go` → `Search`
+**Repo:** `services/flight/repository/flight.go` → `Search`
 
 Query parameters: `origin`, `destination`, `date` (YYYY-MM-DD), `passengers` (default 1).
 
@@ -242,8 +238,8 @@ Compute `durationMinutes` from `arrival_time - departure_time` in Go.
 
 ### 2. `GET /api/flights/:id`
 
-**File:** `services/flight-service/handler/flight.go` → `GetByID`
-**Repo:** `services/flight-service/repository/flight.go` → `GetByID`
+**File:** `services/flight/handler/flight.go` → `GetByID`
+**Repo:** `services/flight/repository/flight.go` → `GetByID`
 
 Same columns as search. If no row found, return 404 `FLIGHT_NOT_FOUND`.
 
@@ -251,8 +247,8 @@ Same columns as search. If no row found, return 404 `FLIGHT_NOT_FOUND`.
 
 ### 3. `POST /api/bookings`
 
-**File:** `services/booking-service/handler/booking.go` → `Create`
-**Repo:** `services/booking-service/repository/booking.go` → `InsertPassenger`, `InsertBooking`
+**File:** `services/booking/handler/booking.go` → `Create`
+**Repo:** `services/booking/repository/booking.go` → `InsertPassenger`, `InsertBooking`
 
 Two writes in **one transaction**:
 1. `INSERT INTO passengers (first_name, last_name, email, ...)` → returns `passenger_id`
@@ -269,8 +265,8 @@ const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
 ### 4. `POST /api/payments/charge`
 
-**File:** `services/payment-service/handler/payment.go` → `Charge`
-**Repo:** `services/payment-service/repository/payment.go` → `Insert`
+**File:** `services/payment/handler/payment.go` → `Charge`
+**Repo:** `services/payment/repository/payment.go` → `Insert`
 
 #### How Omise works (credit card, synchronous)
 
@@ -355,8 +351,8 @@ Use any future expiry (e.g. `12/2028`), any 3-digit CVV, any cardholder name.
 
 ### 5. `PUT /api/bookings/:bookingRef/status`
 
-**File:** `services/booking-service/handler/booking.go` → `UpdateStatus`
-**Repo:** `services/booking-service/repository/booking.go` → `UpdateStatus`
+**File:** `services/booking/handler/booking.go` → `UpdateStatus`
+**Repo:** `services/booking/repository/booking.go` → `UpdateStatus`
 
 Called **only by payment-service** after a successful charge. Not a public endpoint.
 
@@ -373,8 +369,8 @@ If the booking_ref doesn't exist, return 404 `BOOKING_NOT_FOUND`.
 
 ### 6. `GET /api/bookings/:bookingRef`
 
-**File:** `services/booking-service/handler/booking.go` → `GetByRef`
-**Repo:** `services/booking-service/repository/booking.go` → `GetByRef`
+**File:** `services/booking/handler/booking.go` → `GetByRef`
+**Repo:** `services/booking/repository/booking.go` → `GetByRef`
 
 Join bookings → passengers and bookings → flights → routes:
 
@@ -394,8 +390,8 @@ WHERE b.booking_ref = $1
 
 ### 7. `GET /api/payments/:bookingRef`
 
-**File:** `services/payment-service/handler/payment.go` → `GetByBookingRef`
-**Repo:** `services/payment-service/repository/payment.go` → `GetByBookingRef`
+**File:** `services/payment/handler/payment.go` → `GetByBookingRef`
+**Repo:** `services/payment/repository/payment.go` → `GetByBookingRef`
 
 ```sql
 SELECT id, booking_ref, booking_id, amount, currency,
@@ -442,8 +438,6 @@ func (h *Handler) HealthReady(c *gin.Context) {
     c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "flight-service"})
 }
 ```
-
-> api-gateway has no DB — both `/health/live` and `/health/ready` return 200 unconditionally.
 
 ---
 
@@ -523,8 +517,6 @@ Requirements per service Deployment:
 - CPU and memory `requests` + `limits`
 - `livenessProbe` → `GET /health/live`
 - `readinessProbe` → `GET /health/ready`
-
-api-gateway must have `replicas: 2` and a `HorizontalPodAutoscaler` (min 2, max 5, 70% CPU).
 
 ---
 
@@ -734,5 +726,5 @@ Correct. It's called internally by payment-service after a successful charge to 
 **Q: What does booking `status` mean?**
 `PENDING` = booked, not yet paid. `CONFIRMED` = paid successfully. Payment-service is responsible for calling booking-service to set CONFIRMED.
 
-**Q: Should I touch `services/checkin-service/` or the `checkins` table?**
+**Q: Should I build a checkin-service or touch the `checkins` table?**
 No. Ignore them entirely — out of scope.

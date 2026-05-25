@@ -24,9 +24,12 @@ COMPOSE := $(shell \
   fi)
 
 # ── Config ───────────────────────────────────────────────────────────────────
-API_BASE  ?= http://localhost:8080
+FLIGHT_SERVICE_URL  ?= http://localhost:8081
+BOOKING_SERVICE_URL ?= http://localhost:8082
+PAYMENT_SERVICE_URL ?= http://localhost:8084
 DATE      ?= 2026-06-15
-SERVICES  := flight-service booking-service payment-service api-gateway
+SERVICES  := flight booking payment
+SVC_DIR   := services
 
 # ── Colors ───────────────────────────────────────────────────────────────────
 BOLD   := \033[1m
@@ -64,7 +67,7 @@ deps:
 	@echo -e "$(BOLD)Downloading Go dependencies...$(RESET)"
 	@for svc in $(SERVICES); do \
 	  echo -e "  $(CYAN)→$(RESET)  $$svc"; \
-	  (cd services/$$svc && go mod download) || exit 1; \
+	  (cd $(SVC_DIR)/$$svc && go mod download) || exit 1; \
 	done
 	@echo -e "  $(GREEN)✓$(RESET)  All Go dependencies downloaded"
 
@@ -92,7 +95,9 @@ up-d: _check-compose _check-env
 	$(COMPOSE) up --build -d
 	@echo ""
 	@echo -e "  $(GREEN)✓$(RESET)  All services started"
-	@echo -e "  $(CYAN)→$(RESET)  API Gateway  $(API_BASE)"
+	@echo -e "  $(CYAN)→$(RESET)  flight-service  $(FLIGHT_SERVICE_URL)"
+	@echo -e "  $(CYAN)→$(RESET)  booking-service $(BOOKING_SERVICE_URL)"
+	@echo -e "  $(CYAN)→$(RESET)  payment-service $(PAYMENT_SERVICE_URL)"
 	@echo -e "  $(CYAN)→$(RESET)  Logs         make logs"
 	@echo -e "  $(CYAN)→$(RESET)  Smoke test   make check-smoke"
 
@@ -141,7 +146,7 @@ go-build:
 	@echo -e "$(BOLD)Building Go services...$(RESET)"
 	@for svc in $(SERVICES); do \
 	  echo -e "  $(CYAN)→$(RESET)  $$svc"; \
-	  (cd services/$$svc && go build ./...) || exit 1; \
+	  (cd $(SVC_DIR)/$$svc && go build ./...) || exit 1; \
 	done
 	@echo -e "  $(GREEN)✓$(RESET)  All services compile cleanly"
 
@@ -154,9 +159,9 @@ test: test-unit test-integration
 .PHONY: test-unit # Run unit tests for all services (no DB required)
 test-unit:
 	@echo -e "$(BOLD)Running unit tests...$(RESET)"
-	@for svc in flight-service booking-service payment-service; do \
+	@for svc in $(SERVICES); do \
 	  echo -e "  $(CYAN)→$(RESET)  $$svc"; \
-	  (cd services/$$svc && go test ./... -short -count=1 2>&1 | tail -5) || \
+	  (cd $(SVC_DIR)/$$svc && go test ./... -short -count=1 2>&1 | tail -5) || \
 	    echo -e "    $(RED)✗$(RESET)  failed — run 'make test-$$svc' for details"; \
 	done
 	@echo -e "\n  $(GREEN)✓$(RESET)  Unit tests complete"
@@ -165,9 +170,9 @@ test-unit:
 test-integration:
 	@echo -e "$(BOLD)Running integration tests (testcontainers-go)...$(RESET)"
 	@echo -e "  $(DIM)Note: Docker must be running — pulls postgres image on first run$(RESET)"
-	@for svc in flight-service booking-service payment-service; do \
+	@for svc in $(SERVICES); do \
 	  echo -e "  $(CYAN)→$(RESET)  $$svc"; \
-	  (cd services/$$svc && go test ./... -run Integration -count=1 2>&1 | tail -5) || \
+	  (cd $(SVC_DIR)/$$svc && go test ./... -run Integration -count=1 2>&1 | tail -5) || \
 	    echo -e "    $(YELLOW)⚠$(RESET)  No Integration tests yet — implement with testcontainers-go"; \
 	done
 	@echo -e "\n  $(GREEN)✓$(RESET)  Integration tests complete"
@@ -175,17 +180,17 @@ test-integration:
 .PHONY: test-flight # Run flight-service tests only
 test-flight:
 	@echo -e "$(BOLD)flight-service tests$(RESET)"
-	cd services/flight-service && go test ./... -v -count=1
+	cd services/flight && go test ./... -v -count=1
 
 .PHONY: test-booking # Run booking-service tests only
 test-booking:
 	@echo -e "$(BOLD)booking-service tests$(RESET)"
-	cd services/booking-service && go test ./... -v -count=1
+	cd services/booking && go test ./... -v -count=1
 
 .PHONY: test-payment # Run payment-service tests only
 test-payment:
 	@echo -e "$(BOLD)payment-service tests$(RESET)"
-	cd services/payment-service && go test ./... -v -count=1
+	cd services/payment && go test ./... -v -count=1
 
 # ====================================================================================
 # SCORE AND QUALITY CHECKS
@@ -230,7 +235,7 @@ lint-go:
 	@echo -e "$(BOLD)Linting Go services...$(RESET)"
 	@for svc in $(SERVICES); do \
 	  echo -e "  $(CYAN)→$(RESET)  $$svc"; \
-	  (cd services/$$svc && go vet ./...) || exit 1; \
+	  (cd $(SVC_DIR)/$$svc && go vet ./...) || exit 1; \
 	done
 	@echo -e "  $(GREEN)✓$(RESET)  go vet passed"
 
@@ -238,7 +243,7 @@ lint-go:
 fmt:
 	@echo -e "$(BOLD)Formatting Go services...$(RESET)"
 	@for svc in $(SERVICES); do \
-	  gofmt -w services/$$svc/; \
+	  gofmt -w $$svc/; \
 	done
 	@echo -e "  $(GREEN)✓$(RESET)  Go code formatted"
 
@@ -277,7 +282,7 @@ clean:
 	@echo -e "$(BOLD)Cleaning build artifacts...$(RESET)"
 	@rm -f /tmp/*-cover.out
 	@for svc in $(SERVICES); do \
-	  [ -d services/$$svc/tmp ] && rm -rf services/$$svc/tmp || true; \
+	  [ -d $$svc/tmp ] && rm -rf $$svc/tmp || true; \
 	done
 	@echo -e "  $(GREEN)✓$(RESET)  Build artifacts removed"
 
@@ -293,17 +298,17 @@ clean-docker: _check-compose
 # ====================================================================================
 .PHONY: curl-search # Search flights BKK→SIN  (override: make curl-search DATE=2026-07-01)
 curl-search: _require-stack
-	@curl -s "$(API_BASE)/api/flights/search?origin=BKK&destination=SIN&date=$(DATE)&passengers=1" | jq .
+	@curl -s "$(FLIGHT_SERVICE_URL)/api/flights/search?origin=BKK&destination=SIN&date=$(DATE)&passengers=1" | jq .
 
 .PHONY: curl-flight # Get flight detail  e.g. make curl-flight FLIGHT_ID=1
 curl-flight: _require-stack
 	@[ -n "$(FLIGHT_ID)" ] || (echo -e "$(RED)Usage: make curl-flight FLIGHT_ID=1$(RESET)" && exit 1)
-	@curl -s "$(API_BASE)/api/flights/$(FLIGHT_ID)" | jq .
+	@curl -s "$(FLIGHT_SERVICE_URL)/api/flights/$(FLIGHT_ID)" | jq .
 
 .PHONY: curl-book # Create a test booking  e.g. make curl-book FLIGHT_ID=1
 curl-book: _require-stack
 	@[ -n "$(FLIGHT_ID)" ] || (echo -e "$(RED)Usage: make curl-book FLIGHT_ID=1$(RESET)" && exit 1)
-	@curl -s -X POST "$(API_BASE)/api/bookings" \
+	@curl -s -X POST "$(BOOKING_SERVICE_URL)/api/bookings" \
 	  -H "Content-Type: application/json" \
 	  -d '{"flightId":$(FLIGHT_ID),"passenger":{"firstName":"Test","lastName":"Dev","email":"dev@test.com","passportNumber":"TD000001","nationality":"TH"},"totalAmount":3500.00,"currency":"THB"}' \
 	  | jq .
@@ -311,12 +316,12 @@ curl-book: _require-stack
 .PHONY: curl-booking # Get booking detail  e.g. make curl-booking PNR=QM7X2K
 curl-booking: _require-stack
 	@[ -n "$(PNR)" ] || (echo -e "$(RED)Usage: make curl-booking PNR=QM7X2K$(RESET)" && exit 1)
-	@curl -s "$(API_BASE)/api/bookings/$(PNR)" | jq .
+	@curl -s "$(BOOKING_SERVICE_URL)/api/bookings/$(PNR)" | jq .
 
 .PHONY: curl-payment # Get payment status  e.g. make curl-payment PNR=QM7X2K
 curl-payment: _require-stack
 	@[ -n "$(PNR)" ] || (echo -e "$(RED)Usage: make curl-payment PNR=QM7X2K$(RESET)" && exit 1)
-	@curl -s "$(API_BASE)/api/payments/$(PNR)" | jq .
+	@curl -s "$(PAYMENT_SERVICE_URL)/api/payments/$(PNR)" | jq .
 
 .PHONY: omise-token # Get an Omise test token (success card)  requires OMISE_PUBLIC_KEY in .env
 omise-token:
@@ -338,15 +343,15 @@ walk:
 	@echo -e "$(BOLD)━━━ Happy Path Walkthrough ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)"
 	@echo ""
 	@echo -e "$(CYAN)Step 1 — Search flights$(RESET)"
-	@echo -e '  curl "$(API_BASE)/api/flights/search?origin=BKK&destination=SIN&date=$(DATE)&passengers=1"'
+	@echo -e '  curl "$(FLIGHT_SERVICE_URL)/api/flights/search?origin=BKK&destination=SIN&date=$(DATE)&passengers=1"'
 	@echo -e "  $(DIM)→ note the flight \"id\" and \"basePrice\"$(RESET)"
 	@echo ""
 	@echo -e "$(CYAN)Step 2 — View flight detail$(RESET)"
-	@echo -e '  curl "$(API_BASE)/api/flights/1"'
+	@echo -e '  curl "$(FLIGHT_SERVICE_URL)/api/flights/1"'
 	@echo -e "  $(DIM)→ confirm durationMinutes is present$(RESET)"
 	@echo ""
 	@echo -e "$(CYAN)Step 3 — Create booking (set totalAmount = basePrice)$(RESET)"
-	@echo -e '  curl -X POST $(API_BASE)/api/bookings \'
+	@echo -e '  curl -X POST $(BOOKING_SERVICE_URL)/api/bookings \'
 	@echo -e '    -H "Content-Type: application/json" \'
 	@echo -e '    -d '"'"'{"flightId":1,"passenger":{"firstName":"Somchai","lastName":"Jaidee","email":"somchai@example.com","phone":"+66812345678","passportNumber":"AA123456","dateOfBirth":"1990-05-15","nationality":"TH"},"totalAmount":3500.00,"currency":"THB"}'"'"
 	@echo -e "  $(DIM)→ save bookingRef (PNR) and bookingId from response$(RESET)"
@@ -359,16 +364,16 @@ walk:
 	@echo -e "  $(DIM)→ copy the \"id\" field: tokn_test_xxxx$(RESET)"
 	@echo ""
 	@echo -e "$(CYAN)Step 4b — Pay  (3500 THB × 100 = 350000 satang)$(RESET)"
-	@echo -e '  curl -X POST $(API_BASE)/api/payments/charge \'
+	@echo -e '  curl -X POST $(PAYMENT_SERVICE_URL)/api/payments/charge \'
 	@echo -e '    -H "Content-Type: application/json" \'
 	@echo -e '    -d '"'"'{"bookingRef":"QM7X2K","bookingId":42,"omiseToken":"tokn_test_xxxx","amount":350000,"currency":"THB"}'"'"
 	@echo -e "  $(DIM)→ expect status SUCCEEDED and omiseChargeId$(RESET)"
 	@echo ""
 	@echo -e "$(CYAN)Step 5 — View booking confirmation (must show CONFIRMED)$(RESET)"
-	@echo -e '  curl "$(API_BASE)/api/bookings/QM7X2K"'
+	@echo -e '  curl "$(BOOKING_SERVICE_URL)/api/bookings/QM7X2K"'
 	@echo ""
 	@echo -e "$(CYAN)Step 6 — View payment receipt$(RESET)"
-	@echo -e '  curl "$(API_BASE)/api/payments/QM7X2K"'
+	@echo -e '  curl "$(PAYMENT_SERVICE_URL)/api/payments/QM7X2K"'
 	@echo ""
 	@echo -e "$(DIM)Replace QM7X2K / 42 / tokn_test_xxxx with your actual values.$(RESET)"
 	@echo ""
@@ -417,8 +422,8 @@ _check-env:
 
 .PHONY: _require-stack
 _require-stack:
-	@curl -sf "$(API_BASE)/api/flights/search?origin=BKK&destination=SIN&date=$(DATE)&passengers=1" \
+	@curl -sf "$(FLIGHT_SERVICE_URL)/api/flights/search?origin=BKK&destination=SIN&date=$(DATE)&passengers=1" \
 	  >/dev/null 2>&1 || \
-	  (echo -e "$(RED)ERROR: Stack not reachable at $(API_BASE)$(RESET)" && \
+	  (echo -e "$(RED)ERROR: flight-service not reachable at $(FLIGHT_SERVICE_URL)$(RESET)" && \
 	   echo -e "       Run: $(BOLD)make up-d$(RESET)" && \
 	   exit 1)

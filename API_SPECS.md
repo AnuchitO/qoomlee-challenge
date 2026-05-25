@@ -1,7 +1,11 @@
 # Qoomlee Airline — API Specifications
 
-All public calls go through the **API Gateway: `http://localhost:8080`**.
-Internal service-to-service calls use the direct service URL (e.g. `http://booking-service:8082`).
+Services run on their own ports. Call them directly:
+- flight-service: `http://localhost:8081`
+- booking-service: `http://localhost:8082`
+- payment-service: `http://localhost:8084`
+
+Internal service-to-service calls use the Docker Compose service name (e.g. `http://booking-service:8082`).
 
 > **Amount convention:** All payment amounts are in **satang** (Thai smallest currency unit).
 > 1 THB = 100 satang. Always multiply when sending, divide when displaying.
@@ -26,7 +30,7 @@ Search available flights by route and date.
 
 **Request example**
 ```bash
-curl "http://localhost:8080/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"
+curl "http://localhost:8081/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"
 ```
 
 **Response `200 OK`**
@@ -85,7 +89,7 @@ Get full detail for one flight by its database ID.
 **Path parameter:** `id` — integer, from search results.
 
 ```bash
-curl "http://localhost:8080/api/flights/1"
+curl "http://localhost:8081/api/flights/1"
 ```
 
 **Response `200 OK`**
@@ -148,7 +152,7 @@ Create a booking for one passenger on one flight. Returns a 6-char PNR (`booking
 **Optional fields:** `currency` (default `"THB"`), `passenger.phone`, `passenger.passportNumber`, `passenger.dateOfBirth`, `passenger.nationality`
 
 ```bash
-curl -X POST http://localhost:8080/api/bookings \
+curl -X POST http://localhost:8082/api/bookings \
   -H "Content-Type: application/json" \
   -d '{
     "flightId": 1,
@@ -193,7 +197,7 @@ Get full booking detail including passenger and flight information.
 **Path parameter:** `bookingRef` — 6-char PNR, case-insensitive (normalise to uppercase internally).
 
 ```bash
-curl "http://localhost:8080/api/bookings/QM7X2K"
+curl "http://localhost:8082/api/bookings/QM7X2K"
 ```
 
 **Response `200 OK`** — before payment (`status: "PENDING"`)
@@ -300,7 +304,7 @@ curl https://vault.omise.co/tokens \
 **Required fields:** `bookingRef`, `bookingId`, `omiseToken`, `amount`
 
 ```bash
-curl -X POST http://localhost:8080/api/payments/charge \
+curl -X POST http://localhost:8084/api/payments/charge \
   -H "Content-Type: application/json" \
   -d '{"bookingRef":"QM7X2K","bookingId":42,"omiseToken":"tokn_test_xxxx","amount":350000,"currency":"THB"}'
 ```
@@ -342,7 +346,7 @@ Get the most recent payment record for a booking.
 **Path parameter:** `bookingRef` — 6-char PNR.
 
 ```bash
-curl "http://localhost:8080/api/payments/QM7X2K"
+curl "http://localhost:8084/api/payments/QM7X2K"
 ```
 
 **Response `200 OK`** — successful payment

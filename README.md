@@ -6,7 +6,7 @@ A real-world engineering challenge comparing two AI-assisted development approac
 |--------|--------|
 | May create and use agent skill `.md` files | Single code agent only — no skill files |
 
-Both teams start from this identical skeleton. Judged by `SCORECARD.md`.
+Both teams start from this identical blank repo. Judged by `SCORECARD.md`.
 
 ---
 
@@ -29,7 +29,7 @@ cp .env.example .env
 docker compose up --build
 
 # 3. Verify postgres is up (endpoints return 501 until you implement them)
-curl "http://localhost:8080/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15"
+curl "http://localhost:8081/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15"
 ```
 
 ---
@@ -37,33 +37,29 @@ curl "http://localhost:8080/api/flights/search?origin=BKK&destination=SIN&date=2
 ## Project Structure
 
 ```
+├── services/
+│   ├── flight/             Go + Gin, port 8081
+│   ├── booking/            Go + Gin, port 8082
+│   └── payment/            Go + Gin + Omise SDK, port 8084
 ├── infra/
 │   ├── db/                 PostgreSQL schema (01_schema.sql) + seed data (02_seed.sql)
 │   └── k8s/                Kubernetes manifests skeleton — fill in the TODOs
-├── services/
-│   ├── api-gateway/        Go + Gin, port 8080 — reverse proxy
-│   ├── flight-service/     Go + Gin, port 8081
-│   ├── booking-service/    Go + Gin, port 8082
-│   └── payment-service/    Go + Gin + Omise SDK, port 8084
 ├── tests/k6/               K6 load test scripts
 └── scripts/                Smoke, contract, and check-all scripts
 ```
 
 ---
 
-## What the Skeleton Gives You
+## What's Provided
 
 | Provided | What's inside |
 |---|---|
 | `infra/db/` | Schema for all tables + 5 seed flights |
-| `services/*/model/` | Go struct definitions matching the DB schema |
-| `services/*/db/` | PostgreSQL connection helper |
-| `services/*/handler/` | Gin handler stubs — all return `501 Not Implemented` |
-| `services/*/repository/` | Repository stubs — all return `errors.New("not implemented")` |
 | `infra/k8s/` | K8s Deployment/Service/ConfigMap/Secret skeletons |
+| `docker-compose.yml` | Spins up postgres + all 3 services |
 | `API_SPECS.md` | Exact request/response shape for every endpoint |
 
-**Nothing is implemented.** Read `CHALLENGE.md` for what to build and in what order.
+**Build everything from scratch.** Read `CHALLENGE.md` for what to build and in what order.
 
 ---
 

@@ -23,14 +23,14 @@ Evaluator: _____________________
 
 ## Pillar 1 — Working Software (25 points)
 
-_Run after `docker compose up --build`. All requests hit the gateway on port 8080._
+_Run after `docker compose up --build`. Call each service on its own port (8081 / 8082 / 8084)._
 
 ### Automated smoke tests — 3 pts each
 
 | # | Command | Pass condition | Pass | Fail |
 |---|---------|---------------|------|------|
-| 1 | `curl "http://localhost:8080/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"` | Status 200; body has key `"flights"` with ≥1 item | | |
-| 2 | `curl "http://localhost:8080/api/flights/1"` | Status 200; body has `id`, `flightNumber`, `origin`, `destination`, `durationMinutes` | | |
+| 1 | `curl "http://localhost:8081/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"` | Status 200; body has key `"flights"` with ≥1 item | | |
+| 2 | `curl "http://localhost:8081/api/flights/1"` | Status 200; body has `id`, `flightNumber`, `origin`, `destination`, `durationMinutes` | | |
 | 3 | `POST /api/bookings` with valid body | Status 201; `bookingRef` is exactly 6 chars; `bookingId` is an integer | | |
 | 4 | `POST /api/payments/charge` with success card `4242…` token | Status 201; `omiseChargeId` non-empty; `status` is `"SUCCEEDED"` | | |
 | 5 | `GET /api/bookings/{bookingRef}` (after step 4) | Status 200; `status` is `"CONFIRMED"`; `flight` and `passenger` objects present | | |
@@ -176,7 +176,7 @@ Scripts in `tests/k6/`. Run against live stack.
 | Check | Command | Pass (2 pts) | Fail (0 pts) |
 |-------|---------|---|---|
 | `go vet` clean | `go vet ./...` in each service — zero issues | | |
-| No hardcoded secrets | `grep -rn "skey_test\|pkey_test" services/` — zero results in `.go` files | | |
+| No hardcoded secrets | `grep -rn "skey_test\|pkey_test" .` — zero results in `.go` files | | |
 | All services build | `go build ./...` in each service exits 0 | | |
 
 **Automated subtotal: __ / 6**
@@ -255,9 +255,8 @@ Run: `kubectl apply -f infra/k8s/` on a clean cluster (minikube or kind is fine)
 
 | Check | Pass (2 pts) | Partial (1 pt) | Fail (0 pts) |
 |-------|---|---|---|
-| All 4 service Deployments start (`kubectl get pods -n qoomlee` → all Running) | | | |
+| All 3 service Deployments start (`kubectl get pods -n qoomlee` → all Running) | | | |
 | Each Deployment has `livenessProbe` and `readinessProbe` pointing to `GET /health`; CPU + memory `requests` and `limits` are set | | | |
-| `api-gateway` has `replicas: 2` and a `HorizontalPodAutoscaler` (min 2, max 5, target 70% CPU) | | | |
 
 **K8s subtotal: __ / 6**
 

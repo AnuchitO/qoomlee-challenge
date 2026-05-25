@@ -22,7 +22,8 @@ export const options = {
   },
 };
 
-const BASE_URL = __ENV.API_BASE || "http://localhost:8080";
+const FLIGHTS_URL  = __ENV.FLIGHT_SERVICE_URL  || "http://localhost:8081";
+const BOOKINGS_URL = __ENV.BOOKING_SERVICE_URL || "http://localhost:8082";
 
 const HEADERS = { "Content-Type": "application/json" };
 
@@ -37,7 +38,7 @@ function randomPassport() {
 export function setup() {
   // Fetch a valid flight ID to use throughout the test
   const res = http.get(
-    `${BASE_URL}/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15`
+    `${FLIGHTS_URL}/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15`
   );
   const body = JSON.parse(res.body);
   if (!body.flights || body.flights.length === 0) {
@@ -62,7 +63,7 @@ export default function (data) {
     currency: "THB",
   });
 
-  const bookingRes = http.post(`${BASE_URL}/api/bookings`, bookingPayload, {
+  const bookingRes = http.post(`${BOOKINGS_URL}/api/bookings`, bookingPayload, {
     headers: HEADERS,
   });
 

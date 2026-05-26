@@ -27,7 +27,7 @@ COMPOSE := $(shell \
 QOOMLEE_SERVICE_URL ?= http://localhost:8082
 PAYMENT_SERVICE_URL ?= http://localhost:8084
 DATE      ?= 2026-06-15
-SERVICES  := booking payment
+SERVICES  := qoomlee payment
 SVC_DIR   := services
 
 # ── Colors ───────────────────────────────────────────────────────────────────

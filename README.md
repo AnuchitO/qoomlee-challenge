@@ -38,13 +38,31 @@ docker compose up --build
 curl "http://localhost:8082/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15"
 ```
 
+## JWT Development Guide
+
+All API endpoints require JWT authentication. For development:
+
+1. **Default keys included**: The `.env.example` file contains development JWT keys for immediate testing
+2. **Generate tokens**: Use `make jwt-token` to generate valid test tokens
+3. **Use in requests**: Include in headers as `Authorization: Bearer <token>`
+
+Example:
+```bash
+# Generate a test token
+TOKEN=$(make jwt-token -s)
+
+# Use in API calls
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8082/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15"
+```
+
 ---
 
 ## Project Structure
 
 ```
 ├── services/
-│   ├── booking/            Go + Gin, port 8082 (flights + bookings)
+│   ├── qoomlee/            Go + Gin, port 8082 (flights + bookings)
 │   └── payment/            Go + Gin + Omise SDK, port 8084
 ├── infra/
 │   └── db/

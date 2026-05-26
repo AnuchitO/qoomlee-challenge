@@ -24,15 +24,17 @@ You are given:
 
 | Provided | Location | Purpose |
 |---|---|---|
-| Booking DB schema | `infra/db/qoomlee/01_schema.sql` | Table definitions for qoomlee-service — **do not modify** |
-| Payment DB schema | `infra/db/qoomlee-payment/01_schema.sql` | Table definitions for payment-service — **do not modify** |
-| Booking DB seed | `infra/db/qoomlee/02_seed.sql` | Flights, passengers, bookings — **do not modify** |
-| Payment DB seed | `infra/db/qoomlee-payment/02_seed.sql` | Payments — **do not modify** |
+| Booking DB schema | `infra/db/qoomlee/01_schema.sql` | Table definitions for qoomlee-service |
+| Payment DB schema | `infra/db/qoomlee-payment/01_schema.sql` | Table definitions for payment-service |
+| Booking DB seed | `infra/db/qoomlee/02_seed.sql` | Flights, passengers, bookings |
+| Payment DB seed | `infra/db/qoomlee-payment/02_seed.sql` | Payments |
 | API specifications | `API_SPECS.md` | Exact request/response shape for every endpoint |
 | Docker Compose | `docker-compose.yml` | Spins up 2 postgres instances + both services |
 | Test scripts | `scripts/`, `tests/k6/` | Smoke, contract, and load tests |
 
 You are **not** given any working business logic. Build everything from scratch.
+
+**Feel free to edit anything to make it serve the business requirements.**
 
 ---
 
@@ -109,7 +111,7 @@ curl -H "Authorization: Bearer $TOKEN" \
 | Service | Language | Framework | Port |
 |---|---|---|---|
 | qoomlee-service | Go | Gin | 8082 |
-| payment-service | Go | Gin | 8084 |
+| payment-service | Go | Gin + Omise SDK | 8084 |
 | postgres-qoomlee | — | PostgreSQL 16 | 5433 (host) |
 | postgres-qoomlee-payment | — | PostgreSQL 16 | 5434 (host) |
 
@@ -121,15 +123,32 @@ curl -H "Authorization: Bearer $TOKEN" \
 
 ## Service Architecture
 
-Both Go services follow the same three-layer pattern:
+Both Go services can follow a domain-oriented structure for better locality, encapsulation, and maintainability:
 
 ```
-Handler  (HTTP)      — parse request, validate input, call service, write response
-Service  (Business)  — orchestration logic, calls repository
-Repository (SQL)     — all database queries; defined as an interface for testability
+Domain Folder (e.g. flight/, booking/, payment/)
+├── handler.go      — HTTP handlers for this domain
+├── service.go      — business logic for this domain
+├── repository.go   — database queries for this domain
+└── models.go       — data structures for this domain
 ```
 
-No SQL in handlers. No HTTP logic in repositories.
+Benefits of domain-oriented organization:
+- **Locality**: Related code (handlers, services, repositories) lives together
+- **Encapsulation**: Each domain is self-contained with clear boundaries
+- **Deletability**: Entire domains can be removed without affecting others
+- **Onboarding**: New developers can focus on one domain at a time
+- **Testability**: Each domain can be tested independently
+
+Alternative three-layer pattern (by layer):
+```
+Layered approach:
+├── handler/        — all HTTP handlers
+├── service/        — all business logic
+└── repository/     — all database queries
+```
+
+The domain-oriented approach is suggested but not required. Choose the structure that best fits your team's preferences and the problem complexity.
 
 ---
 
@@ -265,8 +284,8 @@ Below are the key implementation notes for each.
 
 ### 1. `GET /api/flights/search`
 
-**File:** `services/qoomlee/handler/flight.go` → `Search`
-**Repo:** `services/qoomlee/repository/flight.go` → `Search`
+**File:** `services/qoomlee/flight/handler.go` → `Search`
+**Repo:** `services/qoomlee/flight/repository.go` → `Search`
 
 Query parameters: `origin`, `destination`, `date` (YYYY-MM-DD), `passengers` (default 1).
 
@@ -293,8 +312,8 @@ Compute `durationMinutes` from `arrival_time - departure_time` in Go.
 
 ### 2. `GET /api/flights/:id`
 
-**File:** `services/qoomlee/handler/flight.go` → `GetByID`
-**Repo:** `services/qoomlee/repository/flight.go` → `GetByID`
+**File:** `services/qoomlee/flight/handler.go` → `GetByID`
+**Repo:** `services/qoomlee/flight/repository.go` → `GetByID`
 
 Same columns as search. If no row found, return 404 `FLIGHT_NOT_FOUND`.
 
@@ -302,8 +321,8 @@ Same columns as search. If no row found, return 404 `FLIGHT_NOT_FOUND`.
 
 ### 3. `POST /api/bookings`
 
-**File:** `services/qoomlee/handler/booking.go` → `Create`
-**Repo:** `services/qoomlee/repository/booking.go` → `InsertPassenger`, `InsertBooking`
+**File:** `services/qoomlee/booking/handler.go` → `Create`
+**Repo:** `services/qoomlee/booking/repository.go` → `InsertPassenger`, `InsertBooking`
 
 Three steps in **one transaction** — use `SELECT … FOR UPDATE` to prevent overbooking under concurrent load:
 
@@ -339,8 +358,8 @@ const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
 ### 4. `POST /api/payments/charge`
 
-**File:** `services/payment/handler/payment.go` → `Charge`
-**Repo:** `services/payment/repository/payment.go` → `Insert`
+**File:** `services/payment/payment/handler.go` → `Charge`
+**Repo:** `services/payment/payment/repository.go` → `Insert`
 
 #### How Omise works (credit card, synchronous)
 
@@ -447,8 +466,8 @@ Use any future expiry (e.g. `12/2028`), any 3-digit CVV, any cardholder name.
 
 ### 5. `PUT /api/bookings/:bookingRef/status`
 
-**File:** `services/qoomlee/handler/booking.go` → `UpdateStatus`
-**Repo:** `services/qoomlee/repository/booking.go` → `UpdateStatus`
+**File:** `services/qoomlee/booking/handler.go` → `UpdateStatus`
+**Repo:** `services/qoomlee/booking/repository.go` → `UpdateStatus`
 
 Called **only by payment-service** after a successful charge. Not a public endpoint.
 
@@ -479,8 +498,8 @@ If the booking_ref doesn't exist, return 404 `BOOKING_NOT_FOUND`.
 
 ### 6. `GET /api/bookings/:bookingRef`
 
-**File:** `services/qoomlee/handler/booking.go` → `GetByRef`
-**Repo:** `services/qoomlee/repository/booking.go` → `GetByRef`
+**File:** `services/qoomlee/booking/handler.go` → `GetByRef`
+**Repo:** `services/qoomlee/booking/repository.go` → `GetByRef`
 
 Join bookings → passengers, flights → routes. `paymentProvider` and `providerChargeId` are stored directly on bookings when the status is updated to CONFIRMED:
 
@@ -511,8 +530,8 @@ ALTER TABLE bookings
 
 ### 7. `GET /api/payments/:bookingRef`
 
-**File:** `services/payment/handler/payment.go` → `GetByBookingRef`
-**Repo:** `services/payment/repository/payment.go` → `GetByBookingRef`
+**File:** `services/payment/payment/handler.go` → `GetByBookingRef`
+**Repo:** `services/payment/payment/repository.go` → `GetByBookingRef`
 
 ```sql
 SELECT id, booking_ref, booking_id, payment_provider, provider_charge_id,
@@ -983,7 +1002,7 @@ No. Credit card charges are synchronous — Omise returns the result in the same
 Yes, but differently per caller type. Client-facing endpoints (`/api/*` except `PUT /api/bookings/:ref/status`) require `Authorization: Bearer <jwt>` (RS256, verified by `JWT_PUBLIC_KEY`). The internal `PUT /api/bookings/:ref/status` endpoint is excluded from JWT — it only accepts `X-Internal-Token`. Use `make jwt-token` to generate a test token for curl.
 
 **Q: Can I add packages to go.mod?**
-Yes. The existing `go.mod` already includes Gin, `lib/pq`, and the Omise SDK. Add anything you need.
+Yes. The existing `go.mod` for payment-service already includes Gin, `lib/pq`, and the Omise SDK. Add anything you need.
 
 **Q: What is `PUT /api/bookings/:ref/status`? Users don't call it?**
 Correct. It's called internally by payment-service after a successful charge to flip the booking from PENDING to CONFIRMED. It's not exposed to end users but it must exist for the end-to-end flow to work.

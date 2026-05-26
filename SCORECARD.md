@@ -88,10 +88,13 @@ Run: `go test ./...` in each service directory. All DB and HTTP calls must be mo
 
 | Criterion | Pass (2 pts) | Fail (0 pts) |
 |-----------|---|---|
-| `Charge()` — success: mock Omise returns `"successful"`; payments repo Insert called with `status="SUCCEEDED"`; booking-service `/status` PUT called; response is 201 | | |
-| `Charge()` — decline: mock Omise returns failure; payments repo Insert called with `status="FAILED"`; booking-service NOT called; response is 402 with `failureCode` | | |
-| `Charge()` — already paid: booking returns `CONFIRMED`; Omise never called; response is 409 `ALREADY_PAID` | | |
-| `GetByBookingRef()` — returns 200 with payment data; returns 404 for unknown ref | | |
+| `Charge()` — success: mock Omise returns `"successful"`; payments repo Insert called with `status="SUCCEEDED"`; booking-service mock `PUT /status` called once with `{status:CONFIRMED, paymentId:X}`; response is 201 | | |
+| `Charge()` — decline: mock Omise returns failure; payments repo Insert called with `status="FAILED"`; booking-service `PUT /status` **never called**; response is 402 with `failureCode` | | |
+| `Charge()` — already paid: booking-service mock returns `CONFIRMED`; Omise **never called**; booking-service `PUT /status` **never called**; response is 409 `ALREADY_PAID` | | |
+| `Charge()` — PUT /status fails: mock Omise succeeds; payments repo Insert called; booking-service mock returns error on `PUT /status`; response is still **201** (charge succeeded); failure logged | | |
+| `GetByBookingRef()` — returns 200 with `paymentProvider` + `providerChargeId`; returns 404 for unknown ref | | |
+
+> **Hard rule:** payment-service must never write to the `bookings` table directly. All booking status changes go through `PUT /status` on booking-service. Any direct `UPDATE bookings` SQL in payment-service is a failing criterion.
 
 **middleware (any service)**
 
@@ -100,9 +103,9 @@ Run: `go test ./...` in each service directory. All DB and HTTP calls must be mo
 | `JWTMiddleware` — valid RS256 token passes; missing/expired/wrong-algorithm token returns 401 `UNAUTHORIZED` | | |
 | `InternalTokenMiddleware` — correct `X-Internal-Token` passes; missing or wrong value returns 403 `FORBIDDEN` | | |
 
-**Layer 1 subtotal: __ / 22** _(2 pts × 11 criteria)_
+**Layer 1 subtotal: __ / 26** _(2 pts × 13 criteria)_
 
-> Wait — 9 × 2 = 18 pts but Layer 1 is capped at 12. Evaluator: score each criterion 0–1 pt, then double. Total = 0–18, divide by 18 × 12 = scaled score. **Or simpler:** score 0/1/2 per criterion, max 12 pts total. Deduct 1 pt per criterion that partially passes.
+> Evaluator: score 0/1/2 per criterion, max 12 pts total. Scale: `(raw / 26) × 12`, round down. Deduct 1 pt per criterion that partially passes.
 
 **Layer 1 subtotal: __ / 12**
 

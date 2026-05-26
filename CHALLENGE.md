@@ -690,12 +690,19 @@ if err != nil {
 
 Every `err` return value must be checked. Ignoring an error and continuing is a bug.
 
-### Rule 6 — Payment→booking failure
+### Rule 6 — Payment-service must never write to the bookings table directly
+
+Payment-service owns the `payments` table only. It must **never** `UPDATE bookings` directly via SQL.
+Booking status changes go exclusively through `PUT http://booking-service:8082/api/bookings/:ref/status`.
+
+This is enforced in unit tests: the booking-service is a **mock interface** injected into payment-service. If payment-service issues a direct DB write to `bookings`, the test will not catch it via the mock — treat any direct `bookings` SQL in payment-service as a failing criterion.
+
+### Rule 7 — Payment→booking failure
 
 After a successful Omise charge, if `PUT /status` call fails:
 - **Do not** return 500
-- **Do** log the failure with the charge ID
-- **Do** return 201 with the charge result
+- **Do** log the failure with the charge ID and `bookingRef`
+- **Do** return 201 with the charge result — the money was taken, the client must know
 
 ### Error code reference
 
@@ -759,10 +766,11 @@ Define a repository **interface**, implement it in production, mock it in tests.
 | booking-service | `CreateBooking` | PNR is 6 chars; passenger insert called; booking insert called with correct flightId |
 | booking-service | `GetBookingByRef` | returns nested flight+passenger+paymentProvider+providerChargeId (non-nil when CONFIRMED); unknown ref → ErrNotFound |
 | booking-service | `UpdateBookingStatus` | updates status; unknown ref → ErrNotFound |
-| payment-service | `Charge` — success | Omise mock returns successful; DB insert with SUCCEEDED; calls /status; returns 201 |
-| payment-service | `Charge` — decline | Omise mock returns failed; DB insert with FAILED; does NOT call /status; returns 402 |
-| payment-service | `Charge` — already paid | booking mock returns CONFIRMED; Omise never called; returns 409 |
-| payment-service | `GetByBookingRef` | returns 200; unknown ref → 404 |
+| payment-service | `Charge` — success | Omise mock returns successful; DB insert with `status=SUCCEEDED`; booking-service mock `PUT /status` called once with `{status:CONFIRMED, paymentId:X}`; returns 201 |
+| payment-service | `Charge` — decline | Omise mock returns failed; DB insert with `status=FAILED`; booking-service `PUT /status` **never called**; returns 402 with `failureCode` |
+| payment-service | `Charge` — already paid | booking-service mock returns `CONFIRMED`; Omise **never called**; booking-service `PUT /status` **never called**; returns 409 `ALREADY_PAID` |
+| payment-service | `Charge` — PUT /status fails | Omise mock returns successful; DB insert with SUCCEEDED; booking-service mock returns error on `PUT /status`; **still returns 201** (charge succeeded); error logged |
+| payment-service | `GetByBookingRef` | returns 200 with `paymentProvider` + `providerChargeId`; unknown ref → 404 |
 | middleware | `JWTMiddleware` | valid token → passes through; missing token → 401; expired token → 401; wrong algorithm → 401 |
 | middleware | `InternalTokenMiddleware` | correct token → passes through; missing header → 403; wrong value → 403 |
 

@@ -22,12 +22,13 @@ services:
   flight-service:
     build: ./services/flight
     environment:
-      PORT:    8081
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: ${POSTGRES_DB:-qoomlee}
-      DB_USER: ${POSTGRES_USER:-qoomlee}
-      DB_PASS: ${POSTGRES_PASSWORD:-qoomlee}
+      PORT:           8081
+      DB_HOST:        postgres
+      DB_PORT:        5432
+      DB_NAME:        ${POSTGRES_DB:-qoomlee}
+      DB_USER:        ${POSTGRES_USER:-qoomlee}
+      DB_PASS:        ${POSTGRES_PASSWORD:-qoomlee}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
     ports:
       - "8081:8081"
     depends_on:
@@ -43,12 +44,14 @@ services:
   booking-service:
     build: ./services/booking
     environment:
-      PORT:    8082
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: ${POSTGRES_DB:-qoomlee}
-      DB_USER: ${POSTGRES_USER:-qoomlee}
-      DB_PASS: ${POSTGRES_PASSWORD:-qoomlee}
+      PORT:           8082
+      DB_HOST:        postgres
+      DB_PORT:        5432
+      DB_NAME:        ${POSTGRES_DB:-qoomlee}
+      DB_USER:        ${POSTGRES_USER:-qoomlee}
+      DB_PASS:        ${POSTGRES_PASSWORD:-qoomlee}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN}
     ports:
       - "8082:8082"
     depends_on:
@@ -64,15 +67,17 @@ services:
   payment-service:
     build: ./services/payment
     environment:
-      PORT:    8084
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: ${POSTGRES_DB:-qoomlee}
-      DB_USER: ${POSTGRES_USER:-qoomlee}
-      DB_PASS: ${POSTGRES_PASSWORD:-qoomlee}
+      PORT:                8084
+      DB_HOST:             postgres
+      DB_PORT:             5432
+      DB_NAME:             ${POSTGRES_DB:-qoomlee}
+      DB_USER:             ${POSTGRES_USER:-qoomlee}
+      DB_PASS:             ${POSTGRES_PASSWORD:-qoomlee}
       BOOKING_SERVICE_URL: http://booking-service:8082
-      OMISE_PUBLIC_KEY: ${OMISE_PUBLIC_KEY}
-      OMISE_SECRET_KEY: ${OMISE_SECRET_KEY}
+      OMISE_PUBLIC_KEY:    ${OMISE_PUBLIC_KEY}
+      OMISE_SECRET_KEY:    ${OMISE_SECRET_KEY}
+      JWT_PUBLIC_KEY:      ${JWT_PUBLIC_KEY}   # verifies incoming user JWTs only
+      INTERNAL_TOKEN:      ${INTERNAL_TOKEN}   # sent to booking-service on PUT /status
     ports:
       - "8084:8084"
     depends_on:

@@ -3,6 +3,11 @@
 .env.local
 .env.*.local
 
+# JWT keys — local test keys, never commit
+jwt_private.pem
+jwt_public.pem
+*.pem
+
 # Build outputs
 **/build/
 **/.next/

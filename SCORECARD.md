@@ -16,7 +16,7 @@ Evaluator: _____________________
 | [1] Working Software | 25 | All 7 endpoints work end-to-end |
 | [2] Testing | 35 | Unit → Integration → Contract → K6 Load |
 | [3] Code Quality | 20 | Architecture, error handling, clean Go |
-| [4] Infrastructure & Shippable | 20 | Health checks, rate limiting, graceful shutdown, structured logs, JWT auth, internal token |
+| [4] Infrastructure & Shippable | 20 | Health checks (4), rate limiting (4), graceful shutdown (3), structured logs (3), **security/auth (6)** |
 | **Total** | **100** | |
 
 ---
@@ -223,16 +223,16 @@ Score 0–2 per criterion: 0 = absent, 1 = partial, 2 = complete.
 
 ## Pillar 4 — Infrastructure & Shippable (20 points)
 
-### Health Check Endpoints (6 points)
+### Health Check Endpoints (4 points)
 
 Two separate endpoints are required. Using one endpoint for both is scored as partial.
 
-| Check | Pass (3 pts) | Partial (1 pt) | Fail (0 pts) |
+| Check | Pass (2 pts) | Partial (1 pt) | Fail (0 pts) |
 |-------|---|---|---|
 | All 3 DB-connected services have `GET /health/live` (always 200) **and** `GET /health/ready` (200 when DB up, 503 when DB down) | Both present and correct | Only `/health` or only one of the two | Neither present |
 | `GET /health/ready` returns 503 when DB unreachable; `GET /health/live` still returns 200 (evaluator: `docker stop qoomlee-postgres-1`, re-check both endpoints) | Live=200, Ready=503 | One works correctly | Both return same result or both fail |
 
-**Health check subtotal: __ / 6**
+**Health check subtotal: __ / 4**
 
 ---
 
@@ -247,13 +247,13 @@ Two separate endpoints are required. Using one endpoint for both is scored as pa
 
 ---
 
-### Graceful Shutdown (4 points)
+### Graceful Shutdown (3 points)
 
-| Check | Pass (4 pts) | Partial (2 pts) | Fail (0 pts) |
+| Check | Pass (3 pts) | Partial (1 pt) | Fail (0 pts) |
 |-------|---|---|---|
 | Each service uses `http.Server` + `signal.Notify(SIGTERM/SIGINT)` + `srv.Shutdown(ctx)` with 10 s timeout; bare `r.Run()` is gone | | | |
 
-**Graceful shutdown subtotal: __ / 4**
+**Graceful shutdown subtotal: __ / 3**
 
 ---
 
@@ -271,15 +271,15 @@ Two separate endpoints are required. Using one endpoint for both is scored as pa
 
 ---
 
-### Security / Auth (3 points)
+### Security / Auth (6 points)
 
-| Check | Pass (1 pt) | Fail (0 pts) |
-|-------|---|---|
-| Public API endpoints (`/api/*` except `PUT /status`) return 401 when JWT is missing or invalid | | |
-| `PUT /api/bookings/:ref/status` returns 403 when `X-Internal-Token` is missing/wrong; does **not** require a JWT | | |
-| `/health/*` and `PUT /status` remain accessible without a JWT | | |
+| Check | Pass (2 pts) | Partial (1 pt) | Fail (0 pts) |
+|-------|---|---|---|
+| Public API endpoints (`/api/*` except `PUT /status`) return 401 when JWT is missing, expired, or uses wrong algorithm; valid RS256 token passes | Both missing and invalid handled | Only missing token rejected | No JWT check |
+| `PUT /api/bookings/:ref/status` returns 403 when `X-Internal-Token` is missing or wrong; does **not** require a JWT; `crypto/subtle.ConstantTimeCompare` used; service refuses to start if `INTERNAL_TOKEN` is empty | All correct | Token checked but timing-safe compare missing | No internal token check |
+| `/health/*` endpoints are accessible without any token; `JWT_PRIVATE_KEY` is absent from all running containers | Both correct | One correct | Neither |
 
-**Security subtotal: __ / 3**
+**Security subtotal: __ / 6**
 
 ---
 
@@ -287,11 +287,11 @@ Two separate endpoints are required. Using one endpoint for both is scored as pa
 
 | Area | Max | Score |
 |------|-----|-------|
-| Health Check Endpoints | 6 | |
+| Health Check Endpoints | 4 | |
 | Rate Limiting | 4 | |
-| Graceful Shutdown | 4 | |
+| Graceful Shutdown | 3 | |
 | Structured Logging | 3 | |
-| Security / Auth | 3 | |
+| Security / Auth | 6 | |
 | **Pillar 4 Total** | **20** | |
 
 ---

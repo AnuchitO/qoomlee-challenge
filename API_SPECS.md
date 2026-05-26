@@ -9,8 +9,9 @@ Internal service-to-service calls use the Docker Compose service name (e.g. `htt
 
 > **Monetary convention:** All money is stored as BIGINT minor units (satang) in the database (`_minor` column suffix).
 > 1 THB = 100 satang. 3,500 THB → stored as `350000`.
-> Flight and booking responses display major units (THB, e.g. `3500.00`) for readability — handlers divide by 100.
-> Payment request/response fields are named `amountMinor` and remain in satang to avoid ambiguity.
+> Every monetary field in API requests and responses appears as a **triple**: `*Minor` (integer satang), `currency`, and `*` (string display value, e.g. `"3500.00"`).
+> Example: `"basePriceMinor": 350000, "currency": "THB", "basePrice": "3500.00"`.
+> Handlers compute `int64 ÷ 100` to produce the display string. Never return or accept a JSON float for a monetary amount.
 > **Validation:** `request.amountMinor` must equal `booking.total_amount_minor` before charging Omise. Mismatch → 400 `AMOUNT_MISMATCH`.
 
 ---
@@ -87,8 +88,9 @@ curl -H "Authorization: Bearer $TOKEN" \
       "arrivalTime": "2026-06-15T03:30:00Z",
       "durationMinutes": 150,
       "availableSeats": 156,
-      "basePrice": 3500.00,
+      "basePriceMinor": 350000,
       "currency": "THB",
+      "basePrice": "3500.00",
       "status": "SCHEDULED"
     },
     {
@@ -100,8 +102,9 @@ curl -H "Authorization: Bearer $TOKEN" \
       "arrivalTime": "2026-06-15T05:30:00Z",
       "durationMinutes": 150,
       "availableSeats": 78,
-      "basePrice": 2200.00,
+      "basePriceMinor": 220000,
       "currency": "THB",
+      "basePrice": "2200.00",
       "status": "SCHEDULED"
     }
   ]
@@ -149,8 +152,9 @@ curl -H "Authorization: Bearer $TOKEN" "http://localhost:8081/api/flights/1"
   "arrivalTime": "2026-06-15T03:30:00Z",
   "durationMinutes": 150,
   "availableSeats": 156,
-  "basePrice": 3500.00,
+  "basePriceMinor": 350000,
   "currency": "THB",
+  "basePrice": "3500.00",
   "status": "SCHEDULED"
 }
 ```
@@ -178,7 +182,7 @@ curl -H "Authorization: Bearer $TOKEN" "http://localhost:8081/api/flights/1"
 
 Create a booking for one passenger on one flight. Returns a 6-char PNR (`bookingRef`) and a numeric `bookingId`. Booking starts with `status: "PENDING"` until payment succeeds.
 
-> `totalAmount` is in **THB** (not satang). Set it to the flight's `basePrice`.
+> `totalAmountMinor` is in satang (e.g. `350000` for 3,500 THB). `totalAmount` is the formatted display string (e.g. `"3500.00"`). Set both to match the flight's price.
 > One passenger per booking.
 
 **Request body**
@@ -194,12 +198,13 @@ Create a booking for one passenger on one flight. Returns a 6-char PNR (`booking
     "dateOfBirth": "1990-05-15",
     "nationality": "TH"
   },
-  "totalAmount": 3500.00,
-  "currency": "THB"
+  "totalAmountMinor": 350000,
+  "currency": "THB",
+  "totalAmount": "3500.00"
 }
 ```
 
-**Required fields:** `flightId`, `totalAmount`, `passenger.firstName`, `passenger.lastName`, `passenger.email`
+**Required fields:** `flightId`, `totalAmountMinor`, `passenger.firstName`, `passenger.lastName`, `passenger.email`
 **Optional fields:** `currency` (default `"THB"`), `passenger.phone`, `passenger.passportNumber`, `passenger.dateOfBirth`, `passenger.nationality`
 
 ```bash
@@ -213,7 +218,7 @@ curl -X POST http://localhost:8082/api/bookings \
       "email": "somchai@example.com", "phone": "+66812345678",
       "passportNumber": "AA123456", "dateOfBirth": "1990-05-15", "nationality": "TH"
     },
-    "totalAmount": 3500.00, "currency": "THB"
+    "totalAmountMinor": 350000, "currency": "THB", "totalAmount": "3500.00"
   }'
 ```
 
@@ -280,8 +285,9 @@ curl -H "Authorization: Bearer $TOKEN" "http://localhost:8082/api/bookings/QM7X2
     "passportNumber": "AA123456",
     "nationality": "TH"
   },
-  "totalAmount": 3500.00,
+  "totalAmountMinor": 350000,
   "currency": "THB",
+  "totalAmount": "3500.00",
   "createdAt": "2026-05-22T10:00:00Z"
 }
 ```
@@ -309,8 +315,9 @@ curl -H "Authorization: Bearer $TOKEN" "http://localhost:8082/api/bookings/QM7X2
     "passportNumber": "AA123456",
     "nationality": "TH"
   },
-  "totalAmount": 3500.00,
+  "totalAmountMinor": 350000,
   "currency": "THB",
+  "totalAmount": "3500.00",
   "createdAt": "2026-05-22T10:00:00Z"
 }
 ```
@@ -404,7 +411,8 @@ curl https://vault.omise.co/tokens \
   "bookingId": 42,
   "omiseToken": "tokn_test_xxxx",
   "amountMinor": 350000,
-  "currency": "THB"
+  "currency": "THB",
+  "amount": "3500.00"
 }
 ```
 
@@ -414,7 +422,7 @@ curl https://vault.omise.co/tokens \
 curl -X POST http://localhost:8084/api/payments/charge \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"bookingRef":"QM7X2K","bookingId":42,"omiseToken":"tokn_test_xxxx","amountMinor":350000,"currency":"THB"}'
+  -d '{"bookingRef":"QM7X2K","bookingId":42,"omiseToken":"tokn_test_xxxx","amountMinor":350000,"currency":"THB","amount":"3500.00"}'
 ```
 
 **Response `201 Created`** — charge succeeded
@@ -426,6 +434,7 @@ curl -X POST http://localhost:8084/api/payments/charge \
   "status": "SUCCEEDED",
   "amountMinor": 350000,
   "currency": "THB",
+  "amount": "3500.00",
   "paidAt": "2026-05-22T10:05:00Z"
 }
 ```
@@ -472,6 +481,7 @@ curl -H "Authorization: Bearer $TOKEN" "http://localhost:8084/api/payments/QM7X2
   "status": "SUCCEEDED",
   "amountMinor": 350000,
   "currency": "THB",
+  "amount": "3500.00",
   "paidAt": "2026-05-22T10:05:00Z"
 }
 ```
@@ -487,6 +497,7 @@ curl -H "Authorization: Bearer $TOKEN" "http://localhost:8084/api/payments/QM7X2
   "failureMessage": "The card has insufficient funds.",
   "amountMinor": 350000,
   "currency": "THB",
+  "amount": "3500.00",
   "paidAt": null
 }
 ```

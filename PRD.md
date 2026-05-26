@@ -35,7 +35,7 @@ Search Flights → Create Booking → Pay → Confirmed
 
 ## 4. Business Rules
 
-| Rule | Detail |
+| Policy | Detail |
 |---|---|
 | One passenger per booking | No group bookings |
 | Seat hold | Available seats decrease when booking is created (not when paid) |
@@ -43,7 +43,7 @@ Search Flights → Create Booking → Pay → Confirmed
 | Retry on decline | A declined payment leaves the booking `PENDING`; passenger may try a different card |
 | No double-charge | A `CONFIRMED` booking cannot be charged again (409) |
 | Payment traceability | On confirmation, `bookings.confirmed_payment_id` is set to the `payments.id` that succeeded; `GET /api/bookings/:ref` returns `paymentProvider` and `providerChargeId` (both null when PENDING) — the exact gateway and its transaction reference are always traceable from the booking |
-| Amount in satang | 1 THB = 100 satang. `3,500 THB` → store and send `350000` |
+| Monetary triple | Every monetary field in API requests and responses includes three parts: `*Minor` (integer satang, e.g. `350000`), `currency` (e.g. `"THB"`), and `*` (display string, e.g. `"3500.00"`). 1 THB = 100 satang. DB stores satang only (BIGINT). |
 
 ---
 

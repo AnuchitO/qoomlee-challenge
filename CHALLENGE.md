@@ -185,7 +185,8 @@ payments   — id, booking_ref, booking_id, payment_provider (OMISE|2C2P|…),
 
 > **Monetary convention:** ALL money columns are BIGINT minor units (satang).
 > 3,500 THB → stored as 350000. No NUMERIC/DECIMAL anywhere.
-> Handlers convert to/from THB (÷100) only when building API responses and reading request bodies.
+> Every monetary field in API requests and responses is a triple: `*Minor` (int64 satang), `currency`, and `*` (formatted display string, e.g. `"3500.00"`).
+> Handlers compute `int64 ÷ 100` to produce the display string. Never use floats for money.
 ```
 
 Full schema: `infra/db/01_schema.sql` — Seed: `infra/db/02_seed.sql`
@@ -683,13 +684,13 @@ Add a Gin middleware that logs one JSON line per request with `method`, `path`, 
 
 ---
 
-## Error Handling Requirements
+## Implementation Requirements
 
-### Rule 1 — Always return JSON
+### Requirement 1 — Always return JSON
 
 Every response (including errors) must have `Content-Type: application/json`. Never return raw text.
 
-### Rule 2 — Error response shape
+### Requirement 2 — Error response shape
 
 ```json
 { "error": "ERROR_CODE", "message": "Human-readable explanation." }
@@ -698,7 +699,7 @@ Every response (including errors) must have `Content-Type: application/json`. Ne
 `error` — `UPPER_SNAKE_CASE` machine-readable code
 `message` — plain English; never a raw Go error or SQL message
 
-### Rule 3 — Correct HTTP status codes
+### Requirement 3 — Correct HTTP status codes
 
 | Situation | Status |
 |---|---|
@@ -713,7 +714,7 @@ Every response (including errors) must have `Content-Type: application/json`. Ne
 | Rate limit exceeded | `429 Too Many Requests` |
 | Unexpected server error | `500 Internal Server Error` |
 
-### Rule 4 — Log internally, hide externally
+### Requirement 4 — Log internally, hide externally
 
 ```go
 if err != nil {
@@ -723,33 +724,34 @@ if err != nil {
 }
 ```
 
-### Rule 5 — Never swallow errors
+### Requirement 5 — Never swallow errors
 
 Every `err` return value must be checked. Ignoring an error and continuing is a bug.
 
-### Rule 6 — Payment-service must never write to the bookings table directly
+### Requirement 6 — Payment-service must never write to the bookings table directly
 
 Payment-service owns the `payments` table only. It must **never** `UPDATE bookings` directly via SQL.
 Booking status changes go exclusively through `PUT http://booking-service:8082/api/bookings/:ref/status`.
 
 This is enforced in unit tests: the booking-service is a **mock interface** injected into payment-service. If payment-service issues a direct DB write to `bookings`, the test will not catch it via the mock — treat any direct `bookings` SQL in payment-service as a failing criterion.
 
-### Rule 7 — Payment→booking failure
+### Requirement 7 — Payment→booking failure
 
 After a successful Omise charge, if `PUT /api/bookings/:ref/status` call fails:
 - **Do not** return 500
 - **Do** log the failure with the charge ID and `bookingRef`
 - **Do** return 201 with the charge result — the money was taken, the client must know
 
-### Rule 8 — All money is minor units (satang); no floats in business logic
+### Requirement 8 — All money is minor units (satang); no floats in business logic
 
 - Every monetary column in the DB is `BIGINT` (`_minor` suffix): `base_price_minor`, `total_amount_minor`, `amount_minor`
 - Every monetary variable in Go is `int64`
 - Conversion to/from THB (`÷100` / `×100`) happens **only in handlers** when reading request bodies or writing JSON responses
 - Never pass `float64` for an amount through a service or repository function
+- Every monetary field in API requests and responses is a triple: `*Minor` (int64 satang), `currency`, and `*` (formatted display string, e.g. `"3500.00"`); never return or accept a JSON float for a monetary amount
 - `booking.total_amount_minor` must equal `payment.amount_minor` — payment-service validates this before calling Omise (400 `AMOUNT_MISMATCH` if they differ)
 
-### Rule 9 — Concurrent booking must use SELECT FOR UPDATE
+### Requirement 9 — Concurrent booking must use SELECT FOR UPDATE
 
 `CreateBooking` must lock the flights row before checking and decrementing `available_seats`:
 ```sql
@@ -757,7 +759,7 @@ SELECT available_seats FROM flights WHERE id = $1 FOR UPDATE
 ```
 Without this lock, two concurrent requests on a 1-seat flight can both read `available_seats = 1`, both pass the check, and both insert — resulting in overbooking. The integration test for concurrent booking validates this.
 
-### Rule 10 — `PUT /api/bookings/:ref/status` happy path must be contract-tested
+### Requirement 10 — `PUT /api/bookings/:ref/status` happy path must be contract-tested
 
 The internal status endpoint must be verified end-to-end (not just the 403 rejection):
 - A valid `X-Internal-Token` + `{status: CONFIRMED, paymentId: N}` → 200, booking flips to CONFIRMED

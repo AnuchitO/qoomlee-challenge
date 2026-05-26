@@ -95,7 +95,7 @@ Run: `go test ./...` in each service directory. All DB and HTTP calls must be mo
 | `Charge()` — `PUT /api/bookings/:ref/status` fails: mock Omise succeeds; payments repo Insert called; booking-service mock returns error on `PUT /api/bookings/:ref/status`; response is still **201** (charge succeeded); failure logged | | |
 | `GetByBookingRef()` — returns 200 with `paymentProvider` + `providerChargeId`; returns 404 for unknown ref | | |
 
-> **Hard rule:** payment-service must never write to the `bookings` table directly. All booking status changes go through `PUT /api/bookings/:ref/status` on booking-service. Any direct `UPDATE bookings` SQL in payment-service is a failing criterion.
+> **Hard requirement:** payment-service must never write to the `bookings` table directly. All booking status changes go through `PUT /api/bookings/:ref/status` on booking-service. Any direct `UPDATE bookings` SQL in payment-service is a failing criterion.
 
 **middleware (any service)**
 

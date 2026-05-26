@@ -24,6 +24,18 @@ Search Flights → Book a Seat → Pay → Get Confirmation
 
 ---
 
+## Key Documents
+
+| File | Purpose |
+|------|---------|
+| [`CHALLENGE.md`](CHALLENGE.md) | What to build, implementation hints, requirements |
+| [`API_SPECS.md`](API_SPECS.md) | Request/response contract for every endpoint |
+| [`SCORECARD.md`](SCORECARD.md) | Scoring rubric — 100 pts across 4 pillars |
+| [`TECHNOLOGY_STACK_SUMMARY.md`](TECHNOLOGY_STACK_SUMMARY.md) | Stack reference, Go patterns, env vars |
+
+---
+
+
 ## Quick Start
 
 ```bash
@@ -84,17 +96,6 @@ curl -H "Authorization: Bearer $TOKEN" \
 | `API_SPECS.md` | Exact request/response shape for every endpoint |
 
 **Build everything from scratch.** Read `CHALLENGE.md` for what to build and in what order.
-
----
-
-## Key Documents
-
-| File | Purpose |
-|------|---------|
-| `CHALLENGE.md` | What to build, implementation hints, requirements |
-| `API_SPECS.md` | Request/response contract for every endpoint |
-| `SCORECARD.md` | Scoring rubric — 100 pts across 4 pillars |
-| `TECHNOLOGY_STACK_SUMMARY.md` | Stack reference, Go patterns, env vars |
 
 ---
 

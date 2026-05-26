@@ -53,14 +53,16 @@ payment-service  :8084
   GET  /api/payments/:bookingRef        View payment receipt
 ```
 
-### Infrastructure (all 4)
+### Infrastructure & Security (all 6)
 
 ```
-All services     GET /health/live        Liveness probe  — always 200
-All services     GET /health/ready       Readiness probe — 503 when DB is down
-All services     Rate limiting           Per-IP limits on sensitive endpoints
-All services     Graceful shutdown       Drain connections on SIGTERM (10 s)
-All services     Structured logging      JSON logs via slog
+All services     GET /health/live              Liveness probe  — always 200 (no auth)
+All services     GET /health/ready             Readiness probe — 503 when DB is down (no auth)
+All services     Rate limiting                 Per-IP limits on sensitive endpoints
+All services     Graceful shutdown             Drain connections on SIGTERM (10 s)
+All services     Structured logging            JSON logs via slog
+All services     JWT RS256 (public API)        Authorization: Bearer on every /api/* endpoint
+booking-service  X-Internal-Token (PUT /status) 256-bit shared secret, no JWT on this route
 ```
 
 ---
@@ -82,15 +84,20 @@ All services     Structured logging      JSON logs via slog
 #    → https://dashboard.omise.co → sign up → API Keys → Test keys
 #    Copy:  pkey_test_...   and   skey_test_...
 
-# 2. Copy the environment template and fill in your Omise keys
+# 2. Copy the environment template and fill in your keys
 cp .env.example .env
-# Edit .env — set OMISE_PUBLIC_KEY and OMISE_SECRET_KEY
+# Edit .env:
+#   - Set OMISE_PUBLIC_KEY and OMISE_SECRET_KEY
+#   - Set INTERNAL_TOKEN to a random secret (e.g. openssl rand -hex 16)
+#   - JWT_PRIVATE_KEY and JWT_PUBLIC_KEY are pre-filled with test keys — leave as-is for testing
 
 # 3. Start the stack
 docker compose up --build
 
-# 4. Verify postgres is up (services will return 501 until you implement them)
-curl "http://localhost:8081/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"
+# 4. Get a JWT and verify the stack is up
+make jwt-token     # prints a Bearer token — save it as TOKEN=...
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8081/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"
 # Expected before implementation: HTTP 501
 # Expected after implementation:  HTTP 200 with flights array
 ```
@@ -132,17 +139,34 @@ One shared PostgreSQL database. **Do not modify the schema or seed data.**
 
 ### Seed flights
 
-| DB id | Flight | Route | Departure (BKK local, UTC+7) | Price (THB) | Seats |
-|---|---|---|---|---|---|
-| 1 | QM101 | BKK → SIN | 2026-06-15 08:00 | 3,500 | 156 |
-| 2 | QM102 | BKK → SIN | 2026-06-15 14:00 | 2,800 | 30 |
-| 3 | SC201 | BKK → SIN | 2026-06-15 10:00 | 2,200 | 78 |
-| 4 | QM201 | BKK → HKG | 2026-06-15 07:30 | 4,500 | 200 |
-| 5 | QM301 | BKK → NRT | 2026-06-15 23:55 | 9,800 | 150 |
+| DB id | Flight | Route | Departure (BKK local, UTC+7) | Price (THB) | Seats | Notes |
+|---|---|---|---|---|---|---|
+| 1 | QM101 | BKK → SIN | 2026-06-15 08:00 | 3,500 | 154 | 2 seats held by pre-seeded bookings |
+| 2 | QM102 | BKK → SIN | 2026-06-15 14:00 | 2,800 | 30 | |
+| 3 | SC201 | BKK → SIN | 2026-06-15 10:00 | 2,200 | 78 | |
+| 4 | QM201 | BKK → HKG | 2026-06-15 07:30 | 4,500 | 200 | |
+| 5 | QM301 | BKK → NRT | 2026-06-15 23:55 | 9,800 | 150 | Overnight — arrives 2026-06-16 |
+| 6 | QM999 | BKK → SIN | 2026-06-15 22:00 | 3,500 | **0** | **SOLD OUT** — use to test `NO_SEATS_AVAILABLE` |
 
-Use `date=2026-06-15` in all search and smoke tests.
+Use `date=2026-06-15` in all search and smoke tests. **QM999 will not appear in search results** (`available_seats=0` is filtered out) but can be targeted by `POST /api/bookings` to trigger a 409.
 
 > Departure times are stored as `TIMESTAMPTZ` in UTC: 08:00 BKK (UTC+7) = 01:00 UTC.
+
+### Pre-seeded test bookings and payments
+
+These records are ready-made in the DB from `02_seed.sql`. Use them in integration and contract tests to avoid building state from scratch.
+
+| booking_ref | Flight | Passenger | Status | Use for |
+|---|---|---|---|---|
+| `SEED01` | QM101 (id=1) | Seed User (id=1) | `CONFIRMED` | Duplicate-payment guard — `POST /api/payments/charge` with `bookingRef=SEED01` must return **409 `ALREADY_PAID`** |
+| `SEED02` | QM101 (id=1) | Seed User (id=1) | `PENDING` | Read tests — `GET /api/bookings/SEED02` must return 200 with nested flight + passenger |
+
+| booking_ref | Payment status | omiseChargeId | Use for |
+|---|---|---|---|
+| `SEED01` | `SUCCEEDED` | `chrg_test_seed01xxxxxxxxxx` | `GET /api/payments/SEED01` must return 200 with `status: "SUCCEEDED"` |
+| `SEED02` | `FAILED` | `chrg_test_seed02xxxxxxxxxx` | `GET /api/payments/SEED02` must return 200 with `status: "FAILED"` and `failureCode: "insufficient_fund"` |
+
+> **For unknown-ref tests** use any ref that doesn't exist, e.g. `XXXXXX` → must return 404.
 
 ### Key tables
 
@@ -329,6 +353,8 @@ The `payments.amount` column stores satang. So does the API response.
 
 Call `PUT http://booking-service:8082/api/bookings/{bookingRef}/status` with `{"status":"CONFIRMED"}`.
 - Use `BOOKING_SERVICE_URL` env var (already set in docker-compose).
+- Include the `X-Internal-Token: <INTERNAL_TOKEN>` header (booking-service will reject the call without it).
+- Do **not** send a JWT — this is a service-to-service call, not a user request.
 - If this call fails: **do not return 500**. Log it and return 201 anyway — the charge already succeeded.
 
 #### Guard: reject duplicate payment
@@ -353,6 +379,14 @@ Use any future expiry (e.g. `12/2028`), any 3-digit CVV, any cardholder name.
 **Repo:** `services/booking/repository/booking.go` → `UpdateStatus`
 
 Called **only by payment-service** after a successful charge. Not a public endpoint.
+
+This route is **excluded from the JWT middleware** — there is no user to authenticate. Guard it with the `X-Internal-Token` middleware only:
+
+```
+X-Internal-Token: <INTERNAL_TOKEN env var>
+```
+
+Return 403 if the header is missing or wrong. No 401 on this route.
 
 ```sql
 UPDATE bookings
@@ -483,6 +517,106 @@ db.Close()
 
 ---
 
+### Authentication (JWT RS256)
+
+All API endpoints (except `/health/*`) require a valid **JWT RS256** bearer token.
+
+```
+Authorization: Bearer <token>
+```
+
+**How it works:**
+- Tokens are signed with an RSA **private key** (`JWT_PRIVATE_KEY` — **test tooling only**, never loaded by any service at runtime).
+- All three services verify incoming tokens using the RSA **public key** (`JWT_PUBLIC_KEY`).
+- Algorithm: `RS256`. Required claims: `sub`, `exp`.
+- Missing or invalid token → 401 `UNAUTHORIZED`
+
+> **`PUT /api/bookings/:ref/status` is excluded from JWT** — it's a service-to-service call with no user. See the `X-Internal-Token` section below.
+
+```go
+import "github.com/golang-jwt/jwt/v5"
+
+// Middleware — parse and verify token
+func JWTMiddleware(publicKeyPEM string) gin.HandlerFunc {
+    key, _ := jwt.ParseRSAPublicKeyFromPEM([]byte(publicKeyPEM))
+    return func(c *gin.Context) {
+        tokenStr := strings.TrimPrefix(c.GetHeader("Authorization"), "Bearer ")
+        token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
+            if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
+                return nil, fmt.Errorf("unexpected signing method")
+            }
+            return key, nil
+        })
+        if err != nil || !token.Valid {
+            c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+                "error": "UNAUTHORIZED", "message": "missing or invalid token",
+            })
+            return
+        }
+        c.Next()
+    }
+}
+```
+
+Apply it globally in `main.go`:
+```go
+r.Use(middleware.JWTMiddleware(os.Getenv("JWT_PUBLIC_KEY")))
+r.GET("/health/live", ...)   // health endpoints registered BEFORE the middleware
+r.GET("/health/ready", ...)
+```
+
+> **Tip:** Use router groups to separate JWT-protected routes from unprotected ones:
+> ```go
+> // No JWT — health probes + internal service endpoint
+> open := r.Group("/")
+> open.GET("/health/live", ...)
+> open.GET("/health/ready", ...)
+> open.PUT("/api/bookings/:ref/status", middleware.InternalToken(...), h.UpdateStatus)
+>
+> // JWT required — all public API endpoints
+> api := r.Group("/")
+> api.Use(middleware.JWTMiddleware(os.Getenv("JWT_PUBLIC_KEY")))
+> api.GET("/api/flights/search", ...)
+> api.POST("/api/bookings", ...)
+> // etc.
+> ```
+
+**For testing** — generate a token: `make jwt-token` (prints a Bearer token valid for 1 h, signed with `JWT_PRIVATE_KEY` from `.env`).
+
+**For the internal PUT /status call** — `PUT /api/bookings/:ref/status` sits **outside** the JWT middleware. booking-service guards it with `InternalTokenMiddleware` only. payment-service sends `X-Internal-Token: <INTERNAL_TOKEN>`, no JWT.
+
+```go
+import "crypto/subtle"
+
+// Internal-token middleware (booking-service only, on PUT /status route)
+// Uses constant-time comparison to prevent timing attacks.
+func InternalTokenMiddleware(secret string) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        got := c.GetHeader("X-Internal-Token")
+        if subtle.ConstantTimeCompare([]byte(got), []byte(secret)) != 1 {
+            c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+                "error": "FORBIDDEN", "message": "internal token required",
+            })
+            return
+        }
+        c.Next()
+    }
+}
+```
+
+> **Security model:** `X-Internal-Token` proves the caller *knows the secret* — not that it is specifically payment-service. This is sufficient here because `booking-service:8082` is only reachable within the Docker Compose internal network (no `ports:` mapping for external access). The network boundary is the primary isolation; the token is a guard against accidental miscalls from other containers.
+>
+> **Token strength matters.** Generate it with `openssl rand -hex 32` (256 bits of entropy). A weak or default value makes the guard worthless. booking-service should refuse to start if `INTERNAL_TOKEN` is empty:
+> ```go
+> secret := os.Getenv("INTERNAL_TOKEN")
+> if secret == "" {
+>     slog.Error("INTERNAL_TOKEN is required")
+>     os.Exit(1)
+> }
+> ```
+
+---
+
 ### Structured Logging (JSON)
 
 Replace all `log.Printf` with `slog` (Go stdlib since 1.21). JSON output is required.
@@ -522,7 +656,9 @@ Every response (including errors) must have `Content-Type: application/json`. Ne
 | Successful retrieval | `200 OK` |
 | Successful creation | `201 Created` |
 | Missing or invalid field | `400 Bad Request` |
+| Missing or invalid JWT | `401 Unauthorized` |
 | Card declined | `402 Payment Required` |
+| Wrong `X-Internal-Token` | `403 Forbidden` |
 | Resource not found | `404 Not Found` |
 | Business rule conflict (already paid, no seats) | `409 Conflict` |
 | Rate limit exceeded | `429 Too Many Requests` |
@@ -550,6 +686,18 @@ After a successful Omise charge, if `PUT /status` call fails:
 - **Do** return 201 with the charge result
 
 ### Error code reference
+
+**All services (applied by JWT middleware)**
+
+| Scenario | Status | `error` |
+|---|---|---|
+| Missing or invalid `Authorization` header / expired JWT | 401 | `UNAUTHORIZED` |
+
+**booking-service only — `PUT /status` route (no JWT, internal-token middleware only)**
+
+| Scenario | Status | `error` |
+|---|---|---|
+| Missing or wrong `X-Internal-Token` | 403 | `FORBIDDEN` |
 
 **flight-service**
 
@@ -603,6 +751,8 @@ Define a repository **interface**, implement it in production, mock it in tests.
 | payment-service | `Charge` — decline | Omise mock returns failed; DB insert with FAILED; does NOT call /status; returns 402 |
 | payment-service | `Charge` — already paid | booking mock returns CONFIRMED; Omise never called; returns 409 |
 | payment-service | `GetByBookingRef` | returns 200; unknown ref → 404 |
+| middleware | `JWTMiddleware` | valid token → passes through; missing token → 401; expired token → 401; wrong algorithm → 401 |
+| middleware | `InternalTokenMiddleware` | correct token → passes through; missing header → 403; wrong value → 403 |
 
 ### Layer 2 — Integration Tests
 
@@ -610,29 +760,31 @@ Define a repository **interface**, implement it in production, mock it in tests.
 
 | Service | What to test |
 |---|---|
-| flight-service | Search returns seed flights for BKK→SIN 2026-06-15; GetByID(1) correct; GetByID(99999) ErrNotFound |
-| booking-service | CreateBooking writes to passengers + bookings; PNR is unique; GetByRef returns full join |
-| payment-service | Insert writes to payments; FindByBookingRef returns row; unknown ref → ErrNotFound |
+| flight-service | Search returns ≥1 flight for BKK→SIN `date=2026-06-15`; empty slice for unknown route; `GetByID(1)` correct; `GetByID(99999)` ErrNotFound |
+| booking-service | `CreateBooking()` writes to `passengers` + `bookings`; PNR is unique; `GetByRef("SEED02")` returns full join (uses pre-seeded PENDING booking) |
+| payment-service | `Insert()` writes to `payments`; `FindByBookingRef("SEED01")` returns SUCCEEDED record; unknown ref → ErrNotFound |
 
 ### Layer 3 — Contract Tests
 
-Run against live `docker compose` stack. Use any HTTP client.
+Run against live `docker compose` stack. All requests must include `Authorization: Bearer $TOKEN` (see `make jwt-token`).
 
 | Test | Pass condition |
 |---|---|
-| `GET /api/flights/search` — missing origin | 400 |
-| `GET /api/flights/1` | 200 with `id`, `flightNumber`, `durationMinutes` |
-| `GET /api/flights/99999` | 404 |
-| `POST /api/bookings` — valid | 201; `bookingRef` exactly 6 chars |
-| `POST /api/bookings` — missing email | 400 |
-| `GET /api/bookings/{validRef}` | 200 with `bookingRef`, `status`, `flight`, `passenger` |
-| `GET /api/bookings/XXXXXX` | 404 |
-| `POST /api/payments/charge` — success card | 201; `omiseChargeId` present; booking becomes CONFIRMED |
-| `POST /api/payments/charge` — decline card | 402; `failureCode` present; booking stays PENDING |
-| `POST /api/payments/charge` — already paid | 409 `ALREADY_PAID` |
-| `GET /api/payments/{validRef}` | 200 with `status`, `omiseChargeId` |
-| `GET /api/payments/XXXXXX` | 404 |
-| `GET /health/live` + `GET /health/ready` | 200 on all services when DB is up |
+| `GET /api/flights/search` — missing origin | 400 `MISSING_REQUIRED_FIELD` |
+| `GET /api/flights/1` | 200 with `id`, `flightNumber`, `origin`, `destination`, `durationMinutes` |
+| `GET /api/flights/99999` | 404 `FLIGHT_NOT_FOUND` |
+| `POST /api/bookings` — valid body, `flightId=1` | 201; `bookingRef` exactly 6 chars; `bookingId` integer |
+| `POST /api/bookings` — `flightId=6` (QM999 SOLD OUT) | 409 `NO_SEATS_AVAILABLE` |
+| `GET /api/bookings/SEED02` | 200; `bookingRef`, `status`, `flight`, `passenger` all present |
+| `GET /api/bookings/XXXXXX` | 404 `BOOKING_NOT_FOUND` |
+| `POST /api/payments/charge` — `bookingRef=SEED01` (CONFIRMED) | 409 `ALREADY_PAID` (no Omise call — pure DB guard) |
+| `POST /api/payments/charge` — success card `4242…` | 201; `omiseChargeId` present; booking becomes `CONFIRMED` |
+| `POST /api/payments/charge` — decline card `4111…` | 402; `failureCode` present; booking stays `PENDING` |
+| `GET /api/payments/SEED01` | 200; `status=SUCCEEDED`; `omiseChargeId` non-empty |
+| `GET /api/payments/SEED02` | 200; `status=FAILED`; `failureCode=insufficient_fund` |
+| `GET /api/flights/search` — no `Authorization` header | 401 `UNAUTHORIZED` |
+| `PUT /api/bookings/SEED01/status` — no `X-Internal-Token` | 403 `FORBIDDEN` (no JWT required on this route) |
+| `GET /health/live` + `GET /health/ready` — no `Authorization` header | 200 on all 3 services (health endpoints are unprotected) |
 
 ### Layer 4 — Load Tests (K6)
 
@@ -657,6 +809,10 @@ k6 run tests/k6/booking-flow.js   # 20 VUs × 60 s
 - `.env` must not be committed (it is in `.gitignore`)
 - Rate limiting must be per-IP (not global)
 - Payment is **credit card only** — do not add webhook handlers
+- `INTERNAL_TOKEN` must be a high-entropy random value (`openssl rand -hex 32`); booking-service must refuse to start if it is empty
+- `JWT_PRIVATE_KEY` must never be loaded by any running service — test tooling only
+- Use `crypto/subtle.ConstantTimeCompare` for all secret comparisons (never `==`)
+- No hardcoded secrets in `.go` files (`go vet` and `grep` checks will catch `skey_test` / `pkey_test`)
 
 ---
 
@@ -669,7 +825,7 @@ See `SCORECARD.md` for the full rubric.
 | Working Software — all 7 endpoints return correct responses end-to-end | 25 |
 | Testing — unit + integration + contract + K6 | 35 |
 | Code Quality — layered arch, error handling, clean Go | 20 |
-| Infrastructure — health probes, rate limiting, graceful shutdown, logs | 20 |
+| Infrastructure & Security — health probes, rate limiting, graceful shutdown, logs, JWT auth, internal token | 20 |
 
 ---
 
@@ -694,7 +850,7 @@ Via HTTP using the `BOOKING_SERVICE_URL` env var (already `http://booking-servic
 No. Credit card charges are synchronous — Omise returns the result in the same API call. No webhook, no public URL needed.
 
 **Q: Do I need authentication?**
-No. All endpoints are unauthenticated for this challenge.
+Yes, but differently per caller type. Client-facing endpoints (`/api/*` except `PUT /status`) require `Authorization: Bearer <jwt>` (RS256, verified by `JWT_PUBLIC_KEY`). The internal `PUT /api/bookings/:ref/status` endpoint is excluded from JWT — it only accepts `X-Internal-Token`. Use `make jwt-token` to generate a test token for curl.
 
 **Q: Can I add packages to go.mod?**
 Yes. The existing `go.mod` already includes Gin, `lib/pq`, and the Omise SDK. Add anything you need.

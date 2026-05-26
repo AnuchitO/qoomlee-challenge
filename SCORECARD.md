@@ -16,7 +16,7 @@ Evaluator: _____________________
 | [1] Working Software | 25 | All 7 endpoints work end-to-end |
 | [2] Testing | 35 | Unit → Integration → Contract → K6 Load |
 | [3] Code Quality | 20 | Architecture, error handling, clean Go |
-| [4] Infrastructure & Shippable | 20 | Health checks, rate limiting, graceful shutdown, structured logs |
+| [4] Infrastructure & Shippable | 20 | Health checks, rate limiting, graceful shutdown, structured logs, JWT auth, internal token |
 | **Total** | **100** | |
 
 ---
@@ -25,16 +25,22 @@ Evaluator: _____________________
 
 _Run after `docker compose up --build`. Call each service on its own port (8081 / 8082 / 8084)._
 
+> **Auth required.** Get a token first:
+> ```bash
+> TOKEN=$(make jwt-token -s)
+> ```
+> Add `-H "Authorization: Bearer $TOKEN"` to every curl below. Calls without a token return 401 — that is correct behaviour, not a bug.
+
 ### Automated smoke tests — 3 pts each
 
 | # | Command | Pass condition | Pass | Fail |
 |---|---------|---------------|------|------|
-| 1 | `curl "http://localhost:8081/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"` | Status 200; body has key `"flights"` with ≥1 item | | |
-| 2 | `curl "http://localhost:8081/api/flights/1"` | Status 200; body has `id`, `flightNumber`, `origin`, `destination`, `durationMinutes` | | |
-| 3 | `POST /api/bookings` with valid body | Status 201; `bookingRef` is exactly 6 chars; `bookingId` is an integer | | |
-| 4 | `POST /api/payments/charge` with success card `4242…` token | Status 201; `omiseChargeId` non-empty; `status` is `"SUCCEEDED"` | | |
-| 5 | `GET /api/bookings/{bookingRef}` (after step 4) | Status 200; `status` is `"CONFIRMED"`; `flight` and `passenger` objects present | | |
-| 6 | `GET /api/payments/{bookingRef}` (after step 4) | Status 200; `status` is `"SUCCEEDED"`; `omiseChargeId` non-empty | | |
+| 1 | `curl -H "Authorization: Bearer $TOKEN" "http://localhost:8081/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"` | Status 200; body has key `"flights"` with ≥1 item | | |
+| 2 | `curl -H "Authorization: Bearer $TOKEN" "http://localhost:8081/api/flights/1"` | Status 200; body has `id`, `flightNumber`, `origin`, `destination`, `durationMinutes` | | |
+| 3 | `POST /api/bookings` with valid body + `Authorization` header | Status 201; `bookingRef` is exactly 6 chars; `bookingId` is an integer | | |
+| 4 | `POST /api/payments/charge` with success card `4242…` token + `Authorization` header | Status 201; `omiseChargeId` non-empty; `status` is `"SUCCEEDED"` | | |
+| 5 | `GET /api/bookings/{bookingRef}` (after step 4) + `Authorization` header | Status 200; `status` is `"CONFIRMED"`; `flight` and `passenger` objects present | | |
+| 6 | `GET /api/payments/{bookingRef}` (after step 4) + `Authorization` header | Status 200; `status` is `"SUCCEEDED"`; `omiseChargeId` non-empty | | |
 
 > For test #4: tokenize test card first with `curl https://vault.omise.co/tokens -u $OMISE_PUBLIC_KEY: -d "card[number]=4242424242424242&card[expiration_month]=12&card[expiration_year]=2028&card[security_code]=123"`
 
@@ -46,7 +52,7 @@ _Run after `docker compose up --build`. Call each service on its own port (8081 
 |----------|---------------|------|------|
 | Payment failure path | `POST /api/payments/charge` with decline card `4111…` returns 402 with `failureCode`; subsequent `GET /api/bookings/:ref` still shows `status: "PENDING"` | | |
 | Retry payment | After decline, charge again with success card → 201; booking flips to `CONFIRMED` | | |
-| Duplicate payment guard | Charge an already-CONFIRMED booking → 409 with `ALREADY_PAID` | | |
+| Duplicate payment guard | `POST /api/payments/charge` with `bookingRef=SEED01` (pre-seeded CONFIRMED) → 409 `ALREADY_PAID` | | |
 | Rate limit enforced | Exceed the per-IP limit on `POST /api/payments/charge` (>10 req/min) → 429 with `RATE_LIMIT_EXCEEDED` | | |
 
 **Manual subtotal: __ / 8** _(4 scenarios × 2 pts — deduct 1 pt if retry works but duplicate guard is missing)_
@@ -87,7 +93,14 @@ Run: `go test ./...` in each service directory. All DB and HTTP calls must be mo
 | `Charge()` — already paid: booking returns `CONFIRMED`; Omise never called; response is 409 `ALREADY_PAID` | | |
 | `GetByBookingRef()` — returns 200 with payment data; returns 404 for unknown ref | | |
 
-**Layer 1 subtotal: __ / 18** _(2 pts × 9 criteria)_
+**middleware (any service)**
+
+| Criterion | Pass (2 pts) | Fail (0 pts) |
+|-----------|---|---|
+| `JWTMiddleware` — valid RS256 token passes; missing/expired/wrong-algorithm token returns 401 `UNAUTHORIZED` | | |
+| `InternalTokenMiddleware` — correct `X-Internal-Token` passes; missing or wrong value returns 403 `FORBIDDEN` | | |
+
+**Layer 1 subtotal: __ / 22** _(2 pts × 11 criteria)_
 
 > Wait — 9 × 2 = 18 pts but Layer 1 is capped at 12. Evaluator: score each criterion 0–1 pt, then double. Total = 0–18, divide by 18 × 12 = scaled score. **Or simpler:** score 0/1/2 per criterion, max 12 pts total. Deduct 1 pt per criterion that partially passes.
 
@@ -103,22 +116,22 @@ Run: `go test ./... -tags=integration`. Use `testcontainers-go` to spin up a rea
 
 | Criterion | Pass (2 pts) | Fail (0 pts) |
 |-----------|---|---|
-| Search returns seed flights for BKK→SIN on 2026-06-15; returns empty slice for unknown route | | |
-| `GetByID(1)` returns correct flight with origin=BKK; `GetByID(99999)` returns `ErrNotFound` | | |
+| Search returns ≥1 flight for BKK→SIN `date=2026-06-15`; returns empty slice for unknown route (e.g. BKK→XXX) | | |
+| `GetByID(1)` returns flight with `origin=BKK`, `flightNumber=QM101`; `GetByID(99999)` returns `ErrNotFound` | | |
 
 **booking-service**
 
 | Criterion | Pass (2 pts) | Fail (0 pts) |
 |-----------|---|---|
-| `CreateBooking()` inserts rows into both `passengers` and `bookings`; `booking_ref` is unique | | |
-| `GetByRef(pnr)` returns full booking joined with passenger and flight data | | |
+| `CreateBooking()` inserts rows into both `passengers` and `bookings`; `booking_ref` is unique 6-char string | | |
+| `GetByRef("SEED02")` returns full booking with nested passenger + flight (uses pre-seeded PENDING booking) | | |
 
 **payment-service**
 
 | Criterion | Pass (2 pts) | Fail (0 pts) |
 |-----------|---|---|
 | `Insert()` writes row to `payments` with correct `booking_ref` and `amount`; returns record with non-zero `id` | | |
-| `FindByBookingRef(ref)` returns correct record after insert; returns `ErrNotFound` for unknown ref | | |
+| `FindByBookingRef("SEED01")` returns `status=SUCCEEDED`; `FindByBookingRef("XXXXXX")` returns `ErrNotFound` (uses pre-seeded payment) | | |
 
 **Layer 2 subtotal: __ / 10** _(5 criteria × 2 pts — partial credit: 1 pt if test exists but assertion is incomplete)_
 
@@ -133,13 +146,18 @@ Run against live `docker compose` stack. Use `curl` or Go's `net/http` test clie
 | `GET /api/flights/search` — bad params | 400 when `origin` is missing | | |
 | `GET /api/flights/1` | 200; all of `id`, `flightNumber`, `origin`, `destination`, `durationMinutes` present | | |
 | `GET /api/flights/99999` | 404 | | |
-| `POST /api/bookings` — valid | 201; `bookingRef` is exactly 6 chars; `bookingId` is integer | | |
-| `GET /api/bookings/{validRef}` | 200; keys `bookingRef`, `status`, `flight`, `passenger` all present | | |
-| `POST /api/payments/charge` — success `4242…` | 201; `omiseChargeId` non-empty; `GET /api/bookings/{ref}` then shows `CONFIRMED` | | |
-| `POST /api/payments/charge` — decline `4111…` | 402; `failureCode` non-empty; `GET /api/bookings/{ref}` still shows `PENDING` | | |
-| `GET /health/live` and `GET /health/ready` | All 3 services return 200 on both endpoints when DB is up | | |
+| `POST /api/bookings` — valid body | 201; `bookingRef` is exactly 6 chars; `bookingId` is integer | | |
+| `POST /api/bookings` — flightId=6 (SOLD OUT `QM999`) | 409 `NO_SEATS_AVAILABLE` | | |
+| `GET /api/bookings/SEED02` | 200; keys `bookingRef`, `status`, `flight`, `passenger` all present | | |
+| `GET /api/bookings/XXXXXX` | 404 `BOOKING_NOT_FOUND` | | |
+| `POST /api/payments/charge` — `bookingRef=SEED01` (already CONFIRMED) | 409 `ALREADY_PAID` (no Omise call needed) | | |
+| `GET /api/payments/SEED01` | 200; `status=SUCCEEDED`; `omiseChargeId` non-empty | | |
+| `GET /api/payments/SEED02` | 200; `status=FAILED`; `failureCode=insufficient_fund` | | |
+| `GET /api/flights/search` — no `Authorization` header | 401 `UNAUTHORIZED` | | |
+| `PUT /api/bookings/SEED01/status` — no `X-Internal-Token` | 403 `FORBIDDEN` (and no JWT needed) | | |
+| `GET /health/live` and `GET /health/ready` — no `Authorization` header | All 3 services return 200 (health endpoints are unprotected) | | |
 
-**Layer 3 subtotal: __ / 8**
+**Layer 3 subtotal: __ / 8** _(13 checks × 1 pt, capped at 8. Prioritise the auth and business-rule checks.)_
 
 ---
 
@@ -227,28 +245,39 @@ Two separate endpoints are required. Using one endpoint for both is scored as pa
 
 ---
 
-### Graceful Shutdown (5 points)
+### Graceful Shutdown (4 points)
 
-| Check | Pass (5 pts) | Partial (2 pts) | Fail (0 pts) |
+| Check | Pass (4 pts) | Partial (2 pts) | Fail (0 pts) |
 |-------|---|---|---|
 | Each service uses `http.Server` + `signal.Notify(SIGTERM/SIGINT)` + `srv.Shutdown(ctx)` with 10 s timeout; bare `r.Run()` is gone | | | |
 
-**Graceful shutdown subtotal: __ / 5**
+**Graceful shutdown subtotal: __ / 4**
 
 ---
 
-### Structured Logging (5 points)
+### Structured Logging (3 points)
 
 | Check | Pass (2 pts) | Fail (0 pts) |
 |-------|---|---|
-| `log.Printf` replaced with `slog` JSON output; each log line is valid JSON | | |
-| Log line for each inbound request includes `method`, `path`, `status`, `latency_ms` | | |
+| `log.Printf` replaced with `slog` JSON output; log line per request includes `method`, `path`, `status`, `latency_ms` | | |
 
 | Check | Pass (1 pt) | Fail (0 pts) |
 |-------|---|---|
 | Error logs include relevant context (e.g. `bookingRef`, `id`, `err`) — never just `"error occurred"` | | |
 
-**Structured logging subtotal: __ / 5**
+**Structured logging subtotal: __ / 3**
+
+---
+
+### Security / Auth (3 points)
+
+| Check | Pass (1 pt) | Fail (0 pts) |
+|-------|---|---|
+| Public API endpoints (`/api/*` except `PUT /status`) return 401 when JWT is missing or invalid | | |
+| `PUT /api/bookings/:ref/status` returns 403 when `X-Internal-Token` is missing/wrong; does **not** require a JWT | | |
+| `/health/*` and `PUT /status` remain accessible without a JWT | | |
+
+**Security subtotal: __ / 3**
 
 ---
 
@@ -258,8 +287,9 @@ Two separate endpoints are required. Using one endpoint for both is scored as pa
 |------|-----|-------|
 | Health Check Endpoints | 6 | |
 | Rate Limiting | 4 | |
-| Graceful Shutdown | 5 | |
-| Structured Logging | 5 | |
+| Graceful Shutdown | 4 | |
+| Structured Logging | 3 | |
+| Security / Auth | 3 | |
 | **Pillar 4 Total** | **20** | |
 
 ---

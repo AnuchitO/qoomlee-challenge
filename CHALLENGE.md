@@ -24,10 +24,12 @@ You are given:
 
 | Provided | Location | Purpose |
 |---|---|---|
-| Database schema | `infra/db/01_schema.sql` | Table definitions — **do not modify** |
-| Seed data | `infra/db/02_seed.sql` | 5 real flights in the DB on 2026-06-15 — **do not modify** |
+| Booking DB schema | `infra/db/qoomlee/01_schema.sql` | Table definitions for qoomlee-service — **do not modify** |
+| Payment DB schema | `infra/db/qoomlee-payment/01_schema.sql` | Table definitions for payment-service — **do not modify** |
+| Booking DB seed | `infra/db/qoomlee/02_seed.sql` | Flights, passengers, bookings — **do not modify** |
+| Payment DB seed | `infra/db/qoomlee-payment/02_seed.sql` | Payments — **do not modify** |
 | API specifications | `API_SPECS.md` | Exact request/response shape for every endpoint |
-| Docker Compose | `docker-compose.yml` | Spins up postgres + all 3 services |
+| Docker Compose | `docker-compose.yml` | Spins up 2 postgres instances + both services |
 | Test scripts | `scripts/`, `tests/k6/` | Smoke, contract, and load tests |
 
 You are **not** given any working business logic. Build everything from scratch.
@@ -39,11 +41,9 @@ You are **not** given any working business logic. Build everything from scratch.
 ### API Endpoints (all 7)
 
 ```
-flight-service   :8081
+qoomlee-service  :8082
   GET  /api/flights/search              Search flights by route + date
   GET  /api/flights/:id                 View a single flight's details
-
-booking-service  :8082
   POST /api/bookings                    Create a booking, receive a 6-char PNR
   GET  /api/bookings/:bookingRef        View booking + passenger + flight info
   PUT  /api/bookings/:bookingRef/status Internal: flip status PENDING→CONFIRMED
@@ -56,13 +56,13 @@ payment-service  :8084
 ### Infrastructure & Security (all 6)
 
 ```
-All services     GET /health/live              Liveness probe  — always 200 (no auth)
-All services     GET /health/ready             Readiness probe — 503 when DB is down (no auth)
-All services     Rate limiting                 Per-IP limits on sensitive endpoints
-All services     Graceful shutdown             Drain connections on SIGTERM (10 s)
-All services     Structured logging            JSON logs via slog
-All services     JWT RS256 (public API)        Authorization: Bearer on every /api/* endpoint
-booking-service  X-Internal-Token (`PUT /api/bookings/:ref/status`) 256-bit shared secret, no JWT on this route
+Both services    GET /health/live              Liveness probe  — always 200 (no auth)
+Both services    GET /health/ready             Readiness probe — 503 when DB is down (no auth)
+Both services    Rate limiting                 Per-IP limits on sensitive endpoints
+Both services    Graceful shutdown             Drain connections on SIGTERM (10 s)
+Both services    Structured logging            JSON logs via slog
+Both services    JWT RS256 (public API)        Authorization: Bearer on every /api/* endpoint
+qoomlee-service  X-Internal-Token (`PUT /api/bookings/:ref/status`) 256-bit shared secret, no JWT on this route
 ```
 
 ---
@@ -97,7 +97,7 @@ docker compose up --build
 # 4. Get a JWT and verify the stack is up
 make jwt-token     # prints a Bearer token — save it as TOKEN=...
 curl -H "Authorization: Bearer $TOKEN" \
-  "http://localhost:8081/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"
+  "http://localhost:8082/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"
 # Expected before implementation: HTTP 501
 # Expected after implementation:  HTTP 200 with flights array
 ```
@@ -108,10 +108,10 @@ curl -H "Authorization: Bearer $TOKEN" \
 
 | Service | Language | Framework | Port |
 |---|---|---|---|
-| flight-service | Go | Gin | 8081 |
-| booking-service | Go | Gin | 8082 |
+| qoomlee-service | Go | Gin | 8082 |
 | payment-service | Go | Gin | 8084 |
-| Database | — | PostgreSQL 16 | 5432 |
+| postgres-qoomlee | — | PostgreSQL 16 | 5433 (host) |
+| postgres-qoomlee-payment | — | PostgreSQL 16 | 5434 (host) |
 
 **Unit tests:** `go test ./...` with `testify` + `testify/mock`
 **Integration tests:** `testcontainers-go` (real PostgreSQL container)
@@ -121,7 +121,7 @@ curl -H "Authorization: Bearer $TOKEN" \
 
 ## Service Architecture
 
-Each Go service follows the same three-layer pattern:
+Both Go services follow the same three-layer pattern:
 
 ```
 Handler  (HTTP)      — parse request, validate input, call service, write response
@@ -135,7 +135,12 @@ No SQL in handlers. No HTTP logic in repositories.
 
 ## The Database
 
-One shared PostgreSQL database. **Do not modify the schema or seed data.**
+Two isolated PostgreSQL databases — one per service. **Do not modify the schema or seed data.**
+
+- **`postgres-qoomlee`** — owned by qoomlee-service. Holds `aircraft_types`, `routes`, `flights`, `seats`, `passengers`, `bookings`.
+- **`postgres-qoomlee-payment`** — owned by payment-service. Holds `payments` only.
+
+`payments.booking_id` and `bookings.confirmed_payment_id` are logical cross-DB references (plain `INT` columns, no FK constraints). Consistency is maintained at the application layer: payment-service calls `GET /api/bookings/:ref` before charging and `PUT /api/bookings/:ref/status` after a successful charge. It **never** queries the booking database directly.
 
 ### Seed flights
 
@@ -195,7 +200,7 @@ flights    — id, flight_number, route_id, departure_time, arrival_time,
              base_price_minor (BIGINT, satang), available_seats, status, currency
 routes     — id, origin_iata, destination_iata
 bookings   — id, booking_ref (6-char PNR), flight_id, passenger_id,
-             status (PENDING|CONFIRMED), confirmed_payment_id (FK→payments),
+             status (PENDING|CONFIRMED), confirmed_payment_id (INT, logical ref to payment DB),
              total_amount_minor (BIGINT, satang), currency
 passengers — id, first_name, last_name, email, phone,
              passport_number, date_of_birth, nationality
@@ -209,7 +214,8 @@ payments   — id, booking_ref, booking_id, payment_provider (OMISE|2C2P|…),
 > Handlers compute `int64 ÷ 100` to produce the display string. Never use floats for money.
 ```
 
-Full schema: `infra/db/01_schema.sql` — Seed: `infra/db/02_seed.sql`
+Booking DB schema: `infra/db/qoomlee/01_schema.sql` — Seed: `infra/db/qoomlee/02_seed.sql`
+Payment DB schema: `infra/db/qoomlee-payment/01_schema.sql` — Seed: `infra/db/qoomlee-payment/02_seed.sql`
 
 ---
 
@@ -259,8 +265,8 @@ Below are the key implementation notes for each.
 
 ### 1. `GET /api/flights/search`
 
-**File:** `services/flight/handler/flight.go` → `Search`
-**Repo:** `services/flight/repository/flight.go` → `Search`
+**File:** `services/qoomlee/handler/flight.go` → `Search`
+**Repo:** `services/qoomlee/repository/flight.go` → `Search`
 
 Query parameters: `origin`, `destination`, `date` (YYYY-MM-DD), `passengers` (default 1).
 
@@ -287,8 +293,8 @@ Compute `durationMinutes` from `arrival_time - departure_time` in Go.
 
 ### 2. `GET /api/flights/:id`
 
-**File:** `services/flight/handler/flight.go` → `GetByID`
-**Repo:** `services/flight/repository/flight.go` → `GetByID`
+**File:** `services/qoomlee/handler/flight.go` → `GetByID`
+**Repo:** `services/qoomlee/repository/flight.go` → `GetByID`
 
 Same columns as search. If no row found, return 404 `FLIGHT_NOT_FOUND`.
 
@@ -296,8 +302,8 @@ Same columns as search. If no row found, return 404 `FLIGHT_NOT_FOUND`.
 
 ### 3. `POST /api/bookings`
 
-**File:** `services/booking/handler/booking.go` → `Create`
-**Repo:** `services/booking/repository/booking.go` → `InsertPassenger`, `InsertBooking`
+**File:** `services/qoomlee/handler/booking.go` → `Create`
+**Repo:** `services/qoomlee/repository/booking.go` → `InsertPassenger`, `InsertBooking`
 
 Three steps in **one transaction** — use `SELECT … FOR UPDATE` to prevent overbooking under concurrent load:
 
@@ -407,20 +413,26 @@ This prevents a client from submitting a lower amount than the booking price.
 
 #### After a successful charge
 
-Call `PUT http://booking-service:8082/api/bookings/{bookingRef}/status` with:
+Call `PUT http://qoomlee-service:8082/api/bookings/{bookingRef}/status` with:
 ```json
-{ "status": "CONFIRMED", "paymentId": <id of the payments row just inserted> }
+{
+  "status":            "CONFIRMED",
+  "paymentId":         <id of the payments row just inserted>,
+  "paymentProvider":   "OMISE",
+  "providerChargeId":  <charge.ID from Omise response>
+}
 ```
-- Use `BOOKING_SERVICE_URL` env var (already set in docker-compose).
-- Include the `X-Internal-Token: <INTERNAL_TOKEN>` header (booking-service will reject the call without it).
+- Use `QOOMLEE_SERVICE_URL` env var (already set in docker-compose).
+- Include the `X-Internal-Token: <INTERNAL_TOKEN>` header (qoomlee-service will reject the call without it).
 - Do **not** send a JWT — this is a service-to-service call, not a user request.
-- `paymentId` is stored in `bookings.confirmed_payment_id`; booking-service JOINs `payments` on this FK to return `paymentProvider` and `providerChargeId` in `GET /api/bookings/:ref`.
+- `paymentProvider` and `providerChargeId` are stored directly in the bookings row. `GET /api/bookings/:ref` returns them without any JOIN (the payment DB is not accessible from qoomlee-service).
 - If this call fails: **do not return 500**. Log it and return 201 anyway — the charge already succeeded.
 
 #### Guard: reject duplicate payment
 
-Before calling Omise, check if the booking is already `CONFIRMED`. If yes, return 409 `ALREADY_PAID`.
-Query the booking status via the `bookings` table or call the booking service.
+Before calling Omise, call `GET http://qoomlee-service:8082/api/bookings/{bookingRef}` (use `QOOMLEE_SERVICE_URL` env var). If booking `status == "CONFIRMED"`, return 409 `ALREADY_PAID` without calling Omise.
+
+This API call also validates the amount: compare `req.AmountMinor` against `booking.TotalAmountMinor` and `req.Currency` against `booking.Currency` before charging.
 
 #### Test cards
 
@@ -435,8 +447,8 @@ Use any future expiry (e.g. `12/2028`), any 3-digit CVV, any cardholder name.
 
 ### 5. `PUT /api/bookings/:bookingRef/status`
 
-**File:** `services/booking/handler/booking.go` → `UpdateStatus`
-**Repo:** `services/booking/repository/booking.go` → `UpdateStatus`
+**File:** `services/qoomlee/handler/booking.go` → `UpdateStatus`
+**Repo:** `services/qoomlee/repository/booking.go` → `UpdateStatus`
 
 Called **only by payment-service** after a successful charge. Not a public endpoint.
 
@@ -450,39 +462,50 @@ Return 403 if the header is missing or wrong. No 401 on this route.
 
 ```sql
 UPDATE bookings
-SET status = $1, confirmed_payment_id = $2, updated_at = NOW()
-WHERE booking_ref = $3
+SET status               = $1,
+    confirmed_payment_id = $2,
+    payment_provider     = $3,
+    provider_charge_id   = $4,
+    updated_at           = NOW()
+WHERE booking_ref = $5
 ```
 
 Only `CONFIRMED` is a valid value in this challenge. Return 400 `INVALID_STATUS` for anything else.
 If the booking_ref doesn't exist, return 404 `BOOKING_NOT_FOUND`.
 
-> `confirmed_payment_id` is the `paymentId` from the request body. Storing it here is the traceability link — it lets `GET /api/bookings/:ref` return the Omise charge ID by JOINing `payments`.
+> Because payment-service has its own database, qoomlee-service cannot JOIN payments at read time. Instead, `PUT /api/bookings/:ref/status` must receive `paymentProvider` and `providerChargeId` in the request body and store them in the bookings row. `GET /api/bookings/:ref` returns these values directly without any JOIN.
 
 ---
 
 ### 6. `GET /api/bookings/:bookingRef`
 
-**File:** `services/booking/handler/booking.go` → `GetByRef`
-**Repo:** `services/booking/repository/booking.go` → `GetByRef`
+**File:** `services/qoomlee/handler/booking.go` → `GetByRef`
+**Repo:** `services/qoomlee/repository/booking.go` → `GetByRef`
 
-Join bookings → passengers, flights → routes, and payments (LEFT JOIN for traceability):
+Join bookings → passengers, flights → routes. `paymentProvider` and `providerChargeId` are stored directly on bookings when the status is updated to CONFIRMED:
 
 ```sql
 SELECT b.id, b.booking_ref, b.status, b.total_amount_minor, b.currency, b.created_at,
+       b.payment_provider, b.provider_charge_id,
        p.first_name, p.last_name, p.email, p.phone, p.passport_number, p.nationality,
        f.flight_number, r.origin_iata, r.destination_iata,
-       f.departure_time, f.arrival_time,
-       pay.payment_provider, pay.provider_charge_id
+       f.departure_time, f.arrival_time
 FROM bookings b
 JOIN passengers p ON p.id = b.passenger_id
 JOIN flights f    ON f.id = b.flight_id
 JOIN routes r     ON r.id = f.route_id
-LEFT JOIN payments pay ON pay.id = b.confirmed_payment_id
 WHERE b.booking_ref = $1
 ```
 
-> The LEFT JOIN means `payment_provider` and `provider_charge_id` are `NULL` for PENDING bookings, and populated for CONFIRMED bookings. Return them as `paymentProvider` and `providerChargeId` in the JSON response.
+> Because payment-service has its own database, qoomlee-service cannot JOIN to the payments table. Instead, `PUT /api/bookings/:ref/status` receives `paymentProvider` and `providerChargeId` in its request body and stores them in the bookings row. Return them as `paymentProvider` and `providerChargeId` in the JSON response (both `null` for PENDING bookings).
+
+Update the bookings schema to add these columns:
+```sql
+ALTER TABLE bookings
+    ADD COLUMN payment_provider   VARCHAR(50),
+    ADD COLUMN provider_charge_id VARCHAR(100);
+```
+(Already included in `infra/db/qoomlee/01_schema.sql`.)
 
 ---
 
@@ -520,7 +543,7 @@ r.GET("/health/live",  h.HealthLive)
 r.GET("/health/ready", h.HealthReady)
 
 func (h *Handler) HealthLive(c *gin.Context) {
-    c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "flight-service"})
+    c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "qoomlee-service"})  // or "payment-service"
 }
 
 func (h *Handler) HealthReady(c *gin.Context) {
@@ -529,11 +552,11 @@ func (h *Handler) HealthReady(c *gin.Context) {
     if err := h.db.PingContext(ctx); err != nil {
         slog.Error("readiness check failed", "err", err)
         c.JSON(http.StatusServiceUnavailable, gin.H{
-            "status": "degraded", "service": "flight-service", "error": "database ping failed",
+            "status": "degraded", "service": "qoomlee-service", "error": "database ping failed",
         })
         return
     }
-    c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "flight-service"})
+    c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "qoomlee-service"})
 }
 ```
 
@@ -653,12 +676,12 @@ r.GET("/health/ready", ...)
 
 **For testing** — generate a token: `make jwt-token` (prints a Bearer token valid for 1 h, signed with `JWT_PRIVATE_KEY` from `.env`).
 
-**For the internal `PUT /api/bookings/:ref/status` call** — this endpoint sits **outside** the JWT middleware. booking-service guards it with `InternalTokenMiddleware` only. payment-service sends `X-Internal-Token: <INTERNAL_TOKEN>`, no JWT.
+**For the internal `PUT /api/bookings/:ref/status` call** — this endpoint sits **outside** the JWT middleware. qoomlee-service guards it with `InternalTokenMiddleware` only. payment-service sends `X-Internal-Token: <INTERNAL_TOKEN>`, no JWT.
 
 ```go
 import "crypto/subtle"
 
-// Internal-token middleware (booking-service only, on PUT /api/bookings/:ref/status route)
+// Internal-token middleware (qoomlee-service only, on PUT /api/bookings/:ref/status route)
 // Uses constant-time comparison to prevent timing attacks.
 func InternalTokenMiddleware(secret string) gin.HandlerFunc {
     return func(c *gin.Context) {
@@ -674,9 +697,9 @@ func InternalTokenMiddleware(secret string) gin.HandlerFunc {
 }
 ```
 
-> **Security model:** `X-Internal-Token` proves the caller *knows the secret* — not that it is specifically payment-service. This is sufficient here because `booking-service:8082` is only reachable within the Docker Compose internal network (no `ports:` mapping for external access). The network boundary is the primary isolation; the token is a guard against accidental miscalls from other containers.
+> **Security model:** `X-Internal-Token` proves the caller *knows the secret* — not that it is specifically payment-service. This is sufficient here because `qoomlee-service:8082` is only reachable within the Docker Compose internal network (no `ports:` mapping for external access). The network boundary is the primary isolation; the token is a guard against accidental miscalls from other containers.
 >
-> **Token strength matters.** Generate it with `openssl rand -hex 32` (256 bits of entropy). A weak or default value makes the guard worthless. booking-service should refuse to start if `INTERNAL_TOKEN` is empty:
+> **Token strength matters.** Generate it with `openssl rand -hex 32` (256 bits of entropy). A weak or default value makes the guard worthless. qoomlee-service should refuse to start if `INTERNAL_TOKEN` is empty:
 > ```go
 > secret := os.Getenv("INTERNAL_TOKEN")
 > if secret == "" {
@@ -748,12 +771,13 @@ if err != nil {
 
 Every `err` return value must be checked. Ignoring an error and continuing is a bug.
 
-### Requirement 6 — Payment-service must never write to the bookings table directly
+### Requirement 6 — Payment-service must never access the booking database
 
-Payment-service owns the `payments` table only. It must **never** `UPDATE bookings` directly via SQL.
-Booking status changes go exclusively through `PUT http://booking-service:8082/api/bookings/:ref/status`.
+Payment-service connects to `postgres-qoomlee-payment` only. It physically cannot access the booking database — there are no credentials, no host, no `DB_*` env vars pointing to `postgres-qoomlee`.
 
-This is enforced in unit tests: the booking-service is a **mock interface** injected into payment-service. If payment-service issues a direct DB write to `bookings`, the test will not catch it via the mock — treat any direct `bookings` SQL in payment-service as a failing criterion.
+Booking status changes go exclusively through `PUT http://qoomlee-service:8082/api/bookings/:ref/status`.
+
+This is enforced by topology (separate DB instances), not just convention. Any attempt to hardcode booking DB connection strings in payment-service is a failing criterion.
 
 ### Requirement 7 — Payment→booking failure
 
@@ -793,13 +817,13 @@ The internal status endpoint must be verified end-to-end (not just the 403 rejec
 |---|---|---|
 | Missing or invalid `Authorization` header / expired JWT | 401 | `UNAUTHORIZED` |
 
-**booking-service only — `PUT /api/bookings/:ref/status` (no JWT, internal-token middleware only)**
+**qoomlee-service only — `PUT /api/bookings/:ref/status` (no JWT, internal-token middleware only)**
 
 | Scenario | Status | `error` |
 |---|---|---|
 | Missing or wrong `X-Internal-Token` | 403 | `FORBIDDEN` |
 
-**flight-service**
+**qoomlee-service (flight endpoints)**
 
 | Scenario | Status | `error` |
 |---|---|---|
@@ -809,7 +833,7 @@ The internal status endpoint must be verified end-to-end (not just the 403 rejec
 | Flight `:id` not found | 404 | `FLIGHT_NOT_FOUND` |
 | DB error | 500 | `INTERNAL_ERROR` |
 
-**booking-service**
+**qoomlee-service (booking endpoints)**
 
 | Scenario | Status | `error` |
 |---|---|---|
@@ -842,16 +866,16 @@ Define a repository **interface**, implement it in production, mock it in tests.
 
 | Service | Method | Cases to cover |
 |---|---|---|
-| flight-service | `SearchFlights` | valid params → flights; no match → empty slice; blank origin → error |
-| flight-service | `GetFlightByID` | valid id → flight; unknown id → ErrNotFound |
-| booking-service | `CreateBooking` | PNR is 6 chars; passenger insert called; booking insert called with correct `flightId` and `total_amount_minor` copied from flight; repo mock verifies `SELECT FOR UPDATE` called before decrement |
-| booking-service | `GetBookingByRef` | returns nested flight+passenger+paymentProvider+providerChargeId (non-nil when CONFIRMED); unknown ref → ErrNotFound |
-| booking-service | `UpdateBookingStatus` | updates status; unknown ref → ErrNotFound |
-| payment-service | `Charge` — amount mismatch | `req.amountMinor != booking.total_amount_minor`; Omise **never called**; returns 400 `AMOUNT_MISMATCH` |
-| payment-service | `Charge` — success | Omise mock returns successful; DB insert with `status=SUCCEEDED`, `amount_minor` matching booking; booking-service mock `PUT /api/bookings/:ref/status` called once with `{status:CONFIRMED, paymentId:X}`; returns 201 |
-| payment-service | `Charge` — decline | Omise mock returns failed; DB insert with `status=FAILED`; booking-service `PUT /api/bookings/:ref/status` **never called**; returns 402 with `failureCode` |
-| payment-service | `Charge` — already paid | booking-service mock returns `CONFIRMED`; Omise **never called**; booking-service `PUT /api/bookings/:ref/status` **never called**; returns 409 `ALREADY_PAID` |
-| payment-service | `Charge` — PUT /api/bookings/:ref/status fails | Omise mock returns successful; DB insert with SUCCEEDED; booking-service mock returns error on `PUT /api/bookings/:ref/status`; **still returns 201** (charge succeeded); error logged |
+| qoomlee-service | `SearchFlights` | valid params → flights; no match → empty slice; blank origin → error |
+| qoomlee-service | `GetFlightByID` | valid id → flight; unknown id → ErrNotFound |
+| qoomlee-service | `CreateBooking` | PNR is 6 chars; passenger insert called; booking insert called with correct `flightId` and `total_amount_minor` copied from flight; repo mock verifies `SELECT FOR UPDATE` called before decrement |
+| qoomlee-service | `GetBookingByRef` | returns nested flight+passenger+paymentProvider+providerChargeId (non-nil when CONFIRMED); unknown ref → ErrNotFound |
+| qoomlee-service | `UpdateBookingStatus` | updates status + paymentProvider + providerChargeId; unknown ref → ErrNotFound |
+| payment-service | `Charge` — amount mismatch | qoomlee-service mock returns booking; `req.amountMinor != booking.total_amount_minor`; Omise **never called**; returns 400 `AMOUNT_MISMATCH` |
+| payment-service | `Charge` — success | qoomlee-service mock returns PENDING booking; Omise mock returns successful; DB insert with `status=SUCCEEDED`, `amount_minor` matching booking; qoomlee-service mock `PUT /api/bookings/:ref/status` called once with `{status:CONFIRMED, paymentId:X, paymentProvider:OMISE, providerChargeId:chrg_...}`; returns 201 |
+| payment-service | `Charge` — decline | qoomlee-service mock returns PENDING booking; Omise mock returns failed; DB insert with `status=FAILED`; qoomlee-service `PUT /api/bookings/:ref/status` **never called**; returns 402 with `failureCode` |
+| payment-service | `Charge` — already paid | qoomlee-service mock `GET /api/bookings/:ref` returns `CONFIRMED`; Omise **never called**; qoomlee-service `PUT /api/bookings/:ref/status` **never called**; returns 409 `ALREADY_PAID` |
+| payment-service | `Charge` — PUT /api/bookings/:ref/status fails | qoomlee-service mock returns PENDING booking; Omise mock returns successful; DB insert with SUCCEEDED; qoomlee-service mock returns error on `PUT /api/bookings/:ref/status`; **still returns 201** (charge succeeded); error logged |
 | payment-service | `GetByBookingRef` | returns 200 with `paymentProvider` + `providerChargeId`; unknown ref → 404 |
 | middleware | `JWTMiddleware` | valid token → passes through; missing token → 401; expired token → 401; wrong algorithm → 401 |
 | middleware | `InternalTokenMiddleware` | correct token → passes through; missing header → 403; wrong value → 403 |
@@ -862,9 +886,9 @@ Define a repository **interface**, implement it in production, mock it in tests.
 
 | Service | What to test |
 |---|---|
-| flight-service | Search returns ≥1 flight for BKK→SIN `date=2026-06-15`; empty slice for unknown route; `GetByID(1)` correct; `GetByID(99999)` ErrNotFound |
-| booking-service | `CreateBooking()` writes to `passengers` + `bookings`; PNR is unique; `total_amount_minor` equals `flights.base_price_minor`; `GetByRef("SEED02")` returns full join (uses pre-seeded PENDING booking) |
-| booking-service | Concurrent `CreateBooking()` — run 2 goroutines simultaneously on a flight with 1 seat; exactly 1 succeeds (201) and 1 returns 409 `NO_SEATS_AVAILABLE`; `available_seats` ends at 0 |
+| qoomlee-service | Search returns ≥1 flight for BKK→SIN `date=2026-06-15`; empty slice for unknown route; `GetByID(1)` correct; `GetByID(99999)` ErrNotFound |
+| qoomlee-service | `CreateBooking()` writes to `passengers` + `bookings`; PNR is unique; `total_amount_minor` equals `flights.base_price_minor`; `GetByRef("SEED02")` returns full join (uses pre-seeded PENDING booking) |
+| qoomlee-service | Concurrent `CreateBooking()` — run 2 goroutines simultaneously on a flight with 1 seat; exactly 1 succeeds (201) and 1 returns 409 `NO_SEATS_AVAILABLE`; `available_seats` ends at 0 |
 | payment-service | `Insert()` writes to `payments` with correct `amount_minor`; `FindByBookingRef("SEED01")` returns SUCCEEDED record with matching `amount_minor`; unknown ref → ErrNotFound |
 
 ### Layer 3 — Contract Tests
@@ -890,7 +914,7 @@ Run against live `docker compose` stack. All requests must include `Authorizatio
 | `PUT /api/bookings/SEED02/status` — valid `X-Internal-Token`, body `{status:CONFIRMED, paymentId:1}` | 200; subsequent `GET /api/bookings/SEED02` returns `status=CONFIRMED` |
 | `PUT /api/bookings/SEED01/status` — no `X-Internal-Token` | 403 `FORBIDDEN` (no JWT required on this route) |
 | `POST /api/payments/charge` — `amountMinor` differs from booking | 400 `AMOUNT_MISMATCH`; Omise not called |
-| `GET /health/live` + `GET /health/ready` — no `Authorization` header | 200 on all 3 services (health endpoints are unprotected) |
+| `GET /health/live` + `GET /health/ready` — no `Authorization` header | 200 on both services (health endpoints are unprotected) |
 
 ### Layer 4 — Load Tests (K6)
 
@@ -908,14 +932,14 @@ k6 run tests/k6/booking-flow.js   # 20 VUs × 60 s
 
 ## Constraints
 
-- Do not modify `infra/db/01_schema.sql` or `infra/db/02_seed.sql`
+- Do not modify files under `infra/db/qoomlee/` or `infra/db/qoomlee-payment/`
 - Do not change service ports or the core `docker-compose.yml` structure
 - Omise must be in **test mode only** — never use live keys
 - `bookingRef` must be exactly 6 uppercase alphanumeric characters
 - `.env` must not be committed (it is in `.gitignore`)
 - Rate limiting must be per-IP (not global)
 - Payment is **credit card only** — do not add webhook handlers
-- `INTERNAL_TOKEN` must be a high-entropy random value (`openssl rand -hex 32`); booking-service must refuse to start if it is empty
+- `INTERNAL_TOKEN` must be a high-entropy random value (`openssl rand -hex 32`); qoomlee-service must refuse to start if it is empty
 - `JWT_PRIVATE_KEY` must never be loaded by any running service — test tooling only
 - Use `crypto/subtle.ConstantTimeCompare` for all secret comparisons (never `==`)
 - No hardcoded secrets in `.go` files (`go vet` and `grep` checks will catch `skey_test` / `pkey_test`)
@@ -938,7 +962,7 @@ See `SCORECARD.md` for the full rubric.
 ## FAQ
 
 **Q: Where do I start?**
-Implement the endpoints in order: Search → GetFlight → CreateBooking → Charge → UpdateStatus → GetBooking → GetPayment. Each one builds on the previous.
+Implement endpoints in order: Search → GetFlight → CreateBooking → Charge → UpdateStatus → GetBooking → GetPayment. Each one builds on the previous. qoomlee-service owns the first 5 endpoints; payment-service owns the last 2.
 
 **Q: What is satang?**
 Omise requires amounts in the smallest currency unit (like Stripe's cents). 1 THB = 100 satang. 3,500 THB = `350000`. The `payments.amount_minor` column stores satang. Pass satang when creating a charge. `request.amountMinor` must equal `booking.total_amount_minor` — validate before calling Omise.
@@ -949,8 +973,8 @@ Omise requires amounts in the smallest currency unit (like Stripe's cents). 1 TH
 **Q: My payment succeeded but GET /api/bookings still shows PENDING.**
 The payment service must call `PUT /api/bookings/{ref}/status` internally after a successful charge. If you haven't implemented that PUT handler yet, or haven't wired the HTTP call in payment-service, the status won't update.
 
-**Q: How does payment-service call booking-service?**
-Via HTTP using the `BOOKING_SERVICE_URL` env var (already `http://booking-service:8082` in docker-compose). Make an HTTP PUT call in the Charge handler after recording the SUCCEEDED payment.
+**Q: How does payment-service call qoomlee-service?**
+Via HTTP using the `QOOMLEE_SERVICE_URL` env var (already `http://qoomlee-service:8082` in docker-compose). Make an HTTP PUT call in the Charge handler after recording the SUCCEEDED payment.
 
 **Q: Do I need a public URL for Omise callbacks?**
 No. Credit card charges are synchronous — Omise returns the result in the same API call. No webhook, no public URL needed.
@@ -965,7 +989,7 @@ Yes. The existing `go.mod` already includes Gin, `lib/pq`, and the Omise SDK. Ad
 Correct. It's called internally by payment-service after a successful charge to flip the booking from PENDING to CONFIRMED. It's not exposed to end users but it must exist for the end-to-end flow to work.
 
 **Q: What does booking `status` mean?**
-`PENDING` = booked, not yet paid. `CONFIRMED` = paid successfully. Payment-service is responsible for calling booking-service to set CONFIRMED.
+`PENDING` = booked, not yet paid. `CONFIRMED` = paid successfully. Payment-service is responsible for calling qoomlee-service to set CONFIRMED.
 
 **Q: Should I build a checkin-service or touch the `checkins` table?**
 No. Ignore them entirely — out of scope.

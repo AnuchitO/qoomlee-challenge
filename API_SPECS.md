@@ -1,11 +1,10 @@
 # Qoomlee Airline — API Specifications
 
 Services run on their own ports. Call them directly:
-- flight-service: `http://localhost:8081`
-- booking-service: `http://localhost:8082`
+- qoomlee-service: `http://localhost:8082` (flight + booking endpoints)
 - payment-service: `http://localhost:8084`
 
-Internal service-to-service calls use the Docker Compose service name (e.g. `http://booking-service:8082`).
+Internal service-to-service calls use the Docker Compose service name (e.g. `http://qoomlee-service:8082`).
 
 > **Monetary convention:** All money is stored as BIGINT minor units (satang) in the database (`_minor` column suffix).
 > 1 THB = 100 satang. 3,500 THB → stored as `350000`.
@@ -53,7 +52,7 @@ Missing or wrong token → **`403 Forbidden`**
 
 ---
 
-## Flight Service `:8081`
+## Booking Service `:8082`
 
 ### `GET /api/flights/search`
 
@@ -72,7 +71,7 @@ Search available flights by route and date.
 ```bash
 TOKEN=$(make jwt-token -s)
 curl -H "Authorization: Bearer $TOKEN" \
-  "http://localhost:8081/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"
+  "http://localhost:8082/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"
 ```
 
 **Response `200 OK`**
@@ -138,7 +137,7 @@ Get full detail for one flight by its database ID.
 **Path parameter:** `id` — integer, from search results.
 
 ```bash
-curl -H "Authorization: Bearer $TOKEN" "http://localhost:8081/api/flights/1"
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:8082/api/flights/1"
 ```
 
 **Response `200 OK`**
@@ -175,8 +174,6 @@ curl -H "Authorization: Bearer $TOKEN" "http://localhost:8081/api/flights/1"
 ```
 
 ---
-
-## Booking Service `:8082`
 
 ### `POST /api/bookings`
 
@@ -324,7 +321,7 @@ curl -H "Authorization: Bearer $TOKEN" "http://localhost:8082/api/bookings/QM7X2
 
 > `paymentProvider` — which payment gateway processed the charge (`"OMISE"`, `"2C2P"`, etc.). `null` when `PENDING`.
 > `providerChargeId` — the gateway's own transaction reference (Omise: `chrg_test_…`, 2C2P: order reference, etc.). `null` when `PENDING`.
-> booking-service retrieves both fields by LEFT JOINing `payments` on `bookings.confirmed_payment_id`. No cross-service HTTP call required — both tables share the same database.
+> qoomlee-service retrieves both fields by LEFT JOINing `payments` on `bookings.confirmed_payment_id`. No cross-service HTTP call required — both tables share the same database.
 
 **Response `401 Unauthorized`** — missing or invalid JWT
 ```json
@@ -342,7 +339,7 @@ curl -H "Authorization: Bearer $TOKEN" "http://localhost:8082/api/bookings/QM7X2
 
 Called by **payment-service** after a successful Omise charge. Not called by end users.
 
-**Called via:** `PUT http://booking-service:8082/api/bookings/{bookingRef}/status`
+**Called via:** `PUT http://qoomlee-service:8082/api/bookings/{bookingRef}/status`
 
 **Required header** — no JWT; authenticated by shared secret only:
 ```
@@ -351,10 +348,16 @@ X-Internal-Token: <INTERNAL_TOKEN value>
 
 **Request body**
 ```json
-{ "status": "CONFIRMED", "paymentId": 42 }
+{
+  "status":           "CONFIRMED",
+  "paymentId":        42,
+  "paymentProvider":  "OMISE",
+  "providerChargeId": "chrg_test_xxxxxxxxxxxxxxxx"
+}
 ```
 
-> `paymentId` — the `id` of the `payments` row that just succeeded. booking-service stores this in `bookings.confirmed_payment_id` so the booking always traces back to the exact Omise charge that confirmed it.
+> `paymentId` — the `id` of the `payments` row that just succeeded. Stored in `bookings.confirmed_payment_id`.
+> `paymentProvider` and `providerChargeId` — stored directly in the bookings row so that `GET /api/bookings/:ref` can return them without accessing the payment database (which qoomlee-service cannot reach).
 
 **Response `200 OK`**
 ```json
@@ -382,7 +385,7 @@ X-Internal-Token: <INTERNAL_TOKEN value>
 
 ### `POST /api/payments/charge`
 
-Charge a credit card via Omise. On success, the service also calls booking-service to set status `CONFIRMED`.
+Charge a credit card via Omise. On success, the service also calls qoomlee-service to set status `CONFIRMED`.
 
 > **Amount is in satang.** `3,500 THB` → send `350000`.
 > The charge is **synchronous** — Omise returns success/failure immediately. No webhook needed.
@@ -408,7 +411,6 @@ curl https://vault.omise.co/tokens \
 ```json
 {
   "bookingRef": "QM7X2K",
-  "bookingId": 42,
   "omiseToken": "tokn_test_xxxx",
   "amountMinor": 350000,
   "currency": "THB",
@@ -416,13 +418,15 @@ curl https://vault.omise.co/tokens \
 }
 ```
 
-**Required fields:** `bookingRef`, `bookingId`, `omiseToken`, `amountMinor`
+**Required fields:** `bookingRef`, `omiseToken`, `amountMinor`
+
+> payment-service calls `GET /api/bookings/:ref` to fetch booking details and validate `amountMinor` + `currency` before calling Omise. `bookingId` is no longer required in the charge request — it is obtained from the booking API response.
 
 ```bash
 curl -X POST http://localhost:8084/api/payments/charge \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"bookingRef":"QM7X2K","bookingId":42,"omiseToken":"tokn_test_xxxx","amountMinor":350000,"currency":"THB","amount":"3500.00"}'
+  -d '{"bookingRef":"QM7X2K","omiseToken":"tokn_test_xxxx","amountMinor":350000,"currency":"THB","amount":"3500.00"}'
 ```
 
 **Response `201 Created`** — charge succeeded

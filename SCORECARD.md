@@ -23,7 +23,7 @@ Evaluator: _____________________
 
 ## Pillar 1 — Working Software (25 points)
 
-_Run after `docker compose up --build`. Call each service on its own port (8081 / 8082 / 8084)._
+_Run after `docker compose up --build`. Call each service on its own port (8082 / 8084)._
 
 > **Auth required.** Get a token first:
 > ```bash
@@ -35,8 +35,8 @@ _Run after `docker compose up --build`. Call each service on its own port (8081 
 
 | # | Command | Pass condition | Pass | Fail |
 |---|---------|---------------|------|------|
-| 1 | `curl -H "Authorization: Bearer $TOKEN" "http://localhost:8081/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"` | Status 200; body has key `"flights"` with ≥1 item | | |
-| 2 | `curl -H "Authorization: Bearer $TOKEN" "http://localhost:8081/api/flights/1"` | Status 200; body has `id`, `flightNumber`, `origin`, `destination`, `durationMinutes` | | |
+| 1 | `curl -H "Authorization: Bearer $TOKEN" "http://localhost:8082/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"` | Status 200; body has key `"flights"` with ≥1 item | | |
+| 2 | `curl -H "Authorization: Bearer $TOKEN" "http://localhost:8082/api/flights/1"` | Status 200; body has `id`, `flightNumber`, `origin`, `destination`, `durationMinutes` | | |
 | 3 | `POST /api/bookings` with valid body + `Authorization` header | Status 201; `bookingRef` is exactly 6 chars; `bookingId` is an integer | | |
 | 4 | `POST /api/payments/charge` with success card `4242…` token + `Authorization` header | Status 201; `providerChargeId` non-empty; `paymentProvider` is `"OMISE"`; `status` is `"SUCCEEDED"` | | |
 | 5 | `GET /api/bookings/{bookingRef}` (after step 4) + `Authorization` header | Status 200; `status` is `"CONFIRMED"`; `flight` and `passenger` objects present; `providerChargeId` matches the charge ID from step 4 | | |
@@ -69,33 +69,28 @@ _Run after `docker compose up --build`. Call each service on its own port (8081 
 
 Run: `go test ./...` in each service directory. All DB and HTTP calls must be mocked via `testify/mock` interfaces.
 
-**flight-service**
+**qoomlee-service (flight + booking endpoints)**
 
 | Criterion | Pass (2 pts) | Fail (0 pts) |
 |-----------|---|---|
 | `SearchFlights()` — ≥3 cases: valid params returns flights; no match returns empty slice; blank origin returns error | | |
 | `GetFlightByID()` — returns flight struct for valid id; returns `ErrNotFound` for unknown id | | |
-
-**booking-service**
-
-| Criterion | Pass (2 pts) | Fail (0 pts) |
-|-----------|---|---|
 | `CreateBooking()` — PNR generated is 6 chars uppercase alphanumeric; passenger repo Insert called once; booking repo Insert called with correct `flightId` and `total_amount_minor` copied from flight's `base_price_minor` | | |
 | `GetBookingByRef()` — returns full struct with nested flight+passenger; returns `ErrNotFound` for unknown ref | | |
-| `UpdateBookingStatus()` — updates DB with new status; returns `ErrNotFound` for unknown ref | | |
+| `UpdateBookingStatus()` — updates DB with new status + `paymentProvider` + `providerChargeId`; returns `ErrNotFound` for unknown ref | | |
 
 **payment-service**
 
 | Criterion | Pass (2 pts) | Fail (0 pts) |
 |-----------|---|---|
 | `Charge()` — amount mismatch: `req.amountMinor != booking.total_amount_minor`; Omise **never called**; response is 400 `AMOUNT_MISMATCH` | | |
-| `Charge()` — success: mock Omise returns `"successful"`; payments repo Insert called with `status="SUCCEEDED"` and `amount_minor` matching booking; booking-service mock `PUT /api/bookings/:ref/status` called once with `{status:CONFIRMED, paymentId:X}`; response is 201 | | |
-| `Charge()` — decline: mock Omise returns failure; payments repo Insert called with `status="FAILED"`; booking-service `PUT /api/bookings/:ref/status` **never called**; response is 402 with `failureCode` | | |
-| `Charge()` — already paid: booking-service mock returns `CONFIRMED`; Omise **never called**; booking-service `PUT /api/bookings/:ref/status` **never called**; response is 409 `ALREADY_PAID` | | |
-| `Charge()` — `PUT /api/bookings/:ref/status` fails: mock Omise succeeds; payments repo Insert called; booking-service mock returns error on `PUT /api/bookings/:ref/status`; response is still **201** (charge succeeded); failure logged | | |
+| `Charge()` — success: mock Omise returns `"successful"`; payments repo Insert called with `status="SUCCEEDED"` and `amount_minor` matching booking; qoomlee-service mock `PUT /api/bookings/:ref/status` called once with `{status:CONFIRMED, paymentId:X}`; response is 201 | | |
+| `Charge()` — decline: mock Omise returns failure; payments repo Insert called with `status="FAILED"`; qoomlee-service `PUT /api/bookings/:ref/status` **never called**; response is 402 with `failureCode` | | |
+| `Charge()` — already paid: qoomlee-service mock returns `CONFIRMED`; Omise **never called**; qoomlee-service `PUT /api/bookings/:ref/status` **never called**; response is 409 `ALREADY_PAID` | | |
+| `Charge()` — `PUT /api/bookings/:ref/status` fails: mock Omise succeeds; payments repo Insert called; qoomlee-service mock returns error on `PUT /api/bookings/:ref/status`; response is still **201** (charge succeeded); failure logged | | |
 | `GetByBookingRef()` — returns 200 with `paymentProvider` + `providerChargeId`; returns 404 for unknown ref | | |
 
-> **Hard requirement:** payment-service must never write to the `bookings` table directly. All booking status changes go through `PUT /api/bookings/:ref/status` on booking-service. Any direct `UPDATE bookings` SQL in payment-service is a failing criterion.
+> **Hard requirement:** payment-service connects only to `postgres-qoomlee-payment`. It physically cannot access the booking database. Any direct DB connection to `postgres-qoomlee` or any `bookings` SQL in payment-service is a failing criterion.
 
 **middleware (any service)**
 
@@ -104,9 +99,9 @@ Run: `go test ./...` in each service directory. All DB and HTTP calls must be mo
 | `JWTMiddleware` — valid RS256 token passes; missing/expired/wrong-algorithm token returns 401 `UNAUTHORIZED` | | |
 | `InternalTokenMiddleware` — correct `X-Internal-Token` passes; missing or wrong value returns 403 `FORBIDDEN` | | |
 
-**Layer 1 subtotal: __ / 30** _(2 pts × 15 criteria)_
+**Layer 1 subtotal: __ / 34** _(2 pts × 17 criteria)_
 
-> Evaluator: score 0/1/2 per criterion, max 12 pts total. Scale: `(raw / 30) × 12`, round down. Deduct 1 pt per criterion that partially passes.
+> Evaluator: score 0/1/2 per criterion, max 12 pts total. Scale: `(raw / 34) × 12`, round down. Deduct 1 pt per criterion that partially passes.
 
 **Layer 1 subtotal: __ / 12**
 
@@ -114,19 +109,14 @@ Run: `go test ./...` in each service directory. All DB and HTTP calls must be mo
 
 ### Layer 2 — Integration Tests (10 points)
 
-Run: `go test ./... -tags=integration`. Use `testcontainers-go` to spin up a real PostgreSQL container and apply `infra/db/01_schema.sql` + `infra/db/02_seed.sql` before tests.
+Run: `go test ./... -tags=integration`. Use `testcontainers-go` to spin up a real PostgreSQL container and apply `infra/db/qoomlee/01_schema.sql` + `infra/db/qoomlee/02_seed.sql` before qoomlee-service tests; `infra/db/qoomlee-payment/01_schema.sql` + `infra/db/qoomlee-payment/02_seed.sql` for payment-service tests.
 
-**flight-service**
+**qoomlee-service (flight + booking)**
 
 | Criterion | Pass (2 pts) | Fail (0 pts) |
 |-----------|---|---|
 | Search returns ≥1 flight for BKK→SIN `date=2026-06-15`; returns empty slice for unknown route (e.g. BKK→XXX) | | |
 | `GetByID(1)` returns flight with `origin=BKK`, `flightNumber=QM101`; `GetByID(99999)` returns `ErrNotFound` | | |
-
-**booking-service**
-
-| Criterion | Pass (2 pts) | Fail (0 pts) |
-|-----------|---|---|
 | `CreateBooking()` inserts rows into `passengers` + `bookings`; `total_amount_minor` matches flight's `base_price_minor`; `booking_ref` is unique 6-char string | | |
 | Concurrent `CreateBooking()` — 2 goroutines on a 1-seat flight; exactly 1 succeeds, 1 returns 409; `available_seats` ends at 0 | | |
 | `GetByRef("SEED02")` returns full booking with nested passenger + flight (uses pre-seeded PENDING booking) | | |
@@ -141,6 +131,8 @@ Run: `go test ./... -tags=integration`. Use `testcontainers-go` to spin up a rea
 **Layer 2 subtotal: __ / 14** _(7 criteria × 2 pts — partial credit: 1 pt if test exists but assertion is incomplete)_
 
 > Evaluator: 7 criteria × 2 = 14 raw; cap at 10. Scale: `(raw / 14) × 10`.
+
+> **Hard requirement:** payment-service integration tests must use `infra/db/qoomlee-payment/` schema, not the booking DB schema. Any test that imports or applies `infra/db/qoomlee/` SQL in payment-service test setup is scored 0 on that criterion.
 
 ---
 
@@ -162,10 +154,10 @@ Run against live `docker compose` stack. Use `curl` or Go's `net/http` test clie
 | `GET /api/payments/SEED01` | 200; `status=SUCCEEDED`; `paymentProvider=OMISE`; `providerChargeId` non-empty | | |
 | `GET /api/payments/SEED02` | 200; `status=FAILED`; `failureCode=insufficient_fund` | | |
 | `GET /api/flights/search` — no `Authorization` header | 401 `UNAUTHORIZED` | | |
-| `PUT /api/bookings/SEED02/status` — valid `X-Internal-Token`, `{status:CONFIRMED, paymentId:1}` | 200; subsequent `GET /api/bookings/SEED02` returns `status=CONFIRMED` | | |
+| `PUT /api/bookings/SEED02/status` — valid `X-Internal-Token`, `{status:CONFIRMED, paymentId:1, paymentProvider:OMISE, providerChargeId:chrg_test_...}` | 200; subsequent `GET /api/bookings/SEED02` returns `status=CONFIRMED` with `paymentProvider` and `providerChargeId` populated | | |
 | `PUT /api/bookings/SEED01/status` — no `X-Internal-Token` | 403 `FORBIDDEN` (and no JWT needed) | | |
 | `POST /api/payments/charge` — `amountMinor` differs from booking amount | 400 `AMOUNT_MISMATCH` | | |
-| `GET /health/live` and `GET /health/ready` — no `Authorization` header | All 3 services return 200 (health endpoints are unprotected) | | |
+| `GET /health/live` and `GET /health/ready` — no `Authorization` header | Both services return 200 (health endpoints are unprotected) | | |
 
 **Layer 3 subtotal: __ / 8** _(17 checks × 1 pt, capped at 8. Prioritise the auth, traceability, amount-mismatch, and concurrent-booking checks.)_
 
@@ -221,7 +213,7 @@ Score 0–2 per criterion: 0 = absent, 1 = partial, 2 = complete.
 | **HTTP semantics correct:** 201 on create, 200 on read, 404 for not-found, 400 for bad input, 402 for decline, 409 for already-paid, 429 for rate limit | | |
 | **No hardcoded config:** DB DSN, Omise keys, service URLs — all from `os.Getenv()` | | |
 | **Payment→Booking coupling handled:** if `PUT /api/bookings/:ref/status` fails after a successful charge, logs and returns 201 anyway | | |
-| **Payment traceability:** `bookings.confirmed_payment_id` is set on confirmation; `GET /api/bookings/:ref` returns `paymentProvider` + `providerChargeId` via JOIN (both null when PENDING) | | |
+| **Payment traceability:** `PUT /api/bookings/:ref/status` receives `paymentProvider` + `providerChargeId` and stores them in the bookings row; `GET /api/bookings/:ref` returns them directly (both null when PENDING) | | |
 | **Readable code:** Go naming conventions; no magic numbers; no debug `fmt.Println`; slog used instead of log.Printf | | |
 
 **Review subtotal: __ / 14** _(8 criteria × 2 pts = 16 raw, capped at 14. Score 0/1/2 per criterion.)_
@@ -238,8 +230,8 @@ Two separate endpoints are required. Using one endpoint for both is scored as pa
 
 | Check | Pass (2 pts) | Partial (1 pt) | Fail (0 pts) |
 |-------|---|---|---|
-| All 3 DB-connected services have `GET /health/live` (always 200) **and** `GET /health/ready` (200 when DB up, 503 when DB down) | Both present and correct | Only `/health` or only one of the two | Neither present |
-| `GET /health/ready` returns 503 when DB unreachable; `GET /health/live` still returns 200 (evaluator: `docker stop qoomlee-postgres-1`, re-check both endpoints) | Live=200, Ready=503 | One works correctly | Both return same result or both fail |
+| Both services have `GET /health/live` (always 200) **and** `GET /health/ready` (200 when DB up, 503 when DB down) | Both present and correct on both services | Only `/health` or only one of the two | Neither present |
+| `GET /health/ready` returns 503 when DB unreachable; `GET /health/live` still returns 200 (evaluator: `docker stop qoomlee-postgres-qoomlee-1`, re-check both endpoints on qoomlee-service) | Live=200, Ready=503 | One works correctly | Both return same result or both fail |
 
 **Health check subtotal: __ / 4**
 

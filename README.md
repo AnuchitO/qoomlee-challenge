@@ -1,20 +1,26 @@
 # Qoomlee Airline — Agent Skills Challenge
 
-A real-world engineering challenge comparing two AI-assisted development approaches.
+⏺ Overview — At a Glance
 
-| Team A | Team B |
-|--------|--------|
-| May create and use agent skill `.md` files | Single code agent only — no skill files |
+  What: Build a REST API backend for a the airline called Qoomlee.
 
-Both teams start from this identical blank repo. Judged by `SCORECARD.md`.
-
----
-
-## The Flow
+  The user journey:
 
 ```
 Search Flights → Book a Seat → Pay → Get Confirmation
 ```
+
+  2 services, 7 endpoints:
+  - qoomlee-service :8082 — search flights, get flight detail, create booking, view booking, update status (internal)
+  - payment-service :8084 — charge a card, view payment receipt
+
+  Plus 6 infrastructure requirements on both services:
+  health checks, rate limiting, graceful shutdown, structured logging, JWT auth, internal token
+
+  What's given to you: schema, seed data, API specs, Docker Compose, test scripts — but zero business logic. You build everything from scratch.
+
+  Stack: Go + Gin, PostgreSQL (2 instances), Omise for payments.
+
 
 ---
 
@@ -29,7 +35,7 @@ cp .env.example .env
 docker compose up --build
 
 # 3. Verify postgres is up (endpoints return 501 until you implement them)
-curl "http://localhost:8081/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15"
+curl "http://localhost:8082/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15"
 ```
 
 ---
@@ -38,11 +44,12 @@ curl "http://localhost:8081/api/flights/search?origin=BKK&destination=SIN&date=2
 
 ```
 ├── services/
-│   ├── flight/             Go + Gin, port 8081
-│   ├── booking/            Go + Gin, port 8082
+│   ├── booking/            Go + Gin, port 8082 (flights + bookings)
 │   └── payment/            Go + Gin + Omise SDK, port 8084
 ├── infra/
-│   └── db/                 PostgreSQL schema (01_schema.sql) + seed data (02_seed.sql)
+│   └── db/
+│       ├── qoomlee/        Schema + seed data for qoomlee-service
+│       └── qoomlee-payment/ Schema + seed data for payment-service
 ├── tests/k6/               K6 load test scripts
 └── scripts/                Smoke, contract, and check-all scripts
 ```
@@ -53,8 +60,9 @@ curl "http://localhost:8081/api/flights/search?origin=BKK&destination=SIN&date=2
 
 | Provided | What's inside |
 |---|---|
-| `infra/db/` | Schema for all tables + 5 seed flights |
-| `docker-compose.yml` | Spins up postgres + all 3 services |
+| `infra/db/qoomlee/` | Schema + seed for flights, routes, passengers, bookings |
+| `infra/db/qoomlee-payment/` | Schema + seed for payments |
+| `docker-compose.yml` | Spins up 2 postgres instances + both services |
 | `API_SPECS.md` | Exact request/response shape for every endpoint |
 
 **Build everything from scratch.** Read `CHALLENGE.md` for what to build and in what order.
@@ -65,7 +73,7 @@ curl "http://localhost:8081/api/flights/search?origin=BKK&destination=SIN&date=2
 
 | File | Purpose |
 |------|---------|
-| `CHALLENGE.md` | What to build, implementation hints, rules |
+| `CHALLENGE.md` | What to build, implementation hints, requirements |
 | `API_SPECS.md` | Request/response contract for every endpoint |
 | `SCORECARD.md` | Scoring rubric — 100 pts across 4 pillars |
 | `TECHNOLOGY_STACK_SUMMARY.md` | Stack reference, Go patterns, env vars |

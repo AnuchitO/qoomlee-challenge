@@ -6,15 +6,18 @@
 
 | Service | Language | Framework | Port |
 |---------|----------|-----------|------|
-| flight-service | Go | Gin | 8081 |
-| booking-service | Go | Gin | 8082 |
+| qoomlee-service | Go | Gin | 8082 |
 | payment-service | Go | Gin + Omise SDK | 8084 |
+
+qoomlee-service owns all flight and booking endpoints (routes, flights, passengers, bookings tables).
+payment-service owns payments only and connects to its own isolated PostgreSQL instance.
 
 ## Infrastructure
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
-| Database | PostgreSQL 16 | Single shared DB for all services |
+| postgres-qoomlee | PostgreSQL 16 | qoomlee-service DB (flights, routes, bookings, passengers, …) |
+| postgres-qoomlee-payment | PostgreSQL 16 | payment-service DB (payments table only) |
 | Container | Docker Compose | `docker compose up --build` |
 
 ## Testing Stack
@@ -65,18 +68,20 @@ Add a `service/` layer if your business logic grows complex enough to warrant it
 
 | Variable | Used by | Value in docker-compose |
 |---|---|---|
-| `PORT` | All services | 8081 / 8082 / 8084 |
-| `DB_HOST` | All services | `postgres` |
+| `PORT` | All services | 8082 / 8084 |
+| `DB_HOST` | qoomlee-service | `postgres-qoomlee` |
+| `DB_HOST` | payment-service | `postgres-qoomlee-payment` |
 | `DB_PORT` | All services | `5432` |
-| `DB_NAME` | All services | `qoomlee` |
+| `DB_NAME` | qoomlee-service | `qoomlee` |
+| `DB_NAME` | payment-service | `qoomlee_payment` |
 | `DB_USER` | All services | `qoomlee` |
 | `DB_PASS` | All services | `qoomlee` (override in `.env`) |
 | `OMISE_PUBLIC_KEY` | payment-service | `pkey_test_...` — set in `.env` |
 | `OMISE_SECRET_KEY` | payment-service | `skey_test_...` — set in `.env` |
-| `BOOKING_SERVICE_URL` | payment-service | `http://booking-service:8082` |
+| `QOOMLEE_SERVICE_URL` | payment-service | `http://qoomlee-service:8082` |
 | `JWT_PUBLIC_KEY` | All services | RSA public key PEM — verifies incoming user JWTs |
 | `JWT_PRIVATE_KEY` | **Test tooling only** (`make jwt-token`) | RSA private key PEM — never loaded by any service at runtime |
-| `INTERNAL_TOKEN` | booking-service, payment-service | 256-bit random shared secret (`openssl rand -hex 32`) for `PUT /api/bookings/:ref/status`; compared with `crypto/subtle.ConstantTimeCompare` |
+| `INTERNAL_TOKEN` | qoomlee-service, payment-service | 256-bit random shared secret (`openssl rand -hex 32`) for `PUT /api/bookings/:ref/status`; compared with `crypto/subtle.ConstantTimeCompare` |
 
 ## Go Patterns Used in This Project
 

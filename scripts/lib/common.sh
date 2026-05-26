@@ -59,28 +59,6 @@ require_stack() {
   fi
 }
 
-# curl wrapper: returns body on success, fails with message on non-2xx
-api_get() {
-  local url=$1
-  curl -sf "$url" 2>/dev/null
-}
-
-api_post() {
-  local url=$1 data=$2
-  curl -sf -X POST "$url" -H "Content-Type: application/json" -d "$data" 2>/dev/null
-}
-
-# Check HTTP status code only (no body needed)
-http_status() {
-  local method=$1 url=$2 data=${3:-}
-  if [ -n "$data" ]; then
-    curl -s -o /dev/null -w "%{http_code}" -X "$method" "$url" \
-      -H "Content-Type: application/json" -d "$data"
-  else
-    curl -s -o /dev/null -w "%{http_code}" -X "$method" "$url"
-  fi
-}
-
 # Assert jq expression is truthy on JSON input
 assert_jq() {
   local desc=$1 json=$2 expr=$3
@@ -120,3 +98,81 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 FLIGHT_SERVICE_URL="${FLIGHT_SERVICE_URL:-http://localhost:8081}"
 BOOKING_SERVICE_URL="${BOOKING_SERVICE_URL:-http://localhost:8082}"
 PAYMENT_SERVICE_URL="${PAYMENT_SERVICE_URL:-http://localhost:8084}"
+
+# ── JWT token for API calls ──────────────────────────────────────────────────
+# Generates a short-lived RS256 JWT signed with JWT_PRIVATE_KEY from .env.
+# Requires: openssl, python3 (base64 encoding helper).
+# Falls back to empty string if JWT_PRIVATE_KEY is not set (unauthenticated calls
+# will return 401 — that is the expected behaviour for missing-token tests).
+_jwt_token=""
+get_jwt_token() {
+  if [ -n "$_jwt_token" ]; then
+    echo "$_jwt_token"
+    return
+  fi
+
+  # Load .env if present
+  if [ -f "$REPO_ROOT/.env" ]; then
+    set -o allexport
+    # shellcheck disable=SC1091
+    source "$REPO_ROOT/.env"
+    set +o allexport
+  fi
+
+  if [ -z "${JWT_PRIVATE_KEY:-}" ]; then
+    warn "JWT_PRIVATE_KEY not set in .env — API calls will be unauthenticated"
+    _jwt_token=""
+    echo ""
+    return
+  fi
+
+  # Write key to temp file (replace literal \n with real newlines)
+  local tmpkey
+  tmpkey=$(mktemp)
+  printf '%b' "$JWT_PRIVATE_KEY" > "$tmpkey"
+
+  # Build JWT: header.payload.signature (RS256)
+  local header payload sig b64h b64p
+  b64h=$(printf '{"alg":"RS256","typ":"JWT"}' | openssl base64 -A | tr '+/' '-_' | tr -d '=')
+  b64p=$(printf '{"sub":"test-script","iat":%d,"exp":%d}' "$(date +%s)" "$(( $(date +%s) + 3600 ))" \
+         | openssl base64 -A | tr '+/' '-_' | tr -d '=')
+  sig=$(printf '%s.%s' "$b64h" "$b64p" \
+        | openssl dgst -sha256 -sign "$tmpkey" \
+        | openssl base64 -A | tr '+/' '-_' | tr -d '=')
+  rm -f "$tmpkey"
+
+  _jwt_token="${b64h}.${b64p}.${sig}"
+  echo "$_jwt_token"
+}
+
+# curl wrappers — automatically add Authorization header
+api_get() {
+  local url=$1
+  local tok
+  tok=$(get_jwt_token)
+  curl -sf -H "Authorization: Bearer $tok" "$url" 2>/dev/null
+}
+
+api_post() {
+  local url=$1 data=$2
+  local tok
+  tok=$(get_jwt_token)
+  curl -sf -X POST "$url" \
+    -H "Authorization: Bearer $tok" \
+    -H "Content-Type: application/json" \
+    -d "$data" 2>/dev/null
+}
+
+http_status() {
+  local method=$1 url=$2 data=${3:-}
+  local tok
+  tok=$(get_jwt_token)
+  if [ -n "$data" ]; then
+    curl -s -o /dev/null -w "%{http_code}" -X "$method" "$url" \
+      -H "Authorization: Bearer $tok" \
+      -H "Content-Type: application/json" -d "$data"
+  else
+    curl -s -o /dev/null -w "%{http_code}" -X "$method" "$url" \
+      -H "Authorization: Bearer $tok"
+  fi
+}

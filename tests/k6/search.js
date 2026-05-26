@@ -26,6 +26,12 @@ export const options = {
 
 const BASE_URL = __ENV.FLIGHT_SERVICE_URL || "http://localhost:8081";
 
+// Pass JWT via K6_JWT env var: k6 run -e K6_JWT=$(make jwt-token -s) search.js
+const JWT_TOKEN = __ENV.K6_JWT || "";
+const HEADERS = JWT_TOKEN
+  ? { "Content-Type": "application/json", "Authorization": `Bearer ${JWT_TOKEN}` }
+  : { "Content-Type": "application/json" };
+
 const SEARCH_PARAMS = [
   { origin: "BKK", destination: "SIN", date: "2026-06-15" },
   { origin: "BKK", destination: "HKG", date: "2026-06-15" },
@@ -37,9 +43,7 @@ export default function () {
   const url = `${BASE_URL}/api/flights/search?origin=${params.origin}&destination=${params.destination}&date=${params.date}&passengers=1`;
 
   const start = Date.now();
-  const res = http.get(url, {
-    headers: { "Content-Type": "application/json" },
-  });
+  const res = http.get(url, { headers: HEADERS });
   searchDuration.add(Date.now() - start);
 
   const ok = check(res, {

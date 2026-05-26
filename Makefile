@@ -219,10 +219,11 @@ check-contract: _require-stack
 check-perf: _require-stack
 	@command -v k6 >/dev/null 2>&1 || \
 	  (echo -e "$(RED)k6 not installed — run: make install-tools$(RESET)" && exit 1)
-	@echo -e "$(BOLD)K6: Flight Search — 50 VUs × 30s$(RESET)"
-	k6 run tests/k6/search.js
-	@echo -e "$(BOLD)K6: Full Booking Flow — 20 VUs × 60s$(RESET)"
-	k6 run tests/k6/booking-flow.js
+	@K6_JWT=$$($(MAKE) jwt-token -s 2>/dev/null || echo ""); \
+	  echo -e "$(BOLD)K6: Flight Search — 50 VUs × 30s$(RESET)"; \
+	  k6 run -e K6_JWT=$$K6_JWT tests/k6/search.js; \
+	  echo -e "$(BOLD)K6: Full Booking Flow — 20 VUs × 60s$(RESET)"; \
+	  k6 run -e K6_JWT=$$K6_JWT tests/k6/booking-flow.js
 
 # ====================================================================================
 # LINT AND FORMAT
@@ -323,6 +324,24 @@ curl-payment: _require-stack
 	@[ -n "$(PNR)" ] || (echo -e "$(RED)Usage: make curl-payment PNR=QM7X2K$(RESET)" && exit 1)
 	@curl -s "$(PAYMENT_SERVICE_URL)/api/payments/$(PNR)" | jq .
 
+.PHONY: jwt-token # Generate a short-lived RS256 JWT for API testing  requires JWT_PRIVATE_KEY in .env
+jwt-token:
+	@[ -f .env ] || (echo -e "$(RED).env not found — run: make setup$(RESET)" && exit 1)
+	@set -a; source .env; set +a; \
+	 [ -n "$$JWT_PRIVATE_KEY" ] || \
+	   (echo -e "$(RED)JWT_PRIVATE_KEY not set in .env$(RESET)" && exit 1); \
+	 TMPKEY=$$(mktemp); \
+	 printf '%b' "$$JWT_PRIVATE_KEY" > $$TMPKEY; \
+	 B64H=$$(printf '{"alg":"RS256","typ":"JWT"}' | openssl base64 -A | tr '+/' '-_' | tr -d '='); \
+	 NOW=$$(date +%s); EXP=$$((NOW + 3600)); \
+	 B64P=$$(printf '{"sub":"test-user","iat":%d,"exp":%d}' $$NOW $$EXP \
+	          | openssl base64 -A | tr '+/' '-_' | tr -d '='); \
+	 SIG=$$(printf '%s.%s' $$B64H $$B64P \
+	         | openssl dgst -sha256 -sign $$TMPKEY \
+	         | openssl base64 -A | tr '+/' '-_' | tr -d '='); \
+	 rm -f $$TMPKEY; \
+	 echo "$$B64H.$$B64P.$$SIG"
+
 .PHONY: omise-token # Get an Omise test token (success card)  requires OMISE_PUBLIC_KEY in .env
 omise-token:
 	@[ -f .env ] || (echo -e "$(RED).env not found — run: make setup$(RESET)" && exit 1)
@@ -342,16 +361,21 @@ walk:
 	@echo ""
 	@echo -e "$(BOLD)━━━ Happy Path Walkthrough ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)"
 	@echo ""
+	@echo -e "$(CYAN)Step 0 — Get a JWT token (required for all API calls)$(RESET)"
+	@echo -e '  TOKEN=$$(make jwt-token -s)'
+	@echo -e "  $(DIM)→ use \$$TOKEN in all curl commands below$(RESET)"
+	@echo ""
 	@echo -e "$(CYAN)Step 1 — Search flights$(RESET)"
-	@echo -e '  curl "$(FLIGHT_SERVICE_URL)/api/flights/search?origin=BKK&destination=SIN&date=$(DATE)&passengers=1"'
+	@echo -e '  curl -H "Authorization: Bearer \$$TOKEN" "$(FLIGHT_SERVICE_URL)/api/flights/search?origin=BKK&destination=SIN&date=$(DATE)&passengers=1"'
 	@echo -e "  $(DIM)→ note the flight \"id\" and \"basePrice\"$(RESET)"
 	@echo ""
 	@echo -e "$(CYAN)Step 2 — View flight detail$(RESET)"
-	@echo -e '  curl "$(FLIGHT_SERVICE_URL)/api/flights/1"'
+	@echo -e '  curl -H "Authorization: Bearer \$$TOKEN" "$(FLIGHT_SERVICE_URL)/api/flights/1"'
 	@echo -e "  $(DIM)→ confirm durationMinutes is present$(RESET)"
 	@echo ""
 	@echo -e "$(CYAN)Step 3 — Create booking (set totalAmount = basePrice)$(RESET)"
 	@echo -e '  curl -X POST $(BOOKING_SERVICE_URL)/api/bookings \'
+	@echo -e '    -H "Authorization: Bearer \$$TOKEN" \'
 	@echo -e '    -H "Content-Type: application/json" \'
 	@echo -e '    -d '"'"'{"flightId":1,"passenger":{"firstName":"Somchai","lastName":"Jaidee","email":"somchai@example.com","phone":"+66812345678","passportNumber":"AA123456","dateOfBirth":"1990-05-15","nationality":"TH"},"totalAmount":3500.00,"currency":"THB"}'"'"
 	@echo -e "  $(DIM)→ save bookingRef (PNR) and bookingId from response$(RESET)"
@@ -365,15 +389,16 @@ walk:
 	@echo ""
 	@echo -e "$(CYAN)Step 4b — Pay  (3500 THB × 100 = 350000 satang)$(RESET)"
 	@echo -e '  curl -X POST $(PAYMENT_SERVICE_URL)/api/payments/charge \'
+	@echo -e '    -H "Authorization: Bearer \$$TOKEN" \'
 	@echo -e '    -H "Content-Type: application/json" \'
 	@echo -e '    -d '"'"'{"bookingRef":"QM7X2K","bookingId":42,"omiseToken":"tokn_test_xxxx","amount":350000,"currency":"THB"}'"'"
 	@echo -e "  $(DIM)→ expect status SUCCEEDED and omiseChargeId$(RESET)"
 	@echo ""
 	@echo -e "$(CYAN)Step 5 — View booking confirmation (must show CONFIRMED)$(RESET)"
-	@echo -e '  curl "$(BOOKING_SERVICE_URL)/api/bookings/QM7X2K"'
+	@echo -e '  curl -H "Authorization: Bearer \$$TOKEN" "$(BOOKING_SERVICE_URL)/api/bookings/QM7X2K"'
 	@echo ""
 	@echo -e "$(CYAN)Step 6 — View payment receipt$(RESET)"
-	@echo -e '  curl "$(PAYMENT_SERVICE_URL)/api/payments/QM7X2K"'
+	@echo -e '  curl -H "Authorization: Bearer \$$TOKEN" "$(PAYMENT_SERVICE_URL)/api/payments/QM7X2K"'
 	@echo ""
 	@echo -e "$(DIM)Replace QM7X2K / 42 / tokn_test_xxxx with your actual values.$(RESET)"
 	@echo ""
@@ -419,6 +444,10 @@ _check-env:
 	   exit 1)
 	@grep -q 'OMISE_PUBLIC_KEY=pkey_test_xxx' .env 2>/dev/null && \
 	  echo -e "$(YELLOW)⚠  .env still has placeholder Omise keys — payment tests will fail$(RESET)" || true
+	@grep -qE '^INTERNAL_TOKEN=$$' .env 2>/dev/null && \
+	  (echo -e "$(RED)ERROR: INTERNAL_TOKEN is empty in .env$(RESET)" && \
+	   echo -e "       Run: $(BOLD)openssl rand -hex 32$(RESET) and set the value" && \
+	   exit 1) || true
 
 .PHONY: _require-stack
 _require-stack:

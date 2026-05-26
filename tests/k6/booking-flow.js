@@ -25,7 +25,11 @@ export const options = {
 const FLIGHTS_URL  = __ENV.FLIGHT_SERVICE_URL  || "http://localhost:8081";
 const BOOKINGS_URL = __ENV.BOOKING_SERVICE_URL || "http://localhost:8082";
 
-const HEADERS = { "Content-Type": "application/json" };
+// Pass JWT via K6_JWT env var: k6 run -e K6_JWT=$(make jwt-token -s) booking-flow.js
+const JWT_TOKEN = __ENV.K6_JWT || "";
+const HEADERS = JWT_TOKEN
+  ? { "Content-Type": "application/json", "Authorization": `Bearer ${JWT_TOKEN}` }
+  : { "Content-Type": "application/json" };
 
 function randomEmail() {
   return `loadtest-${Date.now()}-${Math.random().toString(36).slice(2)}@k6.test`;
@@ -38,7 +42,8 @@ function randomPassport() {
 export function setup() {
   // Fetch a valid flight ID to use throughout the test
   const res = http.get(
-    `${FLIGHTS_URL}/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15`
+    `${FLIGHTS_URL}/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15`,
+    { headers: HEADERS }
   );
   const body = JSON.parse(res.body);
   if (!body.flights || body.flights.length === 0) {

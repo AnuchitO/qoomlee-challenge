@@ -30,6 +30,7 @@
 
 ```
 github.com/gin-gonic/gin                       — HTTP router and middleware (all services)
+github.com/golang-jwt/jwt/v5                   — JWT RS256 verification middleware (all services)
 github.com/lib/pq                              — PostgreSQL driver (all services)
 github.com/omise/omise-go                      — Omise payment SDK (payment-service only)
 github.com/stretchr/testify                    — Test assertions and mocks
@@ -73,6 +74,9 @@ Add a `service/` layer if your business logic grows complex enough to warrant it
 | `OMISE_PUBLIC_KEY` | payment-service | `pkey_test_...` — set in `.env` |
 | `OMISE_SECRET_KEY` | payment-service | `skey_test_...` — set in `.env` |
 | `BOOKING_SERVICE_URL` | payment-service | `http://booking-service:8082` |
+| `JWT_PUBLIC_KEY` | All services | RSA public key PEM — verifies incoming user JWTs |
+| `JWT_PRIVATE_KEY` | **Test tooling only** (`make jwt-token`) | RSA private key PEM — never loaded by any service at runtime |
+| `INTERNAL_TOKEN` | booking-service, payment-service | 256-bit random shared secret (`openssl rand -hex 32`) for `PUT /api/bookings/:ref/status`; compared with `crypto/subtle.ConstantTimeCompare` |
 
 ## Go Patterns Used in This Project
 

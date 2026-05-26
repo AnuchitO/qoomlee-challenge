@@ -13,6 +13,43 @@ Internal service-to-service calls use the Docker Compose service name (e.g. `htt
 
 ---
 
+## Authentication
+
+All API endpoints (except `/health/*`) require a **JWT RS256** bearer token.
+
+```
+Authorization: Bearer <token>
+```
+
+- Tokens are signed with an **RSA private key** and verified by all services using the **RSA public key** from the `JWT_PUBLIC_KEY` environment variable.
+- Algorithm: `RS256` (asymmetric — no shared secret between services).
+- Required claims: `sub` (subject), `exp` (expiry).
+- Missing or invalid token → **`401 Unauthorized`**
+
+```json
+{ "error": "UNAUTHORIZED", "message": "missing or invalid token" }
+```
+
+> For testing, generate a token with: `make jwt-token` — this uses `JWT_PRIVATE_KEY` from `.env` and prints a valid Bearer token.
+
+### Internal endpoint guard
+
+`PUT /api/bookings/:bookingRef/status` is called **only by payment-service**. It is **exempt from JWT** — there is no user to authenticate. Instead it uses a shared secret:
+
+```
+X-Internal-Token: <value of INTERNAL_TOKEN env var>
+```
+
+Missing or wrong token → **`403 Forbidden`**
+
+```json
+{ "error": "FORBIDDEN", "message": "internal token required" }
+```
+
+> **Why not JWT?** JWT carries user identity. A service-to-service call has no user — forcing payment-service to sign a JWT would require distributing the private key to a running container, which weakens the asymmetric key model. A shared secret is the right tool here.
+
+---
+
 ## Flight Service `:8081`
 
 ### `GET /api/flights/search`
@@ -30,7 +67,9 @@ Search available flights by route and date.
 
 **Request example**
 ```bash
-curl "http://localhost:8081/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"
+TOKEN=$(make jwt-token -s)
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8081/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"
 ```
 
 **Response `200 OK`**
@@ -80,6 +119,11 @@ curl "http://localhost:8081/api/flights/search?origin=BKK&destination=SIN&date=2
 { "error": "INVALID_DATE_FORMAT", "message": "date must be in YYYY-MM-DD format" }
 ```
 
+**Response `401 Unauthorized`** — missing or invalid JWT
+```json
+{ "error": "UNAUTHORIZED", "message": "missing or invalid token" }
+```
+
 ---
 
 ### `GET /api/flights/:id`
@@ -89,7 +133,7 @@ Get full detail for one flight by its database ID.
 **Path parameter:** `id` — integer, from search results.
 
 ```bash
-curl "http://localhost:8081/api/flights/1"
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:8081/api/flights/1"
 ```
 
 **Response `200 OK`**
@@ -112,6 +156,11 @@ curl "http://localhost:8081/api/flights/1"
 **Response `400 Bad Request`** — id is not an integer
 ```json
 { "error": "INVALID_FIELD", "message": "id must be an integer" }
+```
+
+**Response `401 Unauthorized`** — missing or invalid JWT
+```json
+{ "error": "UNAUTHORIZED", "message": "missing or invalid token" }
 ```
 
 **Response `404 Not Found`**
@@ -153,6 +202,7 @@ Create a booking for one passenger on one flight. Returns a 6-char PNR (`booking
 
 ```bash
 curl -X POST http://localhost:8082/api/bookings \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "flightId": 1,
@@ -183,6 +233,11 @@ curl -X POST http://localhost:8082/api/bookings \
 { "error": "MISSING_REQUIRED_FIELD", "message": "passenger.email is required" }
 ```
 
+**Response `401 Unauthorized`** — missing or invalid JWT
+```json
+{ "error": "UNAUTHORIZED", "message": "missing or invalid token" }
+```
+
 **Response `409 Conflict`** — no available seats
 ```json
 { "error": "NO_SEATS_AVAILABLE", "message": "No seats available on this flight." }
@@ -197,7 +252,7 @@ Get full booking detail including passenger and flight information.
 **Path parameter:** `bookingRef` — 6-char PNR, case-insensitive (normalise to uppercase internally).
 
 ```bash
-curl "http://localhost:8082/api/bookings/QM7X2K"
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:8082/api/bookings/QM7X2K"
 ```
 
 **Response `200 OK`** — before payment (`status: "PENDING"`)
@@ -229,6 +284,11 @@ curl "http://localhost:8082/api/bookings/QM7X2K"
 
 > After a successful payment, `status` changes to `"CONFIRMED"`. The rest of the response is identical.
 
+**Response `401 Unauthorized`** — missing or invalid JWT
+```json
+{ "error": "UNAUTHORIZED", "message": "missing or invalid token" }
+```
+
 **Response `404 Not Found`**
 ```json
 { "error": "BOOKING_NOT_FOUND", "message": "Booking QM9999 not found" }
@@ -241,6 +301,11 @@ curl "http://localhost:8082/api/bookings/QM7X2K"
 Called by **payment-service** after a successful Omise charge. Not called by end users.
 
 **Called via:** `PUT http://booking-service:8082/api/bookings/{bookingRef}/status`
+
+**Required header** — no JWT; authenticated by shared secret only:
+```
+X-Internal-Token: <INTERNAL_TOKEN value>
+```
 
 **Request body**
 ```json
@@ -255,6 +320,11 @@ Called by **payment-service** after a successful Omise charge. Not called by end
 **Response `400 Bad Request`** — value other than `CONFIRMED`
 ```json
 { "error": "INVALID_STATUS", "message": "Only CONFIRMED is accepted" }
+```
+
+**Response `403 Forbidden`** — missing or wrong `X-Internal-Token`
+```json
+{ "error": "FORBIDDEN", "message": "internal token required" }
 ```
 
 **Response `404 Not Found`**
@@ -305,6 +375,7 @@ curl https://vault.omise.co/tokens \
 
 ```bash
 curl -X POST http://localhost:8084/api/payments/charge \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"bookingRef":"QM7X2K","bookingId":42,"omiseToken":"tokn_test_xxxx","amount":350000,"currency":"THB"}'
 ```
@@ -332,6 +403,11 @@ curl -X POST http://localhost:8084/api/payments/charge \
 
 > On decline: payment is recorded as `FAILED`, booking stays `PENDING`. Client can retry with a new token.
 
+**Response `401 Unauthorized`** — missing or invalid JWT
+```json
+{ "error": "UNAUTHORIZED", "message": "missing or invalid token" }
+```
+
 **Response `409 Conflict`** — booking already paid
 ```json
 { "error": "ALREADY_PAID", "message": "Booking QM7X2K has already been paid" }
@@ -346,7 +422,7 @@ Get the most recent payment record for a booking.
 **Path parameter:** `bookingRef` — 6-char PNR.
 
 ```bash
-curl "http://localhost:8084/api/payments/QM7X2K"
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:8084/api/payments/QM7X2K"
 ```
 
 **Response `200 OK`** — successful payment
@@ -373,6 +449,11 @@ curl "http://localhost:8084/api/payments/QM7X2K"
   "currency": "THB",
   "paidAt": null
 }
+```
+
+**Response `401 Unauthorized`** — missing or invalid JWT
+```json
+{ "error": "UNAUTHORIZED", "message": "missing or invalid token" }
 ```
 
 **Response `404 Not Found`** — no payment attempt yet
@@ -421,7 +502,9 @@ All `4xx` and `5xx` responses:
 | Status | When |
 |---|---|
 | `400 Bad Request` | Missing or invalid request fields |
+| `401 Unauthorized` | Missing or invalid JWT (public API endpoints only) |
 | `402 Payment Required` | Omise card declined |
+| `403 Forbidden` | Wrong or missing `X-Internal-Token` (`PUT /status` only — no JWT on this route) |
 | `404 Not Found` | Resource not found |
 | `409 Conflict` | Business rule violation (already paid, no seats) |
 | `429 Too Many Requests` | Per-IP rate limit exceeded |

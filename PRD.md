@@ -59,7 +59,7 @@ Cards are tokenised client-side via Omise Vault (`https://vault.omise.co/tokens`
 
 ---
 
-## 6. Non-Functional Requirements
+## 6. Cross-Functional Requirements
 
 | Requirement | Target |
 |---|---|
@@ -68,6 +68,8 @@ Cards are tokenised client-side via Omise Vault (`https://vault.omise.co/tokens`
 | Graceful shutdown | `SIGTERM` / `SIGINT` → drain in-flight requests (10 s timeout) |
 | Structured logging | `slog` JSON output; every request logged with `method`, `path`, `status`, `latency_ms` |
 | Containerised | `docker compose up --build` starts all services and DB |
+| Authentication (public API) | JWT RS256 `Authorization: Bearer <token>` required on all `/api/*` endpoints except `PUT /status`; all services verify using `JWT_PUBLIC_KEY` (public key only — private key never in any container) |
+| Authentication (internal) | `PUT /api/bookings/:ref/status` is excluded from JWT; guarded by `X-Internal-Token` shared secret only (256-bit random, `openssl rand -hex 32`); compared with `crypto/subtle.ConstantTimeCompare`; service refuses to start if the value is empty |
 
 ---
 

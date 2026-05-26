@@ -42,6 +42,7 @@ Search Flights → Create Booking → Pay → Confirmed
 | Payment is synchronous | Omise returns success/failure immediately — no webhook |
 | Retry on decline | A declined payment leaves the booking `PENDING`; passenger may try a different card |
 | No double-charge | A `CONFIRMED` booking cannot be charged again (409) |
+| Payment traceability | On confirmation, `bookings.confirmed_payment_id` is set to the `payments.id` that succeeded; `GET /api/bookings/:ref` returns `omiseChargeId` (null when PENDING) so the Omise charge is always traceable from the booking |
 | Amount in satang | 1 THB = 100 satang. `3,500 THB` → store and send `350000` |
 
 ---

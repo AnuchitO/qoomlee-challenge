@@ -80,6 +80,7 @@ VALUES ('Seed', 'User', 'seed@qoomlee.test', '+66800000001', 'SEED0001', '1990-0
 -- ── Pre-seeded bookings ───────────────────────────────────────────────────────
 -- SEED01: CONFIRMED booking — use to test duplicate-payment guard (409 ALREADY_PAID)
 -- SEED02: PENDING booking   — use for GetByRef read tests and payment retry flow
+-- confirmed_payment_id is NULL here; wired to payments.id=1 via UPDATE below.
 INSERT INTO bookings (booking_ref, flight_id, passenger_id, status, total_amount, currency, created_at, updated_at)
 VALUES
     ('SEED01', 1, 1, 'CONFIRMED', 3500.00, 'THB', '2026-06-01 00:00:00+00', '2026-06-01 00:05:00+00'),  -- id=1
@@ -92,3 +93,8 @@ INSERT INTO payments (booking_ref, booking_id, amount, currency, status, omise_c
 VALUES
     ('SEED01', 1, 350000, 'THB', 'SUCCEEDED', 'chrg_test_seed01xxxxxxxxxx', NULL,                NULL,                                   '2026-06-01 00:05:00+00', '2026-06-01 00:05:00+00'),  -- id=1
     ('SEED02', 2, 350000, 'THB', 'FAILED',    'chrg_test_seed02xxxxxxxxxx', 'insufficient_fund', 'The card has insufficient funds.',      NULL,                     '2026-06-01 00:01:00+00');  -- id=2
+
+-- ── Wire confirmed_payment_id back to SEED01 ─────────────────────────────────
+-- payments(id=1) is the SUCCEEDED charge that confirmed SEED01.
+-- This UPDATE must come after both INSERTs due to the FK constraint.
+UPDATE bookings SET confirmed_payment_id = 1 WHERE booking_ref = 'SEED01';

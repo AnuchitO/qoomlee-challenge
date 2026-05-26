@@ -260,6 +260,7 @@ curl -H "Authorization: Bearer $TOKEN" "http://localhost:8082/api/bookings/QM7X2
 {
   "bookingRef": "QM7X2K",
   "status": "PENDING",
+  "omiseChargeId": null,
   "flight": {
     "id": 1,
     "flightNumber": "QM101",
@@ -282,7 +283,36 @@ curl -H "Authorization: Bearer $TOKEN" "http://localhost:8082/api/bookings/QM7X2
 }
 ```
 
-> After a successful payment, `status` changes to `"CONFIRMED"`. The rest of the response is identical.
+**Response `200 OK`** — after successful payment (`status: "CONFIRMED"`)
+```json
+{
+  "bookingRef": "QM7X2K",
+  "status": "CONFIRMED",
+  "omiseChargeId": "chrg_test_5fzddg8p5j3qhp1w5jg",
+  "flight": {
+    "id": 1,
+    "flightNumber": "QM101",
+    "origin": "BKK",
+    "destination": "SIN",
+    "departureTime": "2026-06-15T01:00:00Z",
+    "arrivalTime": "2026-06-15T03:30:00Z"
+  },
+  "passenger": {
+    "firstName": "Somchai",
+    "lastName": "Jaidee",
+    "email": "somchai@example.com",
+    "phone": "+66812345678",
+    "passportNumber": "AA123456",
+    "nationality": "TH"
+  },
+  "totalAmount": 3500.00,
+  "currency": "THB",
+  "createdAt": "2026-05-22T10:00:00Z"
+}
+```
+
+> `omiseChargeId` — the Omise charge ID of the payment that confirmed this booking. `null` when `status` is `PENDING`. This is the traceability link: given a booking you can identify the exact charge, and given a charge ID you can look it up in the Omise dashboard or via `GET /api/payments/:ref`.
+> booking-service retrieves this by JOINing `payments` on `bookings.confirmed_payment_id`. No cross-service HTTP call required — both tables are in the shared database.
 
 **Response `401 Unauthorized`** — missing or invalid JWT
 ```json
@@ -309,8 +339,10 @@ X-Internal-Token: <INTERNAL_TOKEN value>
 
 **Request body**
 ```json
-{ "status": "CONFIRMED" }
+{ "status": "CONFIRMED", "paymentId": 42 }
 ```
+
+> `paymentId` — the `id` of the `payments` row that just succeeded. booking-service stores this in `bookings.confirmed_payment_id` so the booking always traces back to the exact Omise charge that confirmed it.
 
 **Response `200 OK`**
 ```json

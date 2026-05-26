@@ -351,10 +351,14 @@ The `payments.amount` column stores satang. So does the API response.
 
 #### After a successful charge
 
-Call `PUT http://booking-service:8082/api/bookings/{bookingRef}/status` with `{"status":"CONFIRMED"}`.
+Call `PUT http://booking-service:8082/api/bookings/{bookingRef}/status` with:
+```json
+{ "status": "CONFIRMED", "paymentId": <id of the payments row just inserted> }
+```
 - Use `BOOKING_SERVICE_URL` env var (already set in docker-compose).
 - Include the `X-Internal-Token: <INTERNAL_TOKEN>` header (booking-service will reject the call without it).
 - Do **not** send a JWT — this is a service-to-service call, not a user request.
+- `paymentId` is stored in `bookings.confirmed_payment_id`; booking-service JOINs `payments` on this FK to return `omiseChargeId` in `GET /api/bookings/:ref`.
 - If this call fails: **do not return 500**. Log it and return 201 anyway — the charge already succeeded.
 
 #### Guard: reject duplicate payment
@@ -390,12 +394,14 @@ Return 403 if the header is missing or wrong. No 401 on this route.
 
 ```sql
 UPDATE bookings
-SET status = $1, updated_at = NOW()
-WHERE booking_ref = $2
+SET status = $1, confirmed_payment_id = $2, updated_at = NOW()
+WHERE booking_ref = $3
 ```
 
 Only `CONFIRMED` is a valid value in this challenge. Return 400 `INVALID_STATUS` for anything else.
 If the booking_ref doesn't exist, return 404 `BOOKING_NOT_FOUND`.
+
+> `confirmed_payment_id` is the `paymentId` from the request body. Storing it here is the traceability link — it lets `GET /api/bookings/:ref` return the Omise charge ID by JOINing `payments`.
 
 ---
 
@@ -404,19 +410,23 @@ If the booking_ref doesn't exist, return 404 `BOOKING_NOT_FOUND`.
 **File:** `services/booking/handler/booking.go` → `GetByRef`
 **Repo:** `services/booking/repository/booking.go` → `GetByRef`
 
-Join bookings → passengers and bookings → flights → routes:
+Join bookings → passengers, flights → routes, and payments (LEFT JOIN for traceability):
 
 ```sql
 SELECT b.id, b.booking_ref, b.status, b.total_amount, b.currency, b.created_at,
        p.first_name, p.last_name, p.email, p.phone, p.passport_number, p.nationality,
        f.flight_number, r.origin_iata, r.destination_iata,
-       f.departure_time, f.arrival_time
+       f.departure_time, f.arrival_time,
+       pay.omise_charge_id
 FROM bookings b
 JOIN passengers p ON p.id = b.passenger_id
 JOIN flights f    ON f.id = b.flight_id
 JOIN routes r     ON r.id = f.route_id
+LEFT JOIN payments pay ON pay.id = b.confirmed_payment_id
 WHERE b.booking_ref = $1
 ```
+
+> The LEFT JOIN means `omise_charge_id` is `NULL` for PENDING bookings and the confirmed Omise charge ID for CONFIRMED bookings. Return it as `omiseChargeId` in the JSON response.
 
 ---
 
@@ -745,7 +755,7 @@ Define a repository **interface**, implement it in production, mock it in tests.
 | flight-service | `SearchFlights` | valid params → flights; no match → empty slice; blank origin → error |
 | flight-service | `GetFlightByID` | valid id → flight; unknown id → ErrNotFound |
 | booking-service | `CreateBooking` | PNR is 6 chars; passenger insert called; booking insert called with correct flightId |
-| booking-service | `GetBookingByRef` | returns nested flight+passenger; unknown ref → ErrNotFound |
+| booking-service | `GetBookingByRef` | returns nested flight+passenger+omiseChargeId (non-nil when CONFIRMED); unknown ref → ErrNotFound |
 | booking-service | `UpdateBookingStatus` | updates status; unknown ref → ErrNotFound |
 | payment-service | `Charge` — success | Omise mock returns successful; DB insert with SUCCEEDED; calls /status; returns 201 |
 | payment-service | `Charge` — decline | Omise mock returns failed; DB insert with FAILED; does NOT call /status; returns 402 |
@@ -775,10 +785,11 @@ Run against live `docker compose` stack. All requests must include `Authorizatio
 | `GET /api/flights/99999` | 404 `FLIGHT_NOT_FOUND` |
 | `POST /api/bookings` — valid body, `flightId=1` | 201; `bookingRef` exactly 6 chars; `bookingId` integer |
 | `POST /api/bookings` — `flightId=6` (QM999 SOLD OUT) | 409 `NO_SEATS_AVAILABLE` |
-| `GET /api/bookings/SEED02` | 200; `bookingRef`, `status`, `flight`, `passenger` all present |
+| `GET /api/bookings/SEED01` | 200; `status=CONFIRMED`; `omiseChargeId=chrg_test_seed01xxxxxxxxxx` (traceability check) |
+| `GET /api/bookings/SEED02` | 200; `bookingRef`, `status`, `flight`, `passenger` all present; `omiseChargeId=null` (PENDING) |
 | `GET /api/bookings/XXXXXX` | 404 `BOOKING_NOT_FOUND` |
 | `POST /api/payments/charge` — `bookingRef=SEED01` (CONFIRMED) | 409 `ALREADY_PAID` (no Omise call — pure DB guard) |
-| `POST /api/payments/charge` — success card `4242…` | 201; `omiseChargeId` present; booking becomes `CONFIRMED` |
+| `POST /api/payments/charge` — success card `4242…` | 201; `omiseChargeId` present; subsequent `GET /api/bookings/:ref` returns `status=CONFIRMED` and matching `omiseChargeId` |
 | `POST /api/payments/charge` — decline card `4111…` | 402; `failureCode` present; booking stays `PENDING` |
 | `GET /api/payments/SEED01` | 200; `status=SUCCEEDED`; `omiseChargeId` non-empty |
 | `GET /api/payments/SEED02` | 200; `status=FAILED`; `failureCode=insufficient_fund` |

@@ -69,16 +69,17 @@ CREATE TABLE passengers (
 );
 
 CREATE TABLE bookings (
-    id            SERIAL PRIMARY KEY,
-    booking_ref   VARCHAR(6)     NOT NULL UNIQUE,        -- 6-char PNR, e.g. QM7X2K
-    flight_id     INT            REFERENCES flights(id),
-    passenger_id  INT            REFERENCES passengers(id),
-    seat_id       INT            REFERENCES seats(id),   -- NULL — seat picker out of scope
-    status        VARCHAR(20)    NOT NULL DEFAULT 'PENDING', -- PENDING | CONFIRMED
-    total_amount  NUMERIC(10,2)  NOT NULL,               -- THB
-    currency      CHAR(3)        NOT NULL DEFAULT 'THB',
-    created_at    TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
-    updated_at    TIMESTAMPTZ    NOT NULL DEFAULT NOW()  -- set explicitly on UPDATE
+    id                   SERIAL PRIMARY KEY,
+    booking_ref          VARCHAR(6)     NOT NULL UNIQUE,        -- 6-char PNR, e.g. QM7X2K
+    flight_id            INT            REFERENCES flights(id),
+    passenger_id         INT            REFERENCES passengers(id),
+    seat_id              INT            REFERENCES seats(id),   -- NULL — seat picker out of scope
+    status               VARCHAR(20)    NOT NULL DEFAULT 'PENDING', -- PENDING | CONFIRMED
+    confirmed_payment_id INT,                                   -- FK added below; set when status→CONFIRMED
+    total_amount         NUMERIC(10,2)  NOT NULL,               -- THB
+    currency             CHAR(3)        NOT NULL DEFAULT 'THB',
+    created_at           TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
+    updated_at           TIMESTAMPTZ    NOT NULL DEFAULT NOW()  -- set explicitly on UPDATE
 );
 
 -- ─────────────────────────────────────────
@@ -130,13 +131,24 @@ CREATE TABLE payments (
 -- INDEXES
 -- ─────────────────────────────────────────
 
-CREATE INDEX idx_flights_departure     ON flights(departure_time);
-CREATE INDEX idx_flights_route         ON flights(route_id);
-CREATE INDEX idx_flights_status        ON flights(status);
-CREATE INDEX idx_seats_flight          ON seats(flight_id, status);
-CREATE INDEX idx_bookings_booking_ref  ON bookings(booking_ref);
-CREATE INDEX idx_bookings_passenger    ON bookings(passenger_id);
-CREATE INDEX idx_checkins_booking_ref  ON checkins(booking_ref);
-CREATE INDEX idx_payments_booking_ref  ON payments(booking_ref);
-CREATE INDEX idx_payments_status       ON payments(status);
-CREATE INDEX idx_payments_omise_charge ON payments(omise_charge_id);
+-- bookings.confirmed_payment_id → payments.id
+-- Defined here (after payments table) to avoid forward-reference.
+ALTER TABLE bookings
+    ADD CONSTRAINT fk_bookings_confirmed_payment
+    FOREIGN KEY (confirmed_payment_id) REFERENCES payments(id);
+
+CREATE INDEX idx_flights_departure      ON flights(departure_time);
+CREATE INDEX idx_flights_route          ON flights(route_id);
+CREATE INDEX idx_flights_status         ON flights(status);
+CREATE INDEX idx_seats_flight           ON seats(flight_id, status);
+CREATE INDEX idx_bookings_booking_ref   ON bookings(booking_ref);
+CREATE INDEX idx_bookings_passenger     ON bookings(passenger_id);
+CREATE INDEX idx_checkins_booking_ref   ON checkins(booking_ref);
+CREATE INDEX idx_payments_booking_ref   ON payments(booking_ref);
+CREATE INDEX idx_payments_status        ON payments(status);
+CREATE INDEX idx_payments_omise_charge  ON payments(omise_charge_id);
+
+-- Prevents two SUCCEEDED payments for the same booking (DB-level double-charge guard).
+CREATE UNIQUE INDEX idx_payments_one_success
+    ON payments(booking_ref)
+    WHERE status = 'SUCCEEDED';

@@ -141,25 +141,25 @@ One shared PostgreSQL database. **Do not modify the schema or seed data.**
 
 **2026-06-15 — primary test date (use for all booking and payment tests)**
 
-| DB id | Flight | Route | Departure (BKK local, UTC+7) | `basePriceMinor` (satang) | `basePrice` (string) | Seats | Notes |
-|---|---|---|---|---|---|---|---|
-| 1 | QM101 | BKK → SIN | 08:00 | 350000 | "3500.00" | 154 | 2 seats held by pre-seeded bookings |
-| 2 | QM102 | BKK → SIN | 14:00 | 280000 | "2800.00" | 30 | |
-| 3 | SC201 | BKK → SIN | 10:00 | 220000 | "2200.00" | 78 | |
-| 4 | QM201 | BKK → HKG | 07:30 | 450000 | "4500.00" | 200 | |
-| 5 | QM301 | BKK → NRT | 23:55 | 980000 | "9800.00" | 150 | Overnight — arrives 2026-06-16 |
-| 6 | QM999 | BKK → SIN | 22:00 | 350000 | "3500.00" | **0** | **SOLD OUT** — trigger `NO_SEATS_AVAILABLE` |
-| 7 | QM401 | BKK → KUL | 06:15 | 129000 | "1290.00" | 138 | 2 seats held by pre-seeded bookings |
-| 8 | QM402 | BKK → KUL | 17:30 | 185000 | "1850.00" | **12** | **Nearly full** — use for low-seats concurrent test |
-| 9 | QM501 | BKK → CGK | 08:00 | 289000 | "2890.00" | 179 | 1 seat held by pre-seeded booking |
-| 10 | QM601 | BKK → MNL | 07:00 | 320000 | "3200.00" | 249 | 1 seat held by pre-seeded booking |
+| DB id | Flight | Route | Departure (BKK local, UTC+7) | `basePriceMinor` (satang) | `currency` | `basePrice` (string) | Seats | Notes |
+|---|---|---|---|---|---|---|---|---|
+| 1 | QM101 | BKK → SIN | 08:00 | 350000 | THB | "3500.00" | 154 | 2 seats held by pre-seeded bookings |
+| 2 | QM102 | BKK → SIN | 14:00 | 280000 | THB | "2800.00" | 30 | |
+| 3 | SC201 | BKK → SIN | 10:00 | 220000 | THB | "2200.00" | 78 | |
+| 4 | QM201 | BKK → HKG | 07:30 | 450000 | THB | "4500.00" | 200 | |
+| 5 | QM301 | BKK → NRT | 23:55 | 980000 | THB | "9800.00" | 150 | Overnight — arrives 2026-06-16 |
+| 6 | QM999 | BKK → SIN | 22:00 | 350000 | THB | "3500.00" | **0** | **SOLD OUT** — trigger `NO_SEATS_AVAILABLE` |
+| 7 | QM401 | BKK → KUL | 06:15 | 129000 | THB | "1290.00" | 138 | 2 seats held by pre-seeded bookings |
+| 8 | QM402 | BKK → KUL | 17:30 | 185000 | THB | "1850.00" | **12** | **Nearly full** — use for low-seats concurrent test |
+| 9 | QM501 | BKK → CGK | 08:00 | 289000 | THB | "2890.00" | 179 | 1 seat held by pre-seeded booking |
+| 10 | QM601 | BKK → MNL | 07:00 | 320000 | THB | "3200.00" | 249 | 1 seat held by pre-seeded booking |
 
 **2026-06-16 — next-day flights (use to verify date filtering)**
 
-| DB id | Flight | Route | Departure (BKK local, UTC+7) | `basePriceMinor` (satang) | `basePrice` (string) | Seats | Notes |
-|---|---|---|---|---|---|---|---|
-| 11 | QM103 | BKK → SIN | 09:00 | 310000 | "3100.00" | 160 | Must appear in `date=2026-06-16` search; must **not** appear in `date=2026-06-15` search |
-| 12 | QM202 | BKK → HKG | 11:00 | 490000 | "4900.00" | 200 | Must appear in `date=2026-06-16` search; must **not** appear in `date=2026-06-15` search |
+| DB id | Flight | Route | Departure (BKK local, UTC+7) | `basePriceMinor` (satang) | `currency` | `basePrice` (string) | Seats | Notes |
+|---|---|---|---|---|---|---|---|---|
+| 11 | QM103 | BKK → SIN | 09:00 | 310000 | THB | "3100.00" | 160 | Must appear in `date=2026-06-16` search; must **not** appear in `date=2026-06-15` search |
+| 12 | QM202 | BKK → HKG | 11:00 | 490000 | THB | "4900.00" | 200 | Must appear in `date=2026-06-16` search; must **not** appear in `date=2026-06-15` search |
 
 **QM999 will not appear in search results** (`available_seats=0` is filtered out) but can be targeted by `POST /api/bookings` to trigger a 409.
 
@@ -169,22 +169,22 @@ One shared PostgreSQL database. **Do not modify the schema or seed data.**
 
 These records are ready-made in the DB from `02_seed.sql`. Use them in integration and contract tests to avoid building state from scratch.
 
-| booking_ref | Flight | Passenger | Status | Use for |
-|---|---|---|---|---|
-| `SEED01` | QM101 | Seed User | `CONFIRMED` | Duplicate-payment guard — `POST /api/payments/charge` must return **409 `ALREADY_PAID`** |
-| `SEED02` | QM101 | Seed User | `PENDING` | Read tests — `GET /api/bookings/SEED02` returns 200 with nested flight + passenger |
-| `MNKP23` | QM401 (BKK→KUL) | Wanchai Srisuk | `CONFIRMED` | Multi-route confirmed booking reads; traceability check |
-| `AKVWQ4` | QM501 (BKK→CGK) | Akira Tanaka | `CONFIRMED` | Foreign-passenger confirmed booking reads |
-| `NRPQ56` | QM401 (BKK→KUL) | Narumon Pattanakit | `PENDING` | **Retry-payment test** — has a prior `FAILED` payment; charge again with success card |
-| `FMXB89` | QM601 (BKK→MNL) | Ahmad Fauzi | `PENDING` | **First-charge flow** — no prior payment attempt |
+| booking_ref | Flight | Passenger | Status | `totalAmountMinor` | `currency` | `totalAmount` | Use for |
+|---|---|---|---|---|---|---|---|
+| `SEED01` | QM101 | Seed User | `CONFIRMED` | 350000 | THB | "3500.00" | Duplicate-payment guard — `POST /api/payments/charge` must return **409 `ALREADY_PAID`** |
+| `SEED02` | QM101 | Seed User | `PENDING` | 350000 | THB | "3500.00" | Read tests — `GET /api/bookings/SEED02` returns 200 with nested flight + passenger |
+| `MNKP23` | QM401 (BKK→KUL) | Wanchai Srisuk | `CONFIRMED` | 129000 | THB | "1290.00" | Multi-route confirmed booking reads; traceability check |
+| `AKVWQ4` | QM501 (BKK→CGK) | Akira Tanaka | `CONFIRMED` | 289000 | THB | "2890.00" | Foreign-passenger confirmed booking reads |
+| `NRPQ56` | QM401 (BKK→KUL) | Narumon Pattanakit | `PENDING` | 129000 | THB | "1290.00" | **Retry-payment test** — has a prior `FAILED` payment; charge again with success card |
+| `FMXB89` | QM601 (BKK→MNL) | Ahmad Fauzi | `PENDING` | 320000 | THB | "3200.00" | **First-charge flow** — no prior payment attempt |
 
-| booking_ref | Payment status | paymentProvider | providerChargeId | Use for |
-|---|---|---|---|---|
-| `SEED01` | `SUCCEEDED` | `OMISE` | `chrg_test_seed01xxxxxxxxxx` | `GET /api/payments/SEED01` returns `status: "SUCCEEDED"` |
-| `SEED02` | `FAILED` | `OMISE` | `chrg_test_seed02xxxxxxxxxx` | `GET /api/payments/SEED02` returns `status: "FAILED"`, `failureCode: "insufficient_fund"` |
-| `MNKP23` | `SUCCEEDED` | `OMISE` | `chrg_test_mnkp23xxxxxxxxxx` | Read test for KUL route confirmed payment |
-| `AKVWQ4` | `SUCCEEDED` | `OMISE` | `chrg_test_akvwq4xxxxxxxxxx` | Read test for CGK route confirmed payment |
-| `NRPQ56` | `FAILED` | `OMISE` | `chrg_test_nrpq56xxxxxxxxxx` | Booking stays `PENDING`; use `NRPQ56` to retry with success card |
+| booking_ref | Payment status | `amountMinor` | `currency` | `amount` | paymentProvider | providerChargeId | Use for |
+|---|---|---|---|---|---|---|---|
+| `SEED01` | `SUCCEEDED` | 350000 | THB | "3500.00" | `OMISE` | `chrg_test_seed01xxxxxxxxxx` | `GET /api/payments/SEED01` returns `status: "SUCCEEDED"` |
+| `SEED02` | `FAILED` | 350000 | THB | "3500.00" | `OMISE` | `chrg_test_seed02xxxxxxxxxx` | `GET /api/payments/SEED02` returns `status: "FAILED"`, `failureCode: "insufficient_fund"` |
+| `MNKP23` | `SUCCEEDED` | 129000 | THB | "1290.00" | `OMISE` | `chrg_test_mnkp23xxxxxxxxxx` | Read test for KUL route confirmed payment |
+| `AKVWQ4` | `SUCCEEDED` | 289000 | THB | "2890.00" | `OMISE` | `chrg_test_akvwq4xxxxxxxxxx` | Read test for CGK route confirmed payment |
+| `NRPQ56` | `FAILED` | 129000 | THB | "1290.00" | `OMISE` | `chrg_test_nrpq56xxxxxxxxxx` | Booking stays `PENDING`; use `NRPQ56` to retry with success card |
 
 > **For unknown-ref tests** use any ref that doesn't exist, e.g. `XXXXXX` → must return 404.
 

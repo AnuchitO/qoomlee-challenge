@@ -71,7 +71,7 @@ fi
 section "Unit + Integration Tests"
 PASS_COUNT=0; FAIL_COUNT=0; WARN_COUNT=0
 
-for svc in flight booking payment; do
+for svc in booking payment; do
   if [ -f "services/$svc/go.mod" ]; then
     echo "  Running: go test ./... in services/$svc"
     if (cd "services/$svc" && go test ./... 2>&1); then
@@ -95,7 +95,7 @@ PILLAR_WARN["unit"]=$WARN_COUNT
 section "Code Quality — go vet + secret scan"
 PASS_COUNT=0; FAIL_COUNT=0; WARN_COUNT=0
 
-for svc in flight booking payment; do
+for svc in booking payment; do
   if [ -f "services/$svc/go.mod" ]; then
     if (cd "services/$svc" && go vet ./... 2>&1); then
       PASS_COUNT=$((PASS_COUNT + 1))
@@ -124,7 +124,7 @@ PILLAR_WARN["quality"]=$WARN_COUNT
 section "Shippable — go build + .env check"
 PASS_COUNT=0; FAIL_COUNT=0; WARN_COUNT=0
 
-for svc in flight booking payment; do
+for svc in booking payment; do
   if [ -f "services/$svc/go.mod" ]; then
     if (cd "services/$svc" && go build ./... 2>&1); then
       PASS_COUNT=$((PASS_COUNT + 1))

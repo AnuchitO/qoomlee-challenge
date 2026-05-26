@@ -51,9 +51,9 @@ require_tool() {
 }
 
 require_stack() {
-  local api="${FLIGHT_SERVICE_URL:-http://localhost:8081}"
+  local api="${QOOMLEE_SERVICE_URL:-http://localhost:8082}"
   if ! curl -sf "$api/health/live" > /dev/null 2>&1; then
-    echo -e "${RED}ERROR: flight-service not reachable at $api${NC}"
+    echo -e "${RED}ERROR: qoomlee-service not reachable at $api${NC}"
     echo -e "       Run: ${BOLD}docker compose up --build${NC}"
     exit 1
   fi
@@ -95,8 +95,7 @@ assert_http() {
 
 # Root of repo (one level up from scripts/)
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-FLIGHT_SERVICE_URL="${FLIGHT_SERVICE_URL:-http://localhost:8081}"
-BOOKING_SERVICE_URL="${BOOKING_SERVICE_URL:-http://localhost:8082}"
+QOOMLEE_SERVICE_URL="${QOOMLEE_SERVICE_URL:-http://localhost:8082}"
 PAYMENT_SERVICE_URL="${PAYMENT_SERVICE_URL:-http://localhost:8084}"
 
 # ── JWT token for API calls ──────────────────────────────────────────────────

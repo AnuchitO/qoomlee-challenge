@@ -15,10 +15,8 @@ jwt_public.pem
 **/dist/
 
 # Go binaries
-services/flight-service/flight-service
-services/booking-service/booking-service
+services/qoomlee-service/qoomlee-service
 services/payment-service/payment-service
-services/api-gateway/api-gateway
 
 # Coverage
 **/coverage/

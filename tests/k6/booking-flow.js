@@ -22,8 +22,7 @@ export const options = {
   },
 };
 
-const FLIGHTS_URL  = __ENV.FLIGHT_SERVICE_URL  || "http://localhost:8081";
-const BOOKINGS_URL = __ENV.BOOKING_SERVICE_URL || "http://localhost:8082";
+const QOOMLEE_URL = __ENV.QOOMLEE_SERVICE_URL || "http://localhost:8082";
 
 // Pass JWT via K6_JWT env var: k6 run -e K6_JWT=$(make jwt-token -s) booking-flow.js
 const JWT_TOKEN = __ENV.K6_JWT || "";
@@ -42,7 +41,7 @@ function randomPassport() {
 export function setup() {
   // Fetch a valid flight ID to use throughout the test
   const res = http.get(
-    `${FLIGHTS_URL}/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15`,
+    `${QOOMLEE_URL}/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15`,
     { headers: HEADERS }
   );
   const body = JSON.parse(res.body);
@@ -68,7 +67,7 @@ export default function (data) {
     currency: "THB",
   });
 
-  const bookingRes = http.post(`${BOOKINGS_URL}/api/bookings`, bookingPayload, {
+  const bookingRes = http.post(`${QOOMLEE_URL}/api/bookings`, bookingPayload, {
     headers: HEADERS,
   });
 

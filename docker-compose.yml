@@ -2,52 +2,47 @@ version: "3.9"
 
 services:
 
-  postgres:
+  postgres-qoomlee:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB:       ${POSTGRES_DB:-qoomlee}
+      POSTGRES_DB:       ${POSTGRES_QOOMLEE_DB:-qoomlee}
       POSTGRES_USER:     ${POSTGRES_USER:-qoomlee}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-qoomlee}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./infra/db:/docker-entrypoint-initdb.d
+      - postgres_qoomlee_data:/var/lib/postgresql/data
+      - ./infra/db/qoomlee:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-qoomlee}"]
       interval: 5s
       timeout: 5s
       retries: 10
 
-  flight-service:
-    build: ./services/flight
+  postgres-qoomlee-payment:
+    image: postgres:16-alpine
     environment:
-      PORT:           8081
-      DB_HOST:        postgres
-      DB_PORT:        5432
-      DB_NAME:        ${POSTGRES_DB:-qoomlee}
-      DB_USER:        ${POSTGRES_USER:-qoomlee}
-      DB_PASS:        ${POSTGRES_PASSWORD:-qoomlee}
-      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      POSTGRES_DB:       ${POSTGRES_PAYMENT_DB:-qoomlee_payment}
+      POSTGRES_USER:     ${POSTGRES_USER:-qoomlee}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-qoomlee}
     ports:
-      - "8081:8081"
-    depends_on:
-      postgres:
-        condition: service_healthy
+      - "5434:5432"
+    volumes:
+      - postgres_qoomlee_payment_data:/var/lib/postgresql/data
+      - ./infra/db/qoomlee-payment:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/health/ready || exit 1"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-qoomlee}"]
+      interval: 5s
       timeout: 5s
-      retries: 5
-      start_period: 15s
+      retries: 10
 
-  booking-service:
-    build: ./services/booking
+  qoomlee-service:
+    build: ./services/qoomlee
     environment:
       PORT:           8082
-      DB_HOST:        postgres
+      DB_HOST:        postgres-qoomlee
       DB_PORT:        5432
-      DB_NAME:        ${POSTGRES_DB:-qoomlee}
+      DB_NAME:        ${POSTGRES_QOOMLEE_DB:-qoomlee}
       DB_USER:        ${POSTGRES_USER:-qoomlee}
       DB_PASS:        ${POSTGRES_PASSWORD:-qoomlee}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
@@ -55,7 +50,7 @@ services:
     ports:
       - "8082:8082"
     depends_on:
-      postgres:
+      postgres-qoomlee:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8082/health/ready || exit 1"]
@@ -68,22 +63,22 @@ services:
     build: ./services/payment
     environment:
       PORT:                8084
-      DB_HOST:             postgres
+      DB_HOST:             postgres-qoomlee-payment
       DB_PORT:             5432
-      DB_NAME:             ${POSTGRES_DB:-qoomlee}
+      DB_NAME:             ${POSTGRES_PAYMENT_DB:-qoomlee_payment}
       DB_USER:             ${POSTGRES_USER:-qoomlee}
       DB_PASS:             ${POSTGRES_PASSWORD:-qoomlee}
-      BOOKING_SERVICE_URL: http://booking-service:8082
+      QOOMLEE_SERVICE_URL: http://qoomlee-service:8082
       OMISE_PUBLIC_KEY:    ${OMISE_PUBLIC_KEY}
       OMISE_SECRET_KEY:    ${OMISE_SECRET_KEY}
       JWT_PUBLIC_KEY:      ${JWT_PUBLIC_KEY}   # verifies incoming user JWTs only
-      INTERNAL_TOKEN:      ${INTERNAL_TOKEN}   # sent to booking-service on PUT /status
+      INTERNAL_TOKEN:      ${INTERNAL_TOKEN}   # sent to qoomlee-service on PUT /status
     ports:
       - "8084:8084"
     depends_on:
-      postgres:
+      postgres-qoomlee-payment:
         condition: service_healthy
-      booking-service:
+      qoomlee-service:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8084/health/ready || exit 1"]
@@ -94,4 +89,5 @@ services:
 
 
 volumes:
-  postgres_data:
+  postgres_qoomlee_data:
+  postgres_qoomlee_payment_data:

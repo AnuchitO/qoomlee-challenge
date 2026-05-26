@@ -10,7 +10,7 @@ shape: sequence_diagram
 # ── Lifelines ─────────────────────────────────────────────────────────────────
 client: "API Client\n(curl / Postman)"
 gw: "API Gateway\n:8080"
-bs: "booking-service\n:8082"
+qs: "qoomlee-service\n:8082"
 ps: "payment-service\n:8084"
 omise: "Omise API\n(external)"
 db: PostgreSQL
@@ -38,10 +38,10 @@ gw -> client: "402 Payment Required\nerror:payment_failed\nfailureCode:insuffici
 
 # ── Verify booking is still PENDING ───────────────────────────────────────────
 client -> gw: "GET /api/bookings/QM7X2K"
-gw -> bs: proxy
-bs -> db: "SELECT ... WHERE booking_ref=QM7X2K"
-db -> bs: "status=PENDING (unchanged)"
-bs -> gw: "200 OK"
+gw -> qs: proxy
+qs -> db: "SELECT ... WHERE booking_ref=QM7X2K"
+db -> qs: "status=PENDING (unchanged)"
+qs -> gw: "200 OK"
 gw -> client: "200 OK\nbookingRef:QM7X2K, status:PENDING\n✅ Booking stays PENDING — passenger can retry"
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -60,19 +60,19 @@ ps -> omise: "CreateCharge\namount:350000\ncard:tokn_test_success_2"
 omise -> ps: "charge.Status=successful\ncharge.ID=chrg_test_ok_2"
 ps -> db: "INSERT INTO payments\nbooking_ref=QM7X2K, amount=350000\nstatus=SUCCEEDED\nomise_charge_id=chrg_test_ok_2\npaid_at=NOW()"
 db -> ps: "paymentId = 2"
-ps -> bs: "PUT /api/bookings/QM7X2K/status\nstatus:CONFIRMED"
-bs -> db: "UPDATE bookings SET status=CONFIRMED\nWHERE booking_ref=QM7X2K"
-db -> bs: "1 row updated"
-bs -> ps: "200 OK"
+ps -> qs: "PUT /api/bookings/QM7X2K/status\nstatus:CONFIRMED"
+qs -> db: "UPDATE bookings SET status=CONFIRMED\nWHERE booking_ref=QM7X2K"
+db -> qs: "1 row updated"
+qs -> ps: "200 OK"
 ps -> gw: "201 Created"
 gw -> client: "201 Created\nomiseChargeId:chrg_test_ok_2\nstatus:SUCCEEDED\namount:350000\npaidAt:..."
 
 # ── Final confirmation ─────────────────────────────────────────────────────────
 client -> gw: "GET /api/bookings/QM7X2K"
-gw -> bs: proxy
-bs -> db: "SELECT ... WHERE booking_ref=QM7X2K"
-db -> bs: "status=CONFIRMED"
-bs -> gw: "200 OK"
+gw -> qs: proxy
+qs -> db: "SELECT ... WHERE booking_ref=QM7X2K"
+db -> qs: "status=CONFIRMED"
+qs -> gw: "200 OK"
 gw -> client: "200 OK\nbookingRef:QM7X2K, status:CONFIRMED\n✅ Booking confirmed after retry"
 
 # ══════════════════════════════════════════════════════════════════════════════

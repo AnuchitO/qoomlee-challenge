@@ -10,29 +10,27 @@ header "Pillar 1 — Working Software Smoke Tests"
 require_stack
 
 DATE="2026-06-15"
-FLIGHTS_API="$FLIGHT_SERVICE_URL"
-BOOKINGS_API="$BOOKING_SERVICE_URL"
+BOOKINGS_API="$QOOMLEE_SERVICE_URL"
 PAYMENTS_API="$PAYMENT_SERVICE_URL"
 
-# ─── Flight Service ────────────────────────────────────────────────────────────
-section "Flight Service"
+# ─── Flight Endpoints (served by qoomlee-service) ─────────────────────────────
+section "Flight Endpoints (:8082)"
 
-FLIGHTS=$(curl -s "$FLIGHTS_API/api/flights/search?origin=BKK&destination=SIN&date=$DATE&passengers=1")
+FLIGHTS=$(curl -s "$BOOKINGS_API/api/flights/search?origin=BKK&destination=SIN&date=$DATE&passengers=1")
 assert_jq "GET /api/flights/search returns flights array"         "$FLIGHTS" '.flights'
 assert_jq "GET /api/flights/search returns at least 1 result"    "$FLIGHTS" '.flights | length > 0'
-assert_jq "Flight has required fields (id, flightNumber, price)" "$FLIGHTS" '.flights[0] | .id and .flightNumber and .basePrice'
+assert_jq "Flight has required fields (id, flightNumber, basePriceMinor)" "$FLIGHTS" '.flights[0] | .id and .flightNumber and .basePriceMinor'
 
 FLIGHT_ID=$(echo "$FLIGHTS" | jq -r '.flights[0].id')
-BASE_PRICE=$(echo "$FLIGHTS" | jq -r '.flights[0].basePrice')
-AMOUNT_SATANG=$(echo "$BASE_PRICE" | awk '{printf "%.0f", $1 * 100}')
+AMOUNT_MINOR=$(echo "$FLIGHTS" | jq -r '.flights[0].basePriceMinor')
 
-FLIGHT_DETAIL=$(curl -s "$FLIGHTS_API/api/flights/$FLIGHT_ID")
-code=$(http_status GET "$FLIGHTS_API/api/flights/$FLIGHT_ID")
+FLIGHT_DETAIL=$(curl -s "$BOOKINGS_API/api/flights/$FLIGHT_ID")
+code=$(http_status GET "$BOOKINGS_API/api/flights/$FLIGHT_ID")
 assert_http "GET /api/flights/:id returns 200"                   "$code" "200"
 assert_jq  "GET /api/flights/:id has durationMinutes"           "$FLIGHT_DETAIL" '.durationMinutes'
 assert_jq  "GET /api/flights/:id has origin and destination"    "$FLIGHT_DETAIL" '.origin and .destination'
 
-code=$(http_status GET "$FLIGHTS_API/api/flights/99999")
+code=$(http_status GET "$BOOKINGS_API/api/flights/99999")
 assert_http "GET /api/flights/99999 returns 404"                 "$code" "404"
 
 # ─── Booking Service ───────────────────────────────────────────────────────────
@@ -48,7 +46,7 @@ BOOKING=$(curl -s -X POST "$BOOKINGS_API/api/bookings" \
       \"email\":     \"smoke@test.com\",
       \"passportNumber\": \"ST000001\"
     },
-    \"totalAmount\": $BASE_PRICE,
+    \"totalAmountMinor\": $AMOUNT_MINOR,
     \"currency\": \"THB\"
   }")
 
@@ -70,11 +68,10 @@ section "Payment Service"
 PAYMENT=$(curl -s -X POST "$PAYMENTS_API/api/payments/charge" \
   -H "Content-Type: application/json" \
   -d "{
-    \"bookingRef\": \"$PNR\",
-    \"bookingId\":  $BOOKING_ID,
-    \"amount\":     $AMOUNT_SATANG,
-    \"currency\":   \"THB\",
-    \"omiseToken\":  \"tokn_test_4xs9408a642a1htto8z\"
+    \"bookingRef\":   \"$PNR\",
+    \"amountMinor\":  $AMOUNT_MINOR,
+    \"currency\":     \"THB\",
+    \"omiseToken\":   \"tokn_test_4xs9408a642a1htto8z\"
   }")
 
 assert_jq "POST /api/payments/charge returns omiseChargeId"  "$PAYMENT" '.omiseChargeId'
@@ -87,7 +84,7 @@ code=$(http_status GET "$PAYMENTS_API/api/payments/ZZZZZZ")
 assert_http "GET /api/payments/ZZZZZZ returns 404"            "$code" "404"
 
 # ─── Booking confirmed after payment ──────────────────────────────────────────
-section "Booking Status Update (payment-service → booking-service)"
+section "Booking Status Update (payment-service → qoomlee-service)"
 
 CONFIRMED=$(curl -s "$BOOKINGS_API/api/bookings/$PNR")
 assert_jq "GET /api/bookings/:pnr after payment: status is CONFIRMED" \

@@ -16,6 +16,250 @@ Search flights  →  Pick a flight  →  Book a seat  →  Pay  →  Get confirm
 Your job is to make that entire journey work — from searching available flights
 all the way to a confirmed, paid booking.
 
+## User Stories
+
+As a passenger, I want to search for flights so that I can find available flights between destinations on a specific date.
+
+**Story QML-001**: As a passenger, I want to search for flights by origin, destination, and date so that I can find suitable travel options.
+
+*Acceptance Criteria:*
+- Given a valid origin airport code, destination airport code, and date
+  When I search for available flights
+  Then the system returns a list of matching flights with flight number, departure/arrival times, price, and available seats
+- Given no flights match the search criteria
+  When I search for available flights
+  Then the system returns an empty list
+- Given missing required search parameters
+  When I search for available flights
+  Then the system returns an appropriate error response
+
+*Test Cases:*
+- Positive: Search for BKK→SIN on 2026-06-15 returns matching flights
+- Negative: Search with missing origin returns 400 MISSING_REQUIRED_FIELD
+- Negative: Search with invalid date format returns 400 INVALID_DATE_FORMAT
+- Normal: Search for sold-out flights excludes them from results
+
+**Story QML-002**: As a passenger, I want to view detailed flight information so that I can confirm flight times, prices, and availability before booking.
+
+*Acceptance Criteria:*
+- Given a valid flight ID
+  When I request detailed flight information
+  Then the system returns complete flight details including flight number, route, departure/arrival times, price, and available seats
+- Given a flight ID that does not exist
+  When I request detailed flight information
+  Then the system returns a 404 error
+- Given a valid flight
+  When I request detailed flight information
+  Then the system calculates and includes duration from departure and arrival times
+
+*Test Cases:*
+- Positive: GET /api/flights/1 returns complete flight details
+- Negative: GET /api/flights/99999 returns 404 FLIGHT_NOT_FOUND
+- Normal: Response includes durationMinutes field
+
+**Story QML-003**: As a passenger, I want to create a booking for a flight so that I can reserve my seat and receive a booking reference.
+
+*Acceptance Criteria:*
+- Given valid flight ID and passenger details
+  When I create a booking
+  Then the system creates the booking and returns a 6-character booking reference (PNR)
+- Given a booking request with valid details
+  When I create a booking
+  Then the system decrements available seats for the flight
+- Given a flight with no available seats
+  When I attempt to create a booking
+  Then the system prevents overbooking and returns an appropriate error
+- Given a booking request
+  When I create a booking
+  Then the system ensures total amount matches flight price at time of booking
+
+*Test Cases:*
+- Positive: POST /api/bookings with valid flight ID returns 201 with bookingRef
+- Negative: POST for sold-out flight returns 409 NO_SEATS_AVAILABLE
+- Negative: POST with missing passenger details returns 400 MISSING_REQUIRED_FIELD
+- Normal: Concurrent bookings on 1-seat flight results in 1 success and 1 failure
+
+**Story QML-004**: As a passenger, I want to view my booking details so that I can confirm my reservation information including flight and passenger details.
+
+*Acceptance Criteria:*
+- Given a valid booking reference
+  When I request booking details
+  Then the system returns booking details with nested passenger and flight information
+- Given a valid booking reference
+  When I request booking details
+  Then the system returns details including booking status, PNR, passenger info, and flight details
+- Given a booking reference that does not exist
+  When I request booking details
+  Then the system returns a 404 error
+- Given a confirmed booking
+  When I request booking details
+  Then the system includes payment provider and charge ID information
+
+*Test Cases:*
+- Positive: GET /api/bookings/SEED01 returns complete booking with CONFIRMED status
+- Negative: GET /api/bookings/XXXXXX returns 404 BOOKING_NOT_FOUND
+- Normal: PENDING bookings show null for payment provider fields
+- Normal: CONFIRMED bookings show paymentProvider and providerChargeId
+
+**Story QML-005**: As a passenger, I want to pay for my booking securely so that I can confirm my reservation and receive payment confirmation.
+
+*Acceptance Criteria:*
+- Given a valid booking reference and card token
+  When I initiate payment
+  Then the system charges payment using Omise
+- Given a payment request with amount
+  When I initiate payment
+  Then the system validates amount matches booking total before charging
+- Given a successful payment
+  When the payment completes
+  Then the system updates booking status to CONFIRMED
+- Given a payment request
+  When I initiate payment
+  Then the system records payment details in payment database
+- Given an already confirmed booking
+  When I attempt to make payment
+  Then the system prevents duplicate payments
+
+*Test Cases:*
+- Positive: POST /api/payments/charge with success card returns 201 with SUCCEEDED status
+- Negative: POST with decline card returns 402 PAYMENT_FAILED
+- Negative: POST for already CONFIRMED booking returns 409 ALREADY_PAID
+- Negative: POST with mismatched amount returns 400 AMOUNT_MISMATCH
+
+**Story QML-006**: As a passenger, I want to view my payment receipt so that I can have proof of payment and booking confirmation.
+
+*Acceptance Criteria:*
+- Given a valid booking reference
+  When I request payment details
+  Then the system returns payment details for that booking
+- Given a payment exists
+  When I request payment details
+  Then the system returns details including payment status, amount, provider, and timestamps
+- Given multiple payment attempts for the same booking
+  When I request payment details
+  Then the system returns the most recent payment attempt
+- Given no payment exists for the booking reference
+  When I request payment details
+  Then the system returns a 404 error
+
+*Test Cases:*
+- Positive: GET /api/payments/SEED01 returns SUCCEEDED payment details
+- Negative: GET /api/payments/XXXXXX returns 404 PAYMENT_NOT_FOUND
+- Normal: Returns latest payment when multiple attempts exist for same booking
+
+**Story QML-007**: As a system, I want to ensure that bookings cannot be overbooked so that I maintain accurate seat availability.
+
+*Acceptance Criteria:*
+- Given a booking request
+  When the system processes the booking
+  Then the system uses SELECT FOR UPDATE to lock flight row during booking
+- Given a booking request
+  When the system processes the booking
+  Then the system checks available seats before creating booking
+- Given concurrent booking requests
+  When the system processes them
+  Then the system prevents concurrent bookings from exceeding seat capacity
+- Given no seats are available
+  When I attempt to create a booking
+  Then the transaction rolls back
+
+*Test Cases:*
+- Normal: Concurrent requests on 1-seat flight results in 1 success and 1 failure
+- Positive: Booking on flight with available seats succeeds
+- Negative: Booking on sold-out flight returns 409 NO_SEATS_AVAILABLE
+
+**Story QML-008**: As a system, I want to prevent duplicate payments for the same booking so that I avoid charging customers multiple times.
+
+*Acceptance Criteria:*
+- Given a payment request
+  When the system processes the payment
+  Then the system checks booking status before processing payment
+- Given a payment request for an already CONFIRMED booking
+  When the system processes the payment
+  Then the system rejects the payment
+- Given a duplicate payment attempt
+  When I initiate payment
+  Then the system returns 409 ALREADY_PAID error
+- Given a payment request
+  When the system processes the payment
+  Then the system calls qoomlee-service to verify booking status before charging
+
+*Test Cases:*
+- Positive: Payment for PENDING booking succeeds
+- Negative: Payment for CONFIRMED booking returns 409 ALREADY_PAID
+- Negative: Second payment attempt for same booking returns 409 ALREADY_PAID
+
+**Story QML-009**: As a system, I want to handle payment failures gracefully so that pending bookings remain available for retry.
+
+*Acceptance Criteria:*
+- Given a payment failure (e.g., declined card)
+  When the payment processing completes
+  Then the system records FAILED payment in database
+- Given a failed payment
+  When the payment processing completes
+  Then the system keeps booking in PENDING status
+- Given a payment failure
+  When the system processes the failure
+  Then the system returns appropriate error message for the failure type
+- Given a booking with failed payment
+  When I attempt payment again
+  Then the system allows retry with different payment method
+
+*Test Cases:*
+- Normal: Payment with declined card results in FAILED payment record
+- Normal: Booking remains PENDING after failed payment
+- Positive: Booking can be retried with success card after failure
+- Negative: Failed payment returns 402 with failure details
+
+**Story QML-010**: As a system, I want to ensure secure authentication using JWT so that only authorized users can access booking functionality.
+
+*Acceptance Criteria:*
+- Given an API request to protected endpoint
+  When the request is made
+  Then all API endpoints require valid JWT token in Authorization header
+- Given an API request with invalid or missing token
+  When the request is processed
+  Then the system returns 401 UNAUTHORIZED
+- Given a health check request
+  When the request is made
+  Then health endpoints are accessible without authentication
+- Given an internal service-to-service call
+  When the call is made
+  Then the system uses separate authentication mechanism
+
+*Test Cases:*
+- Positive: API calls with valid JWT return expected responses
+- Negative: API calls without JWT return 401 UNAUTHORIZED
+- Negative: API calls with expired JWT return 401 UNAUTHORIZED
+- Normal: Health endpoints return 200 without JWT
+
+## Full Flow Acceptance Criteria
+
+**End-to-End Journey Test**: As a passenger, I want to complete the full booking journey from searching flights to receiving payment confirmation so that I can successfully book a flight.
+
+*Given*: A passenger with a valid JWT token
+*When*: The passenger performs the complete booking journey:
+  1. Searches for flights from BKK to SIN on 2026-06-15
+  2. Views details of a specific flight (e.g., flight ID 1)
+  3. Creates a booking for that flight with valid passenger details
+  4. Receives a booking reference (PNR) and confirms the booking is in PENDING status
+  5. Obtains an Omise card token for a success card (4242...)
+  6. Charges the card for the booking using the correct amount
+  7. Verifies the booking status changes to CONFIRMED
+  8. Views the payment receipt to confirm successful payment
+*Then*: The entire journey completes successfully with:
+  - Appropriate HTTP status codes at each step (200, 201)
+  - Correct data persisted in respective databases
+  - Proper error handling for invalid inputs
+  - Secure authentication maintained throughout
+  - Accurate seat availability updated
+
+*Full Flow Test Case*:
+- Positive: Complete journey from flight search to payment confirmation executes without errors
+- Verification: Booking shows CONFIRMED status with payment traceability
+- Verification: Flight seat availability decreases by 1
+- Negative: Interruption at any step does not corrupt data integrity
+
 ---
 
 ## What's Provided

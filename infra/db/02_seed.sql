@@ -56,15 +56,15 @@ INSERT INTO routes (origin_iata, destination_iata, distance_km) VALUES
 -- INSERT INTO bookings to prevent overbooking.
 -- Note: QM101 available_seats=154 — 2 are held by pre-seeded bookings SEED01 and SEED02.
 INSERT INTO flights
-    (flight_number, route_id, aircraft_type_id, departure_time, arrival_time, base_price_minor, available_seats)
+    (flight_number, route_id, aircraft_type_id, departure_time, arrival_time, base_price_minor, currency, available_seats)
 VALUES
---   number   route  aircraft  departure (local+tz)            arrival (local+tz)           satang / THB    seats
-    ('QM101',   1,     1,    '2026-06-15 08:00:00+07', '2026-06-15 11:30:00+08',   350000,  154),  -- id=1  3500.00 THB (2 seats pre-booked)
-    ('QM102',   1,     1,    '2026-06-15 14:00:00+07', '2026-06-15 17:30:00+08',   280000,   30),  -- id=2  2800.00 THB
-    ('SC201',   1,     1,    '2026-06-15 10:00:00+07', '2026-06-15 13:30:00+08',   220000,   78),  -- id=3  2200.00 THB
-    ('QM201',   2,     2,    '2026-06-15 07:30:00+07', '2026-06-15 11:00:00+08',   450000,  200),  -- id=4  4500.00 THB
-    ('QM301',   3,     2,    '2026-06-15 23:55:00+07', '2026-06-16 08:00:00+09',   980000,  150),  -- id=5  9800.00 THB overnight
-    ('QM999',   1,     1,    '2026-06-15 22:00:00+07', '2026-06-16 01:30:00+08',   350000,    0);  -- id=6  3500.00 THB SOLD OUT
+--   number   route  aircraft  departure (local+tz)            arrival (local+tz)           satang   cur   seats
+    ('QM101',   1,     1,    '2026-06-15 08:00:00+07', '2026-06-15 11:30:00+08',   350000, 'THB',  154),  -- id=1  "3500.00" THB (2 seats pre-booked)
+    ('QM102',   1,     1,    '2026-06-15 14:00:00+07', '2026-06-15 17:30:00+08',   280000, 'THB',   30),  -- id=2  "2800.00" THB
+    ('SC201',   1,     1,    '2026-06-15 10:00:00+07', '2026-06-15 13:30:00+08',   220000, 'THB',   78),  -- id=3  "2200.00" THB
+    ('QM201',   2,     2,    '2026-06-15 07:30:00+07', '2026-06-15 11:00:00+08',   450000, 'THB',  200),  -- id=4  "4500.00" THB
+    ('QM301',   3,     2,    '2026-06-15 23:55:00+07', '2026-06-16 08:00:00+09',   980000, 'THB',  150),  -- id=5  "9800.00" THB overnight
+    ('QM999',   1,     1,    '2026-06-15 22:00:00+07', '2026-06-16 01:30:00+08',   350000, 'THB',    0);  -- id=6  "3500.00" THB SOLD OUT
 
 -- ── Seats for QM101 (flight id=1) ─────────────────────────────────────────────
 -- Rows 1–4   → BUSINESS  (4 rows × 6 cols = 24 seats)
@@ -136,15 +136,15 @@ INSERT INTO routes (origin_iata, destination_iata, distance_km) VALUES
 --   QM601 (250 capacity): 1 pre-booked (FMXB89)          → 249 available
 --   QM103 / QM202       : 2026-06-16 — use to verify date filter excludes 2026-06-15 results
 INSERT INTO flights
-    (flight_number, route_id, aircraft_type_id, departure_time, arrival_time, base_price_minor, available_seats)
+    (flight_number, route_id, aircraft_type_id, departure_time, arrival_time, base_price_minor, currency, available_seats)
 VALUES
---   number  route  aircraft  departure (local+tz)              arrival (local+tz)             satang / THB    seats
-    ('QM401',  4,  1, '2026-06-15 06:15:00+07', '2026-06-15 09:15:00+08',  129000,  138),  -- id=7  1290.00 THB  BKK→KUL morning budget
-    ('QM402',  4,  4, '2026-06-15 17:30:00+07', '2026-06-15 20:30:00+08',  185000,   12),  -- id=8  1850.00 THB  BKK→KUL evening nearly full
-    ('QM501',  5,  3, '2026-06-15 08:00:00+07', '2026-06-15 11:30:00+07',  289000,  179),  -- id=9  2890.00 THB  BKK→CGK
-    ('QM601',  6,  2, '2026-06-15 07:00:00+07', '2026-06-15 11:00:00+08',  320000,  249),  -- id=10 3200.00 THB  BKK→MNL
-    ('QM103',  1,  1, '2026-06-16 09:00:00+07', '2026-06-16 12:30:00+08',  310000,  160),  -- id=11 3100.00 THB  BKK→SIN next day
-    ('QM202',  2,  2, '2026-06-16 11:00:00+07', '2026-06-16 14:30:00+08',  490000,  200);  -- id=12 4900.00 THB  BKK→HKG next day
+--   number  route  aircraft  departure (local+tz)              arrival (local+tz)             satang   cur   seats
+    ('QM401',  4,  1, '2026-06-15 06:15:00+07', '2026-06-15 09:15:00+08',  129000, 'THB',  138),  -- id=7  "1290.00" THB  BKK→KUL morning budget
+    ('QM402',  4,  4, '2026-06-15 17:30:00+07', '2026-06-15 20:30:00+08',  185000, 'THB',   12),  -- id=8  "1850.00" THB  BKK→KUL evening nearly full
+    ('QM501',  5,  3, '2026-06-15 08:00:00+07', '2026-06-15 11:30:00+07',  289000, 'THB',  179),  -- id=9  "2890.00" THB  BKK→CGK
+    ('QM601',  6,  2, '2026-06-15 07:00:00+07', '2026-06-15 11:00:00+08',  320000, 'THB',  249),  -- id=10 "3200.00" THB  BKK→MNL
+    ('QM103',  1,  1, '2026-06-16 09:00:00+07', '2026-06-16 12:30:00+08',  310000, 'THB',  160),  -- id=11 "3100.00" THB  BKK→SIN next day
+    ('QM202',  2,  2, '2026-06-16 11:00:00+07', '2026-06-16 14:30:00+08',  490000, 'THB',  200);  -- id=12 "4900.00" THB  BKK→HKG next day
 
 -- ── Additional passengers ─────────────────────────────────────────────────────
 INSERT INTO passengers (first_name, last_name, email, phone, passport_number, date_of_birth, nationality)

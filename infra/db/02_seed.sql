@@ -1,22 +1,35 @@
 -- Qoomlee Airline — Seed Data
 --
 -- ── Deterministic IDs ─────────────────────────────────────────────────────────
---   aircraft_types  : A320=1, B777=2, A330=3
---   routes          : BKK→SIN=1, BKK→HKG=2, BKK→NRT=3
---   flights         : QM101=1, QM102=2, SC201=3, QM201=4, QM301=5, QM999=6
---   passengers      : seed passenger id=1
---   bookings        : SEED01=1 (CONFIRMED), SEED02=2 (PENDING)
---   payments        : SEED01 SUCCEEDED=1, SEED02 FAILED=2
+--   aircraft_types  : A320=1, B777=2, A330=3, B737=4
+--   routes          : BKK→SIN=1, BKK→HKG=2, BKK→NRT=3, BKK→KUL=4, BKK→CGK=5, BKK→MNL=6
+--   flights (2026-06-15): QM101=1, QM102=2, SC201=3, QM201=4, QM301=5, QM999=6,
+--                         QM401=7, QM402=8, QM501=9, QM601=10
+--   flights (2026-06-16): QM103=11, QM202=12  ← next-day flights for date-filter tests
+--   passengers      : Seed=1, Wanchai=2, Narumon=3, Akira=4, Ahmad=5
+--   bookings        : SEED01=1 (CONFIRMED), SEED02=2 (PENDING),
+--                     MNKP23=3 (CONFIRMED), AKVWQ4=4 (CONFIRMED),
+--                     NRPQ56=5 (PENDING+FAILED), FMXB89=6 (PENDING)
+--   payments        : SEED01 SUCCEEDED=1, SEED02 FAILED=2,
+--                     MNKP23 SUCCEEDED=3, AKVWQ4 SUCCEEDED=4, NRPQ56 FAILED=5
 --
--- ── Flights by route (all on 2026-06-15, use this date in all tests) ──────────
---   BKK → SIN  :  QM101 (id=1), QM102 (id=2), SC201 (id=3), QM999 (id=6, SOLD OUT)
---   BKK → HKG  :  QM201 (id=4)
+-- ── Flights by route ──────────────────────────────────────────────────────────
+--   BKK → SIN  :  QM101 (id=1), QM102 (id=2), SC201 (id=3), QM999 (id=6, SOLD OUT), QM103 (id=11, 2026-06-16)
+--   BKK → HKG  :  QM201 (id=4), QM202 (id=12, 2026-06-16)
 --   BKK → NRT  :  QM301 (id=5, overnight)
+--   BKK → KUL  :  QM401 (id=7), QM402 (id=8, nearly full 12 seats)
+--   BKK → CGK  :  QM501 (id=9)
+--   BKK → MNL  :  QM601 (id=10)
 --
 -- ── Pre-seeded test bookings (use in integration / contract tests) ─────────────
 --   SEED01  flight=QM101  status=CONFIRMED  → use for duplicate-payment guard (409 ALREADY_PAID)
 --   SEED02  flight=QM101  status=PENDING    → use for GetByRef read tests and payment flow tests
+--   MNKP23  flight=QM401  status=CONFIRMED  → use for multi-route confirmed booking reads
+--   AKVWQ4  flight=QM501  status=CONFIRMED  → use for CGK route confirmed booking reads
+--   NRPQ56  flight=QM401  status=PENDING    → use for payment retry test (has a FAILED attempt)
+--   FMXB89  flight=QM601  status=PENDING    → use for first-charge flow (no prior payment)
 --   QM999   available_seats=0              → use for no-seats-available (409 NO_SEATS_AVAILABLE)
+--   QM402   available_seats=12             → use for low-seats / nearly-full scenario
 
 -- ── Aircraft types ────────────────────────────────────────────────────────────
 INSERT INTO aircraft_types (code, name, total_seats) VALUES
@@ -98,3 +111,72 @@ VALUES
 -- payments(id=1) is the SUCCEEDED charge that confirmed SEED01.
 -- This UPDATE must come after both INSERTs due to the FK constraint.
 UPDATE bookings SET confirmed_payment_id = 1 WHERE booking_ref = 'SEED01';
+
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- EXTENDED SEED — additional aircraft type, routes, flights, passengers, bookings
+-- ═══════════════════════════════════════════════════════════════════════════════
+
+-- ── Additional aircraft type ──────────────────────────────────────────────────
+INSERT INTO aircraft_types (code, name, total_seats) VALUES
+    ('B737', 'Boeing 737-800', 162);  -- id=4
+
+-- ── Additional routes ─────────────────────────────────────────────────────────
+INSERT INTO routes (origin_iata, destination_iata, distance_km) VALUES
+    ('BKK', 'KUL', 1160),   -- id=4
+    ('BKK', 'CGK', 2315),   -- id=5  Jakarta
+    ('BKK', 'MNL', 2159);   -- id=6  Manila
+
+-- ── Additional flights ────────────────────────────────────────────────────────
+-- Timezone offsets:  BKK=UTC+7  KUL/MNL/HKG=UTC+8  CGK=UTC+7  SIN=UTC+8
+-- Flight durations:  BKK→KUL=120min  BKK→CGK=210min  BKK→MNL=180min
+-- available_seats already reflects pre-seeded bookings below:
+--   QM401 (140 capacity): 2 pre-booked (MNKP23 + NRPQ56) → 138 available
+--   QM402 ( 12 avail)   : 0 pre-booked — use for nearly-full / concurrent-booking tests
+--   QM501 (180 capacity): 1 pre-booked (AKVWQ4)          → 179 available
+--   QM601 (250 capacity): 1 pre-booked (FMXB89)          → 249 available
+--   QM103 / QM202       : 2026-06-16 — use to verify date filter excludes 2026-06-15 results
+INSERT INTO flights
+    (flight_number, route_id, aircraft_type_id, departure_time, arrival_time, base_price_minor, available_seats)
+VALUES
+--   number  route  aircraft  departure (local+tz)              arrival (local+tz)               price(satang)  seats
+    ('QM401',  4,  1, '2026-06-15 06:15:00+07', '2026-06-15 09:15:00+08',  129000,  138),  -- id=7  BKK→KUL morning budget
+    ('QM402',  4,  4, '2026-06-15 17:30:00+07', '2026-06-15 20:30:00+08',  185000,   12),  -- id=8  BKK→KUL evening nearly full
+    ('QM501',  5,  3, '2026-06-15 08:00:00+07', '2026-06-15 11:30:00+07',  289000,  179),  -- id=9  BKK→CGK
+    ('QM601',  6,  2, '2026-06-15 07:00:00+07', '2026-06-15 11:00:00+08',  320000,  249),  -- id=10 BKK→MNL
+    ('QM103',  1,  1, '2026-06-16 09:00:00+07', '2026-06-16 12:30:00+08',  310000,  160),  -- id=11 BKK→SIN next day
+    ('QM202',  2,  2, '2026-06-16 11:00:00+07', '2026-06-16 14:30:00+08',  490000,  200);  -- id=12 BKK→HKG next day
+
+-- ── Additional passengers ─────────────────────────────────────────────────────
+INSERT INTO passengers (first_name, last_name, email, phone, passport_number, date_of_birth, nationality)
+VALUES
+    ('Wanchai', 'Srisuk',     'wanchai@example.com',      '+66812340001', 'TH123456', '1985-03-22', 'TH'),  -- id=2
+    ('Narumon', 'Pattanakit', 'narumon@example.com',      '+66812340002', 'TH234567', '1992-07-14', 'TH'),  -- id=3
+    ('Akira',   'Tanaka',     'akira.tanaka@example.com', '+81901234567', 'JP567890', '1988-11-05', 'JP'),  -- id=4
+    ('Ahmad',   'Fauzi',      'ahmad.fauzi@example.com',  '+60123456789', 'MY678901', '1995-04-18', 'MY');  -- id=5
+
+-- ── Additional bookings ───────────────────────────────────────────────────────
+-- MNKP23: Wanchai / QM401 (BKK→KUL) / CONFIRMED
+-- AKVWQ4: Akira   / QM501 (BKK→CGK) / CONFIRMED
+-- NRPQ56: Narumon / QM401 (BKK→KUL) / PENDING — has a FAILED payment → use for retry-payment test
+-- FMXB89: Ahmad   / QM601 (BKK→MNL) / PENDING — no payment yet → use for first-charge flow test
+-- confirmed_payment_id wired via UPDATE below after payments are inserted.
+INSERT INTO bookings (booking_ref, flight_id, passenger_id, status, total_amount_minor, currency, created_at, updated_at)
+VALUES
+    ('MNKP23',  7, 2, 'CONFIRMED', 129000, 'THB', '2026-06-02 08:00:00+00', '2026-06-02 08:05:00+00'),  -- id=3
+    ('AKVWQ4',  9, 4, 'CONFIRMED', 289000, 'THB', '2026-06-03 03:00:00+00', '2026-06-03 03:05:00+00'),  -- id=4
+    ('NRPQ56',  7, 3, 'PENDING',   129000, 'THB', '2026-06-04 05:00:00+00', '2026-06-04 05:00:00+00'),  -- id=5
+    ('FMXB89', 10, 5, 'PENDING',   320000, 'THB', '2026-06-05 02:00:00+00', '2026-06-05 02:00:00+00');  -- id=6
+
+-- ── Additional payments ───────────────────────────────────────────────────────
+-- MNKP23: SUCCEEDED
+-- AKVWQ4: SUCCEEDED
+-- NRPQ56: FAILED (insufficient_fund) — booking stays PENDING, passenger can retry with new card
+INSERT INTO payments (booking_ref, booking_id, payment_provider, provider_charge_id, amount_minor, currency, status, failure_code, failure_message, paid_at, created_at)
+VALUES
+    ('MNKP23', 3, 'OMISE', 'chrg_test_mnkp23xxxxxxxxxx', 129000, 'THB', 'SUCCEEDED', NULL,                NULL,                              '2026-06-02 08:05:00+00', '2026-06-02 08:05:00+00'),  -- id=3
+    ('AKVWQ4', 4, 'OMISE', 'chrg_test_akvwq4xxxxxxxxxx', 289000, 'THB', 'SUCCEEDED', NULL,                NULL,                              '2026-06-03 03:05:00+00', '2026-06-03 03:05:00+00'),  -- id=4
+    ('NRPQ56', 5, 'OMISE', 'chrg_test_nrpq56xxxxxxxxxx', 129000, 'THB', 'FAILED',    'insufficient_fund', 'The card has insufficient funds.', NULL,                     '2026-06-04 05:01:00+00');  -- id=5
+
+-- ── Wire confirmed_payment_id for additional confirmed bookings ───────────────
+UPDATE bookings SET confirmed_payment_id = 3 WHERE booking_ref = 'MNKP23';
+UPDATE bookings SET confirmed_payment_id = 4 WHERE booking_ref = 'AKVWQ4';

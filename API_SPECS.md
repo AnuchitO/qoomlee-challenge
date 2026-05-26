@@ -260,7 +260,8 @@ curl -H "Authorization: Bearer $TOKEN" "http://localhost:8082/api/bookings/QM7X2
 {
   "bookingRef": "QM7X2K",
   "status": "PENDING",
-  "omiseChargeId": null,
+  "paymentProvider": null,
+  "providerChargeId": null,
   "flight": {
     "id": 1,
     "flightNumber": "QM101",
@@ -288,7 +289,8 @@ curl -H "Authorization: Bearer $TOKEN" "http://localhost:8082/api/bookings/QM7X2
 {
   "bookingRef": "QM7X2K",
   "status": "CONFIRMED",
-  "omiseChargeId": "chrg_test_5fzddg8p5j3qhp1w5jg",
+  "paymentProvider": "OMISE",
+  "providerChargeId": "chrg_test_5fzddg8p5j3qhp1w5jg",
   "flight": {
     "id": 1,
     "flightNumber": "QM101",
@@ -311,8 +313,9 @@ curl -H "Authorization: Bearer $TOKEN" "http://localhost:8082/api/bookings/QM7X2
 }
 ```
 
-> `omiseChargeId` — the Omise charge ID of the payment that confirmed this booking. `null` when `status` is `PENDING`. This is the traceability link: given a booking you can identify the exact charge, and given a charge ID you can look it up in the Omise dashboard or via `GET /api/payments/:ref`.
-> booking-service retrieves this by JOINing `payments` on `bookings.confirmed_payment_id`. No cross-service HTTP call required — both tables are in the shared database.
+> `paymentProvider` — which payment gateway processed the charge (`"OMISE"`, `"2C2P"`, etc.). `null` when `PENDING`.
+> `providerChargeId` — the gateway's own transaction reference (Omise: `chrg_test_…`, 2C2P: order reference, etc.). `null` when `PENDING`.
+> booking-service retrieves both fields by LEFT JOINing `payments` on `bookings.confirmed_payment_id`. No cross-service HTTP call required — both tables share the same database.
 
 **Response `401 Unauthorized`** — missing or invalid JWT
 ```json
@@ -416,7 +419,8 @@ curl -X POST http://localhost:8084/api/payments/charge \
 ```json
 {
   "paymentId": 1,
-  "omiseChargeId": "chrg_test_5fzddg8p5j3qhp1w5jg",
+  "paymentProvider": "OMISE",
+  "providerChargeId": "chrg_test_5fzddg8p5j3qhp1w5jg",
   "status": "SUCCEEDED",
   "amount": 350000,
   "currency": "THB",
@@ -461,8 +465,9 @@ curl -H "Authorization: Bearer $TOKEN" "http://localhost:8084/api/payments/QM7X2
 ```json
 {
   "bookingRef": "QM7X2K",
+  "paymentProvider": "OMISE",
+  "providerChargeId": "chrg_test_5fzddg8p5j3qhp1w5jg",
   "status": "SUCCEEDED",
-  "omiseChargeId": "chrg_test_5fzddg8p5j3qhp1w5jg",
   "amount": 350000,
   "currency": "THB",
   "paidAt": "2026-05-22T10:05:00Z"
@@ -473,8 +478,9 @@ curl -H "Authorization: Bearer $TOKEN" "http://localhost:8084/api/payments/QM7X2
 ```json
 {
   "bookingRef": "QM7X2K",
+  "paymentProvider": "OMISE",
+  "providerChargeId": "chrg_test_declined_example",
   "status": "FAILED",
-  "omiseChargeId": "chrg_test_declined_example",
   "failureCode": "insufficient_fund",
   "failureMessage": "The card has insufficient funds.",
   "amount": 350000,

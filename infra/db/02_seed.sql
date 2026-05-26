@@ -89,10 +89,10 @@ VALUES
 -- ── Pre-seeded payments ───────────────────────────────────────────────────────
 -- SEED01 payment: SUCCEEDED — use for FindByBookingRef read test
 -- SEED02 payment: FAILED    — use for GetPayment on a failed attempt (booking stays PENDING)
-INSERT INTO payments (booking_ref, booking_id, amount, currency, status, omise_charge_id, failure_code, failure_message, paid_at, created_at)
+INSERT INTO payments (booking_ref, booking_id, payment_provider, provider_charge_id, amount, currency, status, failure_code, failure_message, paid_at, created_at)
 VALUES
-    ('SEED01', 1, 350000, 'THB', 'SUCCEEDED', 'chrg_test_seed01xxxxxxxxxx', NULL,                NULL,                                   '2026-06-01 00:05:00+00', '2026-06-01 00:05:00+00'),  -- id=1
-    ('SEED02', 2, 350000, 'THB', 'FAILED',    'chrg_test_seed02xxxxxxxxxx', 'insufficient_fund', 'The card has insufficient funds.',      NULL,                     '2026-06-01 00:01:00+00');  -- id=2
+    ('SEED01', 1, 'OMISE', 'chrg_test_seed01xxxxxxxxxx', 350000, 'THB', 'SUCCEEDED', NULL,                NULL,                              '2026-06-01 00:05:00+00', '2026-06-01 00:05:00+00'),  -- id=1
+    ('SEED02', 2, 'OMISE', 'chrg_test_seed02xxxxxxxxxx', 350000, 'THB', 'FAILED',    'insufficient_fund', 'The card has insufficient funds.', NULL,                     '2026-06-01 00:01:00+00');  -- id=2
 
 -- ── Wire confirmed_payment_id back to SEED01 ─────────────────────────────────
 -- payments(id=1) is the SUCCEEDED charge that confirmed SEED01.

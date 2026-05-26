@@ -114,17 +114,18 @@ CREATE TABLE boarding_passes (
 -- ─────────────────────────────────────────
 
 CREATE TABLE payments (
-    id               SERIAL PRIMARY KEY,
-    booking_ref      VARCHAR(6)     NOT NULL,
-    booking_id       INT            REFERENCES bookings(id),
-    amount           BIGINT         NOT NULL,            -- SATANG (1 THB = 100 satang)
-    currency         CHAR(3)        NOT NULL DEFAULT 'THB',
-    status           VARCHAR(20)    NOT NULL DEFAULT 'PENDING', -- PENDING | SUCCEEDED | FAILED
-    omise_charge_id  VARCHAR(100),
-    failure_code     VARCHAR(100),
-    failure_message  TEXT,
-    paid_at          TIMESTAMPTZ,
-    created_at       TIMESTAMPTZ    NOT NULL DEFAULT NOW()
+    id                    SERIAL PRIMARY KEY,
+    booking_ref           VARCHAR(6)   NOT NULL,
+    booking_id            INT          REFERENCES bookings(id),
+    payment_provider      VARCHAR(50)  NOT NULL DEFAULT 'OMISE', -- OMISE | 2C2P | STRIPE | …
+    provider_charge_id    VARCHAR(100),                          -- provider's transaction reference
+    amount                BIGINT       NOT NULL,                 -- SATANG (1 THB = 100 satang)
+    currency              CHAR(3)      NOT NULL DEFAULT 'THB',
+    status                VARCHAR(20)  NOT NULL DEFAULT 'PENDING', -- PENDING | SUCCEEDED | FAILED
+    failure_code          VARCHAR(100),
+    failure_message       TEXT,
+    paid_at               TIMESTAMPTZ,
+    created_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
 -- ─────────────────────────────────────────
@@ -146,7 +147,7 @@ CREATE INDEX idx_bookings_passenger     ON bookings(passenger_id);
 CREATE INDEX idx_checkins_booking_ref   ON checkins(booking_ref);
 CREATE INDEX idx_payments_booking_ref   ON payments(booking_ref);
 CREATE INDEX idx_payments_status        ON payments(status);
-CREATE INDEX idx_payments_omise_charge  ON payments(omise_charge_id);
+CREATE INDEX idx_payments_provider_charge ON payments(provider_charge_id);
 
 -- Prevents two SUCCEEDED payments for the same booking (DB-level double-charge guard).
 CREATE UNIQUE INDEX idx_payments_one_success

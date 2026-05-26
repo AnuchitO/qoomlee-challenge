@@ -38,9 +38,9 @@ _Run after `docker compose up --build`. Call each service on its own port (8081 
 | 1 | `curl -H "Authorization: Bearer $TOKEN" "http://localhost:8081/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"` | Status 200; body has key `"flights"` with ≥1 item | | |
 | 2 | `curl -H "Authorization: Bearer $TOKEN" "http://localhost:8081/api/flights/1"` | Status 200; body has `id`, `flightNumber`, `origin`, `destination`, `durationMinutes` | | |
 | 3 | `POST /api/bookings` with valid body + `Authorization` header | Status 201; `bookingRef` is exactly 6 chars; `bookingId` is an integer | | |
-| 4 | `POST /api/payments/charge` with success card `4242…` token + `Authorization` header | Status 201; `omiseChargeId` non-empty; `status` is `"SUCCEEDED"` | | |
-| 5 | `GET /api/bookings/{bookingRef}` (after step 4) + `Authorization` header | Status 200; `status` is `"CONFIRMED"`; `flight` and `passenger` objects present; `omiseChargeId` matches the charge ID from step 4 | | |
-| 6 | `GET /api/payments/{bookingRef}` (after step 4) + `Authorization` header | Status 200; `status` is `"SUCCEEDED"`; `omiseChargeId` non-empty | | |
+| 4 | `POST /api/payments/charge` with success card `4242…` token + `Authorization` header | Status 201; `providerChargeId` non-empty; `paymentProvider` is `"OMISE"`; `status` is `"SUCCEEDED"` | | |
+| 5 | `GET /api/bookings/{bookingRef}` (after step 4) + `Authorization` header | Status 200; `status` is `"CONFIRMED"`; `flight` and `passenger` objects present; `providerChargeId` matches the charge ID from step 4 | | |
+| 6 | `GET /api/payments/{bookingRef}` (after step 4) + `Authorization` header | Status 200; `status` is `"SUCCEEDED"`; `paymentProvider` is `"OMISE"`; `providerChargeId` non-empty | | |
 
 > For test #4: tokenize test card first with `curl https://vault.omise.co/tokens -u $OMISE_PUBLIC_KEY: -d "card[number]=4242424242424242&card[expiration_month]=12&card[expiration_year]=2028&card[security_code]=123"`
 
@@ -148,11 +148,11 @@ Run against live `docker compose` stack. Use `curl` or Go's `net/http` test clie
 | `GET /api/flights/99999` | 404 | | |
 | `POST /api/bookings` — valid body | 201; `bookingRef` is exactly 6 chars; `bookingId` is integer | | |
 | `POST /api/bookings` — flightId=6 (SOLD OUT `QM999`) | 409 `NO_SEATS_AVAILABLE` | | |
-| `GET /api/bookings/SEED01` | 200; `status=CONFIRMED`; `omiseChargeId=chrg_test_seed01xxxxxxxxxx` (traceability) | | |
-| `GET /api/bookings/SEED02` | 200; keys `bookingRef`, `status`, `flight`, `passenger` all present; `omiseChargeId=null` | | |
+| `GET /api/bookings/SEED01` | 200; `status=CONFIRMED`; `paymentProvider=OMISE`; `providerChargeId=chrg_test_seed01xxxxxxxxxx` (traceability) | | |
+| `GET /api/bookings/SEED02` | 200; keys `bookingRef`, `status`, `flight`, `passenger` all present; `paymentProvider=null`, `providerChargeId=null` | | |
 | `GET /api/bookings/XXXXXX` | 404 `BOOKING_NOT_FOUND` | | |
 | `POST /api/payments/charge` — `bookingRef=SEED01` (already CONFIRMED) | 409 `ALREADY_PAID` (no Omise call needed) | | |
-| `GET /api/payments/SEED01` | 200; `status=SUCCEEDED`; `omiseChargeId` non-empty | | |
+| `GET /api/payments/SEED01` | 200; `status=SUCCEEDED`; `paymentProvider=OMISE`; `providerChargeId` non-empty | | |
 | `GET /api/payments/SEED02` | 200; `status=FAILED`; `failureCode=insufficient_fund` | | |
 | `GET /api/flights/search` — no `Authorization` header | 401 `UNAUTHORIZED` | | |
 | `PUT /api/bookings/SEED01/status` — no `X-Internal-Token` | 403 `FORBIDDEN` (and no JWT needed) | | |
@@ -212,7 +212,7 @@ Score 0–2 per criterion: 0 = absent, 1 = partial, 2 = complete.
 | **HTTP semantics correct:** 201 on create, 200 on read, 404 for not-found, 400 for bad input, 402 for decline, 409 for already-paid, 429 for rate limit | | |
 | **No hardcoded config:** DB DSN, Omise keys, service URLs — all from `os.Getenv()` | | |
 | **Payment→Booking coupling handled:** if the `PUT /status` call fails after a successful charge, logs and returns 201 anyway | | |
-| **Payment traceability:** `bookings.confirmed_payment_id` is set on confirmation; `GET /api/bookings/:ref` returns `omiseChargeId` via JOIN (null when PENDING) | | |
+| **Payment traceability:** `bookings.confirmed_payment_id` is set on confirmation; `GET /api/bookings/:ref` returns `paymentProvider` + `providerChargeId` via JOIN (both null when PENDING) | | |
 | **Readable code:** Go naming conventions; no magic numbers; no debug `fmt.Println`; slog used instead of log.Printf | | |
 
 **Review subtotal: __ / 14** _(8 criteria × 2 pts = 16 raw, capped at 14. Score 0/1/2 per criterion.)_

@@ -42,7 +42,7 @@ Search Flights → Create Booking → Pay → Confirmed
 | Payment is synchronous | Omise returns success/failure immediately — no webhook |
 | Retry on decline | A declined payment leaves the booking `PENDING`; passenger may try a different card |
 | No double-charge | A `CONFIRMED` booking cannot be charged again (409) |
-| Payment traceability | On confirmation, `bookings.confirmed_payment_id` is set to the `payments.id` that succeeded; `GET /api/bookings/:ref` returns `omiseChargeId` (null when PENDING) so the Omise charge is always traceable from the booking |
+| Payment traceability | On confirmation, `bookings.confirmed_payment_id` is set to the `payments.id` that succeeded; `GET /api/bookings/:ref` returns `paymentProvider` and `providerChargeId` (both null when PENDING) — the exact gateway and its transaction reference are always traceable from the booking |
 | Amount in satang | 1 THB = 100 satang. `3,500 THB` → store and send `350000` |
 
 ---
@@ -80,7 +80,7 @@ Cards are tokenised client-side via Omise Vault (`https://vault.omise.co/tokens`
 |---|---|
 | `flights` | `id`, `flight_number`, `origin`, `destination`, `departure_time`, `arrival_time`, `available_seats`, `base_price` |
 | `passengers` | `id`, `first_name`, `last_name`, `email`, `phone`, `passport_number`, `date_of_birth`, `nationality` |
-| `bookings` | `id`, `booking_ref` (VARCHAR 6), `flight_id`, `passenger_id`, `status` (`PENDING`/`CONFIRMED`), `total_amount`, `currency` |
-| `payments` | `id`, `booking_ref`, `omise_charge_id`, `status` (`SUCCEEDED`/`FAILED`), `amount` (satang), `currency`, `failure_code` |
+| `bookings` | `id`, `booking_ref` (VARCHAR 6), `flight_id`, `passenger_id`, `status` (`PENDING`/`CONFIRMED`), `confirmed_payment_id` (FK → payments), `total_amount`, `currency` |
+| `payments` | `id`, `booking_ref`, `payment_provider` (`OMISE`/`2C2P`/…), `provider_charge_id`, `status` (`SUCCEEDED`/`FAILED`), `amount` (satang), `currency`, `failure_code` |
 
 Schema: `infra/db/01_schema.sql`. Seed data: `infra/db/02_seed.sql`.

@@ -58,13 +58,13 @@ INSERT INTO routes (origin_iata, destination_iata, distance_km) VALUES
 INSERT INTO flights
     (flight_number, route_id, aircraft_type_id, departure_time, arrival_time, base_price_minor, available_seats)
 VALUES
---   number   route  aircraft  departure (local+tz)            arrival (local+tz)             price(satang)  seats
-    ('QM101',   1,     1,    '2026-06-15 08:00:00+07', '2026-06-15 11:30:00+08',   350000,  154),  -- id=1 (2 seats pre-booked)
-    ('QM102',   1,     1,    '2026-06-15 14:00:00+07', '2026-06-15 17:30:00+08',   280000,   30),  -- id=2
-    ('SC201',   1,     1,    '2026-06-15 10:00:00+07', '2026-06-15 13:30:00+08',   220000,   78),  -- id=3
-    ('QM201',   2,     2,    '2026-06-15 07:30:00+07', '2026-06-15 11:00:00+08',   450000,  200),  -- id=4
-    ('QM301',   3,     2,    '2026-06-15 23:55:00+07', '2026-06-16 08:00:00+09',   980000,  150),  -- id=5 overnight
-    ('QM999',   1,     1,    '2026-06-15 22:00:00+07', '2026-06-16 01:30:00+08',   350000,    0);  -- id=6 SOLD OUT
+--   number   route  aircraft  departure (local+tz)            arrival (local+tz)           satang / THB    seats
+    ('QM101',   1,     1,    '2026-06-15 08:00:00+07', '2026-06-15 11:30:00+08',   350000,  154),  -- id=1  3500.00 THB (2 seats pre-booked)
+    ('QM102',   1,     1,    '2026-06-15 14:00:00+07', '2026-06-15 17:30:00+08',   280000,   30),  -- id=2  2800.00 THB
+    ('SC201',   1,     1,    '2026-06-15 10:00:00+07', '2026-06-15 13:30:00+08',   220000,   78),  -- id=3  2200.00 THB
+    ('QM201',   2,     2,    '2026-06-15 07:30:00+07', '2026-06-15 11:00:00+08',   450000,  200),  -- id=4  4500.00 THB
+    ('QM301',   3,     2,    '2026-06-15 23:55:00+07', '2026-06-16 08:00:00+09',   980000,  150),  -- id=5  9800.00 THB overnight
+    ('QM999',   1,     1,    '2026-06-15 22:00:00+07', '2026-06-16 01:30:00+08',   350000,    0);  -- id=6  3500.00 THB SOLD OUT
 
 -- ── Seats for QM101 (flight id=1) ─────────────────────────────────────────────
 -- Rows 1–4   → BUSINESS  (4 rows × 6 cols = 24 seats)
@@ -96,16 +96,16 @@ VALUES ('Seed', 'User', 'seed@qoomlee.test', '+66800000001', 'SEED0001', '1990-0
 -- confirmed_payment_id is NULL here; wired to payments.id=1 via UPDATE below.
 INSERT INTO bookings (booking_ref, flight_id, passenger_id, status, total_amount_minor, currency, created_at, updated_at)
 VALUES
-    ('SEED01', 1, 1, 'CONFIRMED', 350000, 'THB', '2026-06-01 00:00:00+00', '2026-06-01 00:05:00+00'),  -- id=1
-    ('SEED02', 1, 1, 'PENDING',   350000, 'THB', '2026-06-01 00:00:00+00', '2026-06-01 00:00:00+00');  -- id=2
+    ('SEED01', 1, 1, 'CONFIRMED', 350000, 'THB', '2026-06-01 00:00:00+00', '2026-06-01 00:05:00+00'),  -- id=1  "3500.00" THB
+    ('SEED02', 1, 1, 'PENDING',   350000, 'THB', '2026-06-01 00:00:00+00', '2026-06-01 00:00:00+00');  -- id=2  "3500.00" THB
 
 -- ── Pre-seeded payments ───────────────────────────────────────────────────────
 -- SEED01 payment: SUCCEEDED — use for FindByBookingRef read test
 -- SEED02 payment: FAILED    — use for GetPayment on a failed attempt (booking stays PENDING)
 INSERT INTO payments (booking_ref, booking_id, payment_provider, provider_charge_id, amount_minor, currency, status, failure_code, failure_message, paid_at, created_at)
 VALUES
-    ('SEED01', 1, 'OMISE', 'chrg_test_seed01xxxxxxxxxx', 350000, 'THB', 'SUCCEEDED', NULL,                NULL,                              '2026-06-01 00:05:00+00', '2026-06-01 00:05:00+00'),  -- id=1
-    ('SEED02', 2, 'OMISE', 'chrg_test_seed02xxxxxxxxxx', 350000, 'THB', 'FAILED',    'insufficient_fund', 'The card has insufficient funds.', NULL,                     '2026-06-01 00:01:00+00');  -- id=2
+    ('SEED01', 1, 'OMISE', 'chrg_test_seed01xxxxxxxxxx', 350000, 'THB', 'SUCCEEDED', NULL,                NULL,                              '2026-06-01 00:05:00+00', '2026-06-01 00:05:00+00'),  -- id=1  "3500.00" THB
+    ('SEED02', 2, 'OMISE', 'chrg_test_seed02xxxxxxxxxx', 350000, 'THB', 'FAILED',    'insufficient_fund', 'The card has insufficient funds.', NULL,                     '2026-06-01 00:01:00+00');  -- id=2  "3500.00" THB
 
 -- ── Wire confirmed_payment_id back to SEED01 ─────────────────────────────────
 -- payments(id=1) is the SUCCEEDED charge that confirmed SEED01.
@@ -138,13 +138,13 @@ INSERT INTO routes (origin_iata, destination_iata, distance_km) VALUES
 INSERT INTO flights
     (flight_number, route_id, aircraft_type_id, departure_time, arrival_time, base_price_minor, available_seats)
 VALUES
---   number  route  aircraft  departure (local+tz)              arrival (local+tz)               price(satang)  seats
-    ('QM401',  4,  1, '2026-06-15 06:15:00+07', '2026-06-15 09:15:00+08',  129000,  138),  -- id=7  BKK→KUL morning budget
-    ('QM402',  4,  4, '2026-06-15 17:30:00+07', '2026-06-15 20:30:00+08',  185000,   12),  -- id=8  BKK→KUL evening nearly full
-    ('QM501',  5,  3, '2026-06-15 08:00:00+07', '2026-06-15 11:30:00+07',  289000,  179),  -- id=9  BKK→CGK
-    ('QM601',  6,  2, '2026-06-15 07:00:00+07', '2026-06-15 11:00:00+08',  320000,  249),  -- id=10 BKK→MNL
-    ('QM103',  1,  1, '2026-06-16 09:00:00+07', '2026-06-16 12:30:00+08',  310000,  160),  -- id=11 BKK→SIN next day
-    ('QM202',  2,  2, '2026-06-16 11:00:00+07', '2026-06-16 14:30:00+08',  490000,  200);  -- id=12 BKK→HKG next day
+--   number  route  aircraft  departure (local+tz)              arrival (local+tz)             satang / THB    seats
+    ('QM401',  4,  1, '2026-06-15 06:15:00+07', '2026-06-15 09:15:00+08',  129000,  138),  -- id=7  1290.00 THB  BKK→KUL morning budget
+    ('QM402',  4,  4, '2026-06-15 17:30:00+07', '2026-06-15 20:30:00+08',  185000,   12),  -- id=8  1850.00 THB  BKK→KUL evening nearly full
+    ('QM501',  5,  3, '2026-06-15 08:00:00+07', '2026-06-15 11:30:00+07',  289000,  179),  -- id=9  2890.00 THB  BKK→CGK
+    ('QM601',  6,  2, '2026-06-15 07:00:00+07', '2026-06-15 11:00:00+08',  320000,  249),  -- id=10 3200.00 THB  BKK→MNL
+    ('QM103',  1,  1, '2026-06-16 09:00:00+07', '2026-06-16 12:30:00+08',  310000,  160),  -- id=11 3100.00 THB  BKK→SIN next day
+    ('QM202',  2,  2, '2026-06-16 11:00:00+07', '2026-06-16 14:30:00+08',  490000,  200);  -- id=12 4900.00 THB  BKK→HKG next day
 
 -- ── Additional passengers ─────────────────────────────────────────────────────
 INSERT INTO passengers (first_name, last_name, email, phone, passport_number, date_of_birth, nationality)
@@ -162,10 +162,10 @@ VALUES
 -- confirmed_payment_id wired via UPDATE below after payments are inserted.
 INSERT INTO bookings (booking_ref, flight_id, passenger_id, status, total_amount_minor, currency, created_at, updated_at)
 VALUES
-    ('MNKP23',  7, 2, 'CONFIRMED', 129000, 'THB', '2026-06-02 08:00:00+00', '2026-06-02 08:05:00+00'),  -- id=3
-    ('AKVWQ4',  9, 4, 'CONFIRMED', 289000, 'THB', '2026-06-03 03:00:00+00', '2026-06-03 03:05:00+00'),  -- id=4
-    ('NRPQ56',  7, 3, 'PENDING',   129000, 'THB', '2026-06-04 05:00:00+00', '2026-06-04 05:00:00+00'),  -- id=5
-    ('FMXB89', 10, 5, 'PENDING',   320000, 'THB', '2026-06-05 02:00:00+00', '2026-06-05 02:00:00+00');  -- id=6
+    ('MNKP23',  7, 2, 'CONFIRMED', 129000, 'THB', '2026-06-02 08:00:00+00', '2026-06-02 08:05:00+00'),  -- id=3  "1290.00" THB
+    ('AKVWQ4',  9, 4, 'CONFIRMED', 289000, 'THB', '2026-06-03 03:00:00+00', '2026-06-03 03:05:00+00'),  -- id=4  "2890.00" THB
+    ('NRPQ56',  7, 3, 'PENDING',   129000, 'THB', '2026-06-04 05:00:00+00', '2026-06-04 05:00:00+00'),  -- id=5  "1290.00" THB
+    ('FMXB89', 10, 5, 'PENDING',   320000, 'THB', '2026-06-05 02:00:00+00', '2026-06-05 02:00:00+00');  -- id=6  "3200.00" THB
 
 -- ── Additional payments ───────────────────────────────────────────────────────
 -- MNKP23: SUCCEEDED
@@ -173,9 +173,9 @@ VALUES
 -- NRPQ56: FAILED (insufficient_fund) — booking stays PENDING, passenger can retry with new card
 INSERT INTO payments (booking_ref, booking_id, payment_provider, provider_charge_id, amount_minor, currency, status, failure_code, failure_message, paid_at, created_at)
 VALUES
-    ('MNKP23', 3, 'OMISE', 'chrg_test_mnkp23xxxxxxxxxx', 129000, 'THB', 'SUCCEEDED', NULL,                NULL,                              '2026-06-02 08:05:00+00', '2026-06-02 08:05:00+00'),  -- id=3
-    ('AKVWQ4', 4, 'OMISE', 'chrg_test_akvwq4xxxxxxxxxx', 289000, 'THB', 'SUCCEEDED', NULL,                NULL,                              '2026-06-03 03:05:00+00', '2026-06-03 03:05:00+00'),  -- id=4
-    ('NRPQ56', 5, 'OMISE', 'chrg_test_nrpq56xxxxxxxxxx', 129000, 'THB', 'FAILED',    'insufficient_fund', 'The card has insufficient funds.', NULL,                     '2026-06-04 05:01:00+00');  -- id=5
+    ('MNKP23', 3, 'OMISE', 'chrg_test_mnkp23xxxxxxxxxx', 129000, 'THB', 'SUCCEEDED', NULL,                NULL,                              '2026-06-02 08:05:00+00', '2026-06-02 08:05:00+00'),  -- id=3  "1290.00" THB
+    ('AKVWQ4', 4, 'OMISE', 'chrg_test_akvwq4xxxxxxxxxx', 289000, 'THB', 'SUCCEEDED', NULL,                NULL,                              '2026-06-03 03:05:00+00', '2026-06-03 03:05:00+00'),  -- id=4  "2890.00" THB
+    ('NRPQ56', 5, 'OMISE', 'chrg_test_nrpq56xxxxxxxxxx', 129000, 'THB', 'FAILED',    'insufficient_fund', 'The card has insufficient funds.', NULL,                     '2026-06-04 05:01:00+00');  -- id=5  "1290.00" THB
 
 -- ── Wire confirmed_payment_id for additional confirmed bookings ───────────────
 UPDATE bookings SET confirmed_payment_id = 3 WHERE booking_ref = 'MNKP23';

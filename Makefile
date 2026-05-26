@@ -24,11 +24,10 @@ COMPOSE := $(shell \
   fi)
 
 # ── Config ───────────────────────────────────────────────────────────────────
-FLIGHT_SERVICE_URL  ?= http://localhost:8081
-BOOKING_SERVICE_URL ?= http://localhost:8082
+QOOMLEE_SERVICE_URL ?= http://localhost:8082
 PAYMENT_SERVICE_URL ?= http://localhost:8084
 DATE      ?= 2026-06-15
-SERVICES  := flight booking payment
+SERVICES  := booking payment
 SVC_DIR   := services
 
 # ── Colors ───────────────────────────────────────────────────────────────────
@@ -95,8 +94,7 @@ up-d: _check-compose _check-env
 	$(COMPOSE) up --build -d
 	@echo ""
 	@echo -e "  $(GREEN)✓$(RESET)  All services started"
-	@echo -e "  $(CYAN)→$(RESET)  flight-service  $(FLIGHT_SERVICE_URL)"
-	@echo -e "  $(CYAN)→$(RESET)  booking-service $(BOOKING_SERVICE_URL)"
+	@echo -e "  $(CYAN)→$(RESET)  qoomlee-service $(QOOMLEE_SERVICE_URL)"
 	@echo -e "  $(CYAN)→$(RESET)  payment-service $(PAYMENT_SERVICE_URL)"
 	@echo -e "  $(CYAN)→$(RESET)  Logs         make logs"
 	@echo -e "  $(CYAN)→$(RESET)  Smoke test   make check-smoke"
@@ -111,7 +109,7 @@ restart: _check-compose
 	$(COMPOSE) restart
 	@echo -e "  $(GREEN)✓$(RESET)  All services restarted"
 
-.PHONY: rebuild # Rebuild and restart one service  e.g. make rebuild svc=flight-service
+.PHONY: rebuild # Rebuild and restart one service  e.g. make rebuild svc=qoomlee-service
 rebuild: _check-compose
 	@[ -n "$(svc)" ] || (echo -e "$(RED)Usage: make rebuild svc=<service-name>$(RESET)" && exit 1)
 	$(COMPOSE) up --build -d $(svc)
@@ -136,7 +134,7 @@ ps: _check-compose
 build: _check-compose
 	$(COMPOSE) build
 
-.PHONY: build-% # Build one service  e.g. make build-flight-service
+.PHONY: build-% # Build one service  e.g. make build-qoomlee-service
 build-%: _check-compose
 	$(COMPOSE) build $*
 	@echo -e "  $(GREEN)✓$(RESET)  $* image built"
@@ -177,15 +175,10 @@ test-integration:
 	done
 	@echo -e "\n  $(GREEN)✓$(RESET)  Integration tests complete"
 
-.PHONY: test-flight # Run flight-service tests only
-test-flight:
-	@echo -e "$(BOLD)flight-service tests$(RESET)"
-	cd services/flight && go test ./... -v -count=1
-
-.PHONY: test-booking # Run booking-service tests only
-test-booking:
-	@echo -e "$(BOLD)booking-service tests$(RESET)"
-	cd services/booking && go test ./... -v -count=1
+.PHONY: test-qoomlee # Run qoomlee-service tests only
+test-qoomlee:
+	@echo -e "$(BOLD)qoomlee-service tests$(RESET)"
+	cd services/qoomlee && go test ./... -v -count=1
 
 .PHONY: test-payment # Run payment-service tests only
 test-payment:
@@ -251,29 +244,43 @@ fmt:
 # ====================================================================================
 # DATABASE
 # ====================================================================================
-.PHONY: db-shell # Open a psql shell inside the running postgres container
-db-shell: _check-compose
-	$(COMPOSE) exec postgres psql -U qoomlee -d qoomlee
+.PHONY: db-shell-qoomlee # Open a psql shell in the booking database
+db-shell-qoomlee: _check-compose
+	$(COMPOSE) exec postgres-qoomlee psql -U qoomlee -d qoomlee
 
-.PHONY: db-reset # Drop and recreate database with schema + seed (all data lost)
+.PHONY: db-shell-payment # Open a psql shell in the payment database
+db-shell-payment: _check-compose
+	$(COMPOSE) exec postgres-qoomlee-payment psql -U qoomlee -d qoomlee_payment
+
+.PHONY: db-reset # Drop and recreate both databases with schema + seed (all data lost)
 db-reset: _check-compose
 	@echo -e "$(YELLOW)⚠  This will delete all data. Press Ctrl-C to cancel, Enter to continue...$(RESET)"
 	@read _confirm
-	$(COMPOSE) stop postgres
-	$(COMPOSE) rm -f postgres
+	$(COMPOSE) stop postgres-qoomlee postgres-qoomlee-payment
+	$(COMPOSE) rm -f postgres-qoomlee postgres-qoomlee-payment
 	docker volume rm $$(docker volume ls -q | grep qoomlee) 2>/dev/null || true
-	$(COMPOSE) up -d postgres
-	@echo -e "  $(GREEN)✓$(RESET)  Database reset — schema and seed data applied"
+	$(COMPOSE) up -d postgres-qoomlee postgres-qoomlee-payment
+	@echo -e "  $(GREEN)✓$(RESET)  Databases reset — schema and seed data applied"
 
-.PHONY: db-seed # Re-apply seed data against the running database
-db-seed: _check-compose
-	$(COMPOSE) exec -T postgres psql -U qoomlee -d qoomlee < infra/db/02_seed.sql
-	@echo -e "  $(GREEN)✓$(RESET)  Seed data applied"
+.PHONY: db-seed-qoomlee # Re-apply booking seed data against the running booking database
+db-seed-qoomlee: _check-compose
+	$(COMPOSE) exec -T postgres-qoomlee psql -U qoomlee -d qoomlee < infra/db/qoomlee/02_seed.sql
+	@echo -e "  $(GREEN)✓$(RESET)  Booking seed data applied"
 
-.PHONY: db-dump # Dump current database to db-backup.sql
-db-dump: _check-compose
-	$(COMPOSE) exec postgres pg_dump -U qoomlee qoomlee > db-backup.sql
-	@echo -e "  $(GREEN)✓$(RESET)  Database dumped to db-backup.sql"
+.PHONY: db-seed-payment # Re-apply payment seed data against the running payment database
+db-seed-payment: _check-compose
+	$(COMPOSE) exec -T postgres-qoomlee-payment psql -U qoomlee -d qoomlee_payment < infra/db/qoomlee-payment/02_seed.sql
+	@echo -e "  $(GREEN)✓$(RESET)  Payment seed data applied"
+
+.PHONY: db-dump-qoomlee # Dump booking database to booking-backup.sql
+db-dump-qoomlee: _check-compose
+	$(COMPOSE) exec postgres-qoomlee pg_dump -U qoomlee qoomlee > booking-backup.sql
+	@echo -e "  $(GREEN)✓$(RESET)  Booking database dumped to booking-backup.sql"
+
+.PHONY: db-dump-payment # Dump payment database to payment-backup.sql
+db-dump-payment: _check-compose
+	$(COMPOSE) exec postgres-qoomlee-payment pg_dump -U qoomlee qoomlee_payment > payment-backup.sql
+	@echo -e "  $(GREEN)✓$(RESET)  Payment database dumped to payment-backup.sql"
 
 # ====================================================================================
 # CLEAN
@@ -299,25 +306,25 @@ clean-docker: _check-compose
 # ====================================================================================
 .PHONY: curl-search # Search flights BKK→SIN  (override: make curl-search DATE=2026-07-01)
 curl-search: _require-stack
-	@curl -s "$(FLIGHT_SERVICE_URL)/api/flights/search?origin=BKK&destination=SIN&date=$(DATE)&passengers=1" | jq .
+	@curl -s "$(QOOMLEE_SERVICE_URL)/api/flights/search?origin=BKK&destination=SIN&date=$(DATE)&passengers=1" | jq .
 
 .PHONY: curl-flight # Get flight detail  e.g. make curl-flight FLIGHT_ID=1
 curl-flight: _require-stack
 	@[ -n "$(FLIGHT_ID)" ] || (echo -e "$(RED)Usage: make curl-flight FLIGHT_ID=1$(RESET)" && exit 1)
-	@curl -s "$(FLIGHT_SERVICE_URL)/api/flights/$(FLIGHT_ID)" | jq .
+	@curl -s "$(QOOMLEE_SERVICE_URL)/api/flights/$(FLIGHT_ID)" | jq .
 
 .PHONY: curl-book # Create a test booking  e.g. make curl-book FLIGHT_ID=1
 curl-book: _require-stack
 	@[ -n "$(FLIGHT_ID)" ] || (echo -e "$(RED)Usage: make curl-book FLIGHT_ID=1$(RESET)" && exit 1)
-	@curl -s -X POST "$(BOOKING_SERVICE_URL)/api/bookings" \
+	@curl -s -X POST "$(QOOMLEE_SERVICE_URL)/api/bookings" \
 	  -H "Content-Type: application/json" \
-	  -d '{"flightId":$(FLIGHT_ID),"passenger":{"firstName":"Test","lastName":"Dev","email":"dev@test.com","passportNumber":"TD000001","nationality":"TH"},"totalAmount":3500.00,"currency":"THB"}' \
+	  -d '{"flightId":$(FLIGHT_ID),"passenger":{"firstName":"Test","lastName":"Dev","email":"dev@test.com","passportNumber":"TD000001","nationality":"TH"},"totalAmountMinor":350000,"currency":"THB"}' \
 	  | jq .
 
 .PHONY: curl-booking # Get booking detail  e.g. make curl-booking PNR=QM7X2K
 curl-booking: _require-stack
 	@[ -n "$(PNR)" ] || (echo -e "$(RED)Usage: make curl-booking PNR=QM7X2K$(RESET)" && exit 1)
-	@curl -s "$(BOOKING_SERVICE_URL)/api/bookings/$(PNR)" | jq .
+	@curl -s "$(QOOMLEE_SERVICE_URL)/api/bookings/$(PNR)" | jq .
 
 .PHONY: curl-payment # Get payment status  e.g. make curl-payment PNR=QM7X2K
 curl-payment: _require-stack
@@ -366,18 +373,18 @@ walk:
 	@echo -e "  $(DIM)→ use \$$TOKEN in all curl commands below$(RESET)"
 	@echo ""
 	@echo -e "$(CYAN)Step 1 — Search flights$(RESET)"
-	@echo -e '  curl -H "Authorization: Bearer \$$TOKEN" "$(FLIGHT_SERVICE_URL)/api/flights/search?origin=BKK&destination=SIN&date=$(DATE)&passengers=1"'
-	@echo -e "  $(DIM)→ note the flight \"id\" and \"basePrice\"$(RESET)"
+	@echo -e '  curl -H "Authorization: Bearer \$$TOKEN" "$(QOOMLEE_SERVICE_URL)/api/flights/search?origin=BKK&destination=SIN&date=$(DATE)&passengers=1"'
+	@echo -e "  $(DIM)→ note the flight \"id\", \"basePriceMinor\", and \"basePrice\"$(RESET)"
 	@echo ""
 	@echo -e "$(CYAN)Step 2 — View flight detail$(RESET)"
-	@echo -e '  curl -H "Authorization: Bearer \$$TOKEN" "$(FLIGHT_SERVICE_URL)/api/flights/1"'
+	@echo -e '  curl -H "Authorization: Bearer \$$TOKEN" "$(QOOMLEE_SERVICE_URL)/api/flights/1"'
 	@echo -e "  $(DIM)→ confirm durationMinutes is present$(RESET)"
 	@echo ""
-	@echo -e "$(CYAN)Step 3 — Create booking (set totalAmount = basePrice)$(RESET)"
-	@echo -e '  curl -X POST $(BOOKING_SERVICE_URL)/api/bookings \'
+	@echo -e "$(CYAN)Step 3 — Create booking (set totalAmountMinor = basePriceMinor)$(RESET)"
+	@echo -e '  curl -X POST $(QOOMLEE_SERVICE_URL)/api/bookings \'
 	@echo -e '    -H "Authorization: Bearer \$$TOKEN" \'
 	@echo -e '    -H "Content-Type: application/json" \'
-	@echo -e '    -d '"'"'{"flightId":1,"passenger":{"firstName":"Somchai","lastName":"Jaidee","email":"somchai@example.com","phone":"+66812345678","passportNumber":"AA123456","dateOfBirth":"1990-05-15","nationality":"TH"},"totalAmount":3500.00,"currency":"THB"}'"'"
+	@echo -e '    -d '"'"'{"flightId":1,"passenger":{"firstName":"Somchai","lastName":"Jaidee","email":"somchai@example.com","phone":"+66812345678","passportNumber":"AA123456","dateOfBirth":"1990-05-15","nationality":"TH"},"totalAmountMinor":350000,"currency":"THB"}'"'"
 	@echo -e "  $(DIM)→ save bookingRef (PNR) and bookingId from response$(RESET)"
 	@echo ""
 	@echo -e "$(CYAN)Step 4a — Get Omise test token  (or run: make omise-token)$(RESET)"
@@ -391,16 +398,16 @@ walk:
 	@echo -e '  curl -X POST $(PAYMENT_SERVICE_URL)/api/payments/charge \'
 	@echo -e '    -H "Authorization: Bearer \$$TOKEN" \'
 	@echo -e '    -H "Content-Type: application/json" \'
-	@echo -e '    -d '"'"'{"bookingRef":"QM7X2K","bookingId":42,"omiseToken":"tokn_test_xxxx","amount":350000,"currency":"THB"}'"'"
+	@echo -e '    -d '"'"'{"bookingRef":"QM7X2K","amountMinor":350000,"currency":"THB","omiseToken":"tokn_test_xxxx"}'"'"
 	@echo -e "  $(DIM)→ expect status SUCCEEDED and omiseChargeId$(RESET)"
 	@echo ""
 	@echo -e "$(CYAN)Step 5 — View booking confirmation (must show CONFIRMED)$(RESET)"
-	@echo -e '  curl -H "Authorization: Bearer \$$TOKEN" "$(BOOKING_SERVICE_URL)/api/bookings/QM7X2K"'
+	@echo -e '  curl -H "Authorization: Bearer \$$TOKEN" "$(QOOMLEE_SERVICE_URL)/api/bookings/QM7X2K"'
 	@echo ""
 	@echo -e "$(CYAN)Step 6 — View payment receipt$(RESET)"
 	@echo -e '  curl -H "Authorization: Bearer \$$TOKEN" "$(PAYMENT_SERVICE_URL)/api/payments/QM7X2K"'
 	@echo ""
-	@echo -e "$(DIM)Replace QM7X2K / 42 / tokn_test_xxxx with your actual values.$(RESET)"
+	@echo -e "$(DIM)Replace QM7X2K / tokn_test_xxxx with your actual values.$(RESET)"
 	@echo ""
 
 # ====================================================================================
@@ -451,8 +458,8 @@ _check-env:
 
 .PHONY: _require-stack
 _require-stack:
-	@curl -sf "$(FLIGHT_SERVICE_URL)/api/flights/search?origin=BKK&destination=SIN&date=$(DATE)&passengers=1" \
+	@curl -sf "$(QOOMLEE_SERVICE_URL)/api/flights/search?origin=BKK&destination=SIN&date=$(DATE)&passengers=1" \
 	  >/dev/null 2>&1 || \
-	  (echo -e "$(RED)ERROR: flight-service not reachable at $(FLIGHT_SERVICE_URL)$(RESET)" && \
+	  (echo -e "$(RED)ERROR: qoomlee-service not reachable at $(QOOMLEE_SERVICE_URL)$(RESET)" && \
 	   echo -e "       Run: $(BOLD)make up-d$(RESET)" && \
 	   exit 1)

@@ -1,23 +1,25 @@
--- Qoomlee Airline — Database Schema
--- Single PostgreSQL database shared across all services (challenge setup)
+-- Qoomlee Airline — Booking DB Schema  (qoomlee-service owns this database)
+-- Database: postgres-qoomlee  (port 5433 on host)
 --
 -- Key conventions:
 --   • ALL monetary amounts use a single canonical representation: BIGINT minor units (satang).
 --     1 THB = 100 satang.  3,500 THB → 350000.
---     Column names use the _minor suffix: base_price_minor, total_amount_minor, amount_minor.
+--     Column names use the _minor suffix: base_price_minor, total_amount_minor.
 --     Conversion to/from major units (THB) happens ONLY at the API boundary (handler layer).
 --     No NUMERIC/DECIMAL is used for any business-logic monetary column.
 --   • Currency is stored as ISO 4217 CHAR(3) on every table that holds money.
---   • payment-service MUST validate that request.amount_minor == booking.total_amount_minor
---     and currencies match before calling Omise. Mismatches return 400 AMOUNT_MISMATCH.
 --   • flights.available_seats is a denormalised counter.
 --     Services must lock the row (SELECT … FOR UPDATE) and decrement inside the same
 --     transaction as INSERT INTO bookings to prevent overbooking.
 --   • bookings.updated_at has no trigger — services must set it explicitly
 --     on every UPDATE.
+--   • bookings.confirmed_payment_id is a logical cross-DB reference to payments.id
+--     in the payment database.  There is NO foreign key constraint — enforcement
+--     is at the application layer (payment-service calls PUT /api/bookings/:ref/status
+--     with the payment id after a successful charge).
 
 -- ─────────────────────────────────────────
--- FLIGHT SERVICE domain
+-- FLIGHT + BOOKING domain  (same service, same ACID transaction boundary)
 -- ─────────────────────────────────────────
 
 CREATE TABLE aircraft_types (
@@ -57,10 +59,6 @@ CREATE TABLE seats (
     UNIQUE (flight_id, seat_number)
 );
 
--- ─────────────────────────────────────────
--- BOOKING SERVICE domain
--- ─────────────────────────────────────────
-
 CREATE TABLE passengers (
     id              SERIAL PRIMARY KEY,
     first_name      VARCHAR(100) NOT NULL,
@@ -80,8 +78,10 @@ CREATE TABLE bookings (
     passenger_id         INT            REFERENCES passengers(id),
     seat_id              INT            REFERENCES seats(id),   -- NULL — seat picker out of scope
     status               VARCHAR(20)    NOT NULL DEFAULT 'PENDING', -- PENDING | CONFIRMED
-    confirmed_payment_id INT,                                   -- FK added below; set when status→CONFIRMED
-    total_amount_minor   BIGINT         NOT NULL,               -- minor units (satang); matches payment.amount_minor
+    confirmed_payment_id INT,                                   -- logical ref to payment DB; NO FK constraint
+    payment_provider     VARCHAR(50),                           -- set when status→CONFIRMED (e.g. 'OMISE')
+    provider_charge_id   VARCHAR(100),                          -- set when status→CONFIRMED (Omise charge ID)
+    total_amount_minor   BIGINT         NOT NULL,               -- minor units (satang); must match payment.amount_minor
     currency             CHAR(3)        NOT NULL DEFAULT 'THB', -- ISO 4217
     created_at           TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
     updated_at           TIMESTAMPTZ    NOT NULL DEFAULT NOW()  -- set explicitly on UPDATE
@@ -115,33 +115,8 @@ CREATE TABLE boarding_passes (
 );
 
 -- ─────────────────────────────────────────
--- PAYMENT SERVICE domain
--- ─────────────────────────────────────────
-
-CREATE TABLE payments (
-    id                    SERIAL PRIMARY KEY,
-    booking_ref           VARCHAR(6)   NOT NULL,
-    booking_id            INT          REFERENCES bookings(id),
-    payment_provider      VARCHAR(50)  NOT NULL DEFAULT 'OMISE', -- OMISE | 2C2P | STRIPE | …
-    provider_charge_id    VARCHAR(100),                          -- provider's transaction reference
-    amount_minor          BIGINT       NOT NULL,                 -- minor units (satang); MUST equal bookings.total_amount_minor
-    currency              CHAR(3)      NOT NULL DEFAULT 'THB',
-    status                VARCHAR(20)  NOT NULL DEFAULT 'PENDING', -- PENDING | SUCCEEDED | FAILED
-    failure_code          VARCHAR(100),
-    failure_message       TEXT,
-    paid_at               TIMESTAMPTZ,
-    created_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW()
-);
-
--- ─────────────────────────────────────────
 -- INDEXES
 -- ─────────────────────────────────────────
-
--- bookings.confirmed_payment_id → payments.id
--- Defined here (after payments table) to avoid forward-reference.
-ALTER TABLE bookings
-    ADD CONSTRAINT fk_bookings_confirmed_payment
-    FOREIGN KEY (confirmed_payment_id) REFERENCES payments(id);
 
 CREATE INDEX idx_flights_departure      ON flights(departure_time);
 CREATE INDEX idx_flights_route          ON flights(route_id);
@@ -150,11 +125,3 @@ CREATE INDEX idx_seats_flight           ON seats(flight_id, status);
 CREATE INDEX idx_bookings_booking_ref   ON bookings(booking_ref);
 CREATE INDEX idx_bookings_passenger     ON bookings(passenger_id);
 CREATE INDEX idx_checkins_booking_ref   ON checkins(booking_ref);
-CREATE INDEX idx_payments_booking_ref   ON payments(booking_ref);
-CREATE INDEX idx_payments_status        ON payments(status);
-CREATE INDEX idx_payments_provider_charge ON payments(provider_charge_id);
-
--- Prevents two SUCCEEDED payments for the same booking (DB-level double-charge guard).
-CREATE UNIQUE INDEX idx_payments_one_success
-    ON payments(booking_ref)
-    WHERE status = 'SUCCEEDED';

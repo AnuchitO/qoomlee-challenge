@@ -16,7 +16,7 @@ Evaluator: _____________________
 | [1] Working Software | 25 | All 7 endpoints work end-to-end |
 | [2] Testing | 35 | Unit → Integration → Contract → K6 Load |
 | [3] Code Quality | 20 | Architecture, error handling, clean Go |
-| [4] Infrastructure & Shippable | 20 | Health checks (4), rate limiting (4), graceful shutdown (3), structured logs (3), **security/auth (6)** |
+| [4] Infrastructure & Shippable | 20 | Health checks (4), rate limiting incl. health DDoS (6), graceful shutdown (3), structured logs (3), security/auth (4) |
 | **Total** | **100** | |
 
 ---
@@ -88,13 +88,13 @@ Run: `go test ./...` in each service directory. All DB and HTTP calls must be mo
 
 | Criterion | Pass (2 pts) | Fail (0 pts) |
 |-----------|---|---|
-| `Charge()` — success: mock Omise returns `"successful"`; payments repo Insert called with `status="SUCCEEDED"`; booking-service mock `PUT /status` called once with `{status:CONFIRMED, paymentId:X}`; response is 201 | | |
-| `Charge()` — decline: mock Omise returns failure; payments repo Insert called with `status="FAILED"`; booking-service `PUT /status` **never called**; response is 402 with `failureCode` | | |
-| `Charge()` — already paid: booking-service mock returns `CONFIRMED`; Omise **never called**; booking-service `PUT /status` **never called**; response is 409 `ALREADY_PAID` | | |
-| `Charge()` — PUT /status fails: mock Omise succeeds; payments repo Insert called; booking-service mock returns error on `PUT /status`; response is still **201** (charge succeeded); failure logged | | |
+| `Charge()` — success: mock Omise returns `"successful"`; payments repo Insert called with `status="SUCCEEDED"`; booking-service mock `PUT /api/bookings/:ref/status` called once with `{status:CONFIRMED, paymentId:X}`; response is 201 | | |
+| `Charge()` — decline: mock Omise returns failure; payments repo Insert called with `status="FAILED"`; booking-service `PUT /api/bookings/:ref/status` **never called**; response is 402 with `failureCode` | | |
+| `Charge()` — already paid: booking-service mock returns `CONFIRMED`; Omise **never called**; booking-service `PUT /api/bookings/:ref/status` **never called**; response is 409 `ALREADY_PAID` | | |
+| `Charge()` — `PUT /api/bookings/:ref/status` fails: mock Omise succeeds; payments repo Insert called; booking-service mock returns error on `PUT /api/bookings/:ref/status`; response is still **201** (charge succeeded); failure logged | | |
 | `GetByBookingRef()` — returns 200 with `paymentProvider` + `providerChargeId`; returns 404 for unknown ref | | |
 
-> **Hard rule:** payment-service must never write to the `bookings` table directly. All booking status changes go through `PUT /status` on booking-service. Any direct `UPDATE bookings` SQL in payment-service is a failing criterion.
+> **Hard rule:** payment-service must never write to the `bookings` table directly. All booking status changes go through `PUT /api/bookings/:ref/status` on booking-service. Any direct `UPDATE bookings` SQL in payment-service is a failing criterion.
 
 **middleware (any service)**
 
@@ -214,7 +214,7 @@ Score 0–2 per criterion: 0 = absent, 1 = partial, 2 = complete.
 | **Error propagation:** every `db.Query`, every Omise call, every inter-service HTTP call checks `err != nil`; errors returned, never silently dropped | | |
 | **HTTP semantics correct:** 201 on create, 200 on read, 404 for not-found, 400 for bad input, 402 for decline, 409 for already-paid, 429 for rate limit | | |
 | **No hardcoded config:** DB DSN, Omise keys, service URLs — all from `os.Getenv()` | | |
-| **Payment→Booking coupling handled:** if the `PUT /status` call fails after a successful charge, logs and returns 201 anyway | | |
+| **Payment→Booking coupling handled:** if `PUT /api/bookings/:ref/status` fails after a successful charge, logs and returns 201 anyway | | |
 | **Payment traceability:** `bookings.confirmed_payment_id` is set on confirmation; `GET /api/bookings/:ref` returns `paymentProvider` + `providerChargeId` via JOIN (both null when PENDING) | | |
 | **Readable code:** Go naming conventions; no magic numbers; no debug `fmt.Println`; slog used instead of log.Printf | | |
 
@@ -245,8 +245,11 @@ Two separate endpoints are required. Using one endpoint for both is scored as pa
 |-------|---|---|
 | `POST /api/payments/charge` returns 429 after >10 req/min from same IP; response body has `RATE_LIMIT_EXCEEDED` | | |
 | `POST /api/bookings` returns 429 after >30 req/min; `GET /api/flights/search` returns 429 after >100 req/min | | |
+| `GET /health/live` and `GET /health/ready` return 429 after >30 req/min; health endpoints are unauthenticated and must be rate-limited to prevent DDoS | | |
 
-**Rate limiting subtotal: __ / 4**
+**Rate limiting subtotal: __ / 6**
+
+> Evaluator: total is now 6 pts. Adjust Pillar 4 summary accordingly.
 
 ---
 
@@ -274,15 +277,14 @@ Two separate endpoints are required. Using one endpoint for both is scored as pa
 
 ---
 
-### Security / Auth (6 points)
+### Security / Auth (4 points)
 
 | Check | Pass (2 pts) | Partial (1 pt) | Fail (0 pts) |
 |-------|---|---|---|
-| Public API endpoints (`/api/*` except `PUT /status`) return 401 when JWT is missing, expired, or uses wrong algorithm; valid RS256 token passes | Both missing and invalid handled | Only missing token rejected | No JWT check |
+| Public API endpoints (`/api/*` except `PUT /api/bookings/:ref/status`) return 401 when JWT is missing, expired, or uses wrong algorithm; valid RS256 token passes; `JWT_PRIVATE_KEY` absent from all running containers | All correct | Only one case handled | No JWT check |
 | `PUT /api/bookings/:ref/status` returns 403 when `X-Internal-Token` is missing or wrong; does **not** require a JWT; `crypto/subtle.ConstantTimeCompare` used; service refuses to start if `INTERNAL_TOKEN` is empty | All correct | Token checked but timing-safe compare missing | No internal token check |
-| `/health/*` endpoints are accessible without any token; `JWT_PRIVATE_KEY` is absent from all running containers | Both correct | One correct | Neither |
 
-**Security subtotal: __ / 6**
+**Security subtotal: __ / 4**
 
 ---
 
@@ -291,10 +293,10 @@ Two separate endpoints are required. Using one endpoint for both is scored as pa
 | Area | Max | Score |
 |------|-----|-------|
 | Health Check Endpoints | 4 | |
-| Rate Limiting | 4 | |
+| Rate Limiting | 6 | |
 | Graceful Shutdown | 3 | |
 | Structured Logging | 3 | |
-| Security / Auth | 6 | |
+| Security / Auth | 4 | |
 | **Pillar 4 Total** | **20** | |
 
 ---

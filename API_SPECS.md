@@ -523,7 +523,7 @@ curl -H "Authorization: Bearer $TOKEN" "http://localhost:8084/api/payments/QM7X2
 ## Booking Status Lifecycle
 
 ```
-                         payment-service calls PUT /status
+                         payment-service calls PUT /api/bookings/:ref/status
 PENDING ──── charge succeeds ────────────────────────────► CONFIRMED
 PENDING ──── charge fails ──────────────────────────────► PENDING (can retry)
 ```
@@ -542,7 +542,7 @@ All `4xx` and `5xx` responses:
 | `400 Bad Request` | Missing or invalid request fields |
 | `401 Unauthorized` | Missing or invalid JWT (public API endpoints only) |
 | `402 Payment Required` | Omise card declined |
-| `403 Forbidden` | Wrong or missing `X-Internal-Token` (`PUT /status` only — no JWT on this route) |
+| `403 Forbidden` | Wrong or missing `X-Internal-Token` (`PUT /api/bookings/:ref/status` only — no JWT on this route) |
 | `404 Not Found` | Resource not found |
 | `409 Conflict` | Business rule violation (already paid, no seats) |
 | `429 Too Many Requests` | Per-IP rate limit exceeded |

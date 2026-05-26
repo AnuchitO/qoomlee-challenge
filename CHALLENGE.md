@@ -62,7 +62,7 @@ All services     Rate limiting                 Per-IP limits on sensitive endpoi
 All services     Graceful shutdown             Drain connections on SIGTERM (10 s)
 All services     Structured logging            JSON logs via slog
 All services     JWT RS256 (public API)        Authorization: Bearer on every /api/* endpoint
-booking-service  X-Internal-Token (PUT /status) 256-bit shared secret, no JWT on this route
+booking-service  X-Internal-Token (`PUT /api/bookings/:ref/status`) 256-bit shared secret, no JWT on this route
 ```
 
 ---
@@ -489,11 +489,15 @@ func (h *Handler) HealthReady(c *gin.Context) {
 
 Apply per-IP rate limiting using `golang.org/x/time/rate`. Use an in-memory store (map of IP → `rate.Limiter`).
 
-| Endpoint | Requests per minute | Burst |
-|---|---|---|
-| `GET /api/flights/search` | 100 | 20 |
-| `POST /api/bookings` | 30 | 5 |
-| `POST /api/payments/charge` | 10 | 3 |
+| Endpoint | Requests per minute | Burst | Reason |
+|---|---|---|---|
+| `GET /api/flights/search` | 100 | 20 | High-volume read |
+| `POST /api/bookings` | 30 | 5 | Write operation |
+| `POST /api/payments/charge` | 10 | 3 | Sensitive financial endpoint |
+| `GET /health/live` | 30 | 10 | Unauthenticated — DDoS protection |
+| `GET /health/ready` | 30 | 10 | Unauthenticated — DDoS protection |
+
+> Health endpoints are unauthenticated by design, which makes them reachable without a token — and therefore a potential DDoS vector. Rate limiting them prevents an attacker from flooding the service with health requests to exhaust resources.
 
 On limit exceeded return **429 Too Many Requests**:
 ```json
@@ -595,12 +599,12 @@ r.GET("/health/ready", ...)
 
 **For testing** — generate a token: `make jwt-token` (prints a Bearer token valid for 1 h, signed with `JWT_PRIVATE_KEY` from `.env`).
 
-**For the internal PUT /status call** — `PUT /api/bookings/:ref/status` sits **outside** the JWT middleware. booking-service guards it with `InternalTokenMiddleware` only. payment-service sends `X-Internal-Token: <INTERNAL_TOKEN>`, no JWT.
+**For the internal `PUT /api/bookings/:ref/status` call** — this endpoint sits **outside** the JWT middleware. booking-service guards it with `InternalTokenMiddleware` only. payment-service sends `X-Internal-Token: <INTERNAL_TOKEN>`, no JWT.
 
 ```go
 import "crypto/subtle"
 
-// Internal-token middleware (booking-service only, on PUT /status route)
+// Internal-token middleware (booking-service only, on PUT /api/bookings/:ref/status route)
 // Uses constant-time comparison to prevent timing attacks.
 func InternalTokenMiddleware(secret string) gin.HandlerFunc {
     return func(c *gin.Context) {
@@ -699,7 +703,7 @@ This is enforced in unit tests: the booking-service is a **mock interface** inje
 
 ### Rule 7 — Payment→booking failure
 
-After a successful Omise charge, if `PUT /status` call fails:
+After a successful Omise charge, if `PUT /api/bookings/:ref/status` call fails:
 - **Do not** return 500
 - **Do** log the failure with the charge ID and `bookingRef`
 - **Do** return 201 with the charge result — the money was taken, the client must know
@@ -712,7 +716,7 @@ After a successful Omise charge, if `PUT /status` call fails:
 |---|---|---|
 | Missing or invalid `Authorization` header / expired JWT | 401 | `UNAUTHORIZED` |
 
-**booking-service only — `PUT /status` route (no JWT, internal-token middleware only)**
+**booking-service only — `PUT /api/bookings/:ref/status` (no JWT, internal-token middleware only)**
 
 | Scenario | Status | `error` |
 |---|---|---|
@@ -766,10 +770,10 @@ Define a repository **interface**, implement it in production, mock it in tests.
 | booking-service | `CreateBooking` | PNR is 6 chars; passenger insert called; booking insert called with correct flightId |
 | booking-service | `GetBookingByRef` | returns nested flight+passenger+paymentProvider+providerChargeId (non-nil when CONFIRMED); unknown ref → ErrNotFound |
 | booking-service | `UpdateBookingStatus` | updates status; unknown ref → ErrNotFound |
-| payment-service | `Charge` — success | Omise mock returns successful; DB insert with `status=SUCCEEDED`; booking-service mock `PUT /status` called once with `{status:CONFIRMED, paymentId:X}`; returns 201 |
-| payment-service | `Charge` — decline | Omise mock returns failed; DB insert with `status=FAILED`; booking-service `PUT /status` **never called**; returns 402 with `failureCode` |
-| payment-service | `Charge` — already paid | booking-service mock returns `CONFIRMED`; Omise **never called**; booking-service `PUT /status` **never called**; returns 409 `ALREADY_PAID` |
-| payment-service | `Charge` — PUT /status fails | Omise mock returns successful; DB insert with SUCCEEDED; booking-service mock returns error on `PUT /status`; **still returns 201** (charge succeeded); error logged |
+| payment-service | `Charge` — success | Omise mock returns successful; DB insert with `status=SUCCEEDED`; booking-service mock `PUT /api/bookings/:ref/status` called once with `{status:CONFIRMED, paymentId:X}`; returns 201 |
+| payment-service | `Charge` — decline | Omise mock returns failed; DB insert with `status=FAILED`; booking-service `PUT /api/bookings/:ref/status` **never called**; returns 402 with `failureCode` |
+| payment-service | `Charge` — already paid | booking-service mock returns `CONFIRMED`; Omise **never called**; booking-service `PUT /api/bookings/:ref/status` **never called**; returns 409 `ALREADY_PAID` |
+| payment-service | `Charge` — PUT /api/bookings/:ref/status fails | Omise mock returns successful; DB insert with SUCCEEDED; booking-service mock returns error on `PUT /api/bookings/:ref/status`; **still returns 201** (charge succeeded); error logged |
 | payment-service | `GetByBookingRef` | returns 200 with `paymentProvider` + `providerChargeId`; unknown ref → 404 |
 | middleware | `JWTMiddleware` | valid token → passes through; missing token → 401; expired token → 401; wrong algorithm → 401 |
 | middleware | `InternalTokenMiddleware` | correct token → passes through; missing header → 403; wrong value → 403 |
@@ -871,12 +875,12 @@ Via HTTP using the `BOOKING_SERVICE_URL` env var (already `http://booking-servic
 No. Credit card charges are synchronous — Omise returns the result in the same API call. No webhook, no public URL needed.
 
 **Q: Do I need authentication?**
-Yes, but differently per caller type. Client-facing endpoints (`/api/*` except `PUT /status`) require `Authorization: Bearer <jwt>` (RS256, verified by `JWT_PUBLIC_KEY`). The internal `PUT /api/bookings/:ref/status` endpoint is excluded from JWT — it only accepts `X-Internal-Token`. Use `make jwt-token` to generate a test token for curl.
+Yes, but differently per caller type. Client-facing endpoints (`/api/*` except `PUT /api/bookings/:ref/status`) require `Authorization: Bearer <jwt>` (RS256, verified by `JWT_PUBLIC_KEY`). The internal `PUT /api/bookings/:ref/status` endpoint is excluded from JWT — it only accepts `X-Internal-Token`. Use `make jwt-token` to generate a test token for curl.
 
 **Q: Can I add packages to go.mod?**
 Yes. The existing `go.mod` already includes Gin, `lib/pq`, and the Omise SDK. Add anything you need.
 
-**Q: What is the `PUT /status` endpoint? Users don't call it?**
+**Q: What is `PUT /api/bookings/:ref/status`? Users don't call it?**
 Correct. It's called internally by payment-service after a successful charge to flip the booking from PENDING to CONFIRMED. It's not exposed to end users but it must exist for the end-to-end flow to work.
 
 **Q: What does booking `status` mean?**

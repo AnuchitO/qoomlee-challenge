@@ -172,16 +172,20 @@ These records are ready-made in the DB from `02_seed.sql`. Use them in integrati
 
 ```
 flights    — id, flight_number, route_id, departure_time, arrival_time,
-             base_price (THB), available_seats, status
+             base_price_minor (BIGINT, satang), available_seats, status, currency
 routes     — id, origin_iata, destination_iata
 bookings   — id, booking_ref (6-char PNR), flight_id, passenger_id,
              status (PENDING|CONFIRMED), confirmed_payment_id (FK→payments),
-             total_amount (THB), currency
+             total_amount_minor (BIGINT, satang), currency
 passengers — id, first_name, last_name, email, phone,
              passport_number, date_of_birth, nationality
 payments   — id, booking_ref, booking_id, payment_provider (OMISE|2C2P|…),
-             provider_charge_id, amount (SATANG), status,
+             provider_charge_id, amount_minor (BIGINT, satang), currency, status,
              failure_code, failure_message, paid_at
+
+> **Monetary convention:** ALL money columns are BIGINT minor units (satang).
+> 3,500 THB → stored as 350000. No NUMERIC/DECIMAL anywhere.
+> Handlers convert to/from THB (÷100) only when building API responses and reading request bodies.
 ```
 
 Full schema: `infra/db/01_schema.sql` — Seed: `infra/db/02_seed.sql`
@@ -244,7 +248,7 @@ SQL to implement:
 SELECT f.id, f.flight_number,
        r.origin_iata, r.destination_iata,
        f.departure_time, f.arrival_time,
-       f.status, f.base_price, f.currency, f.available_seats
+       f.status, f.base_price_minor, f.currency, f.available_seats
 FROM flights f
 JOIN routes r ON r.id = f.route_id
 WHERE r.origin_iata      = $1
@@ -274,10 +278,29 @@ Same columns as search. If no row found, return 404 `FLIGHT_NOT_FOUND`.
 **File:** `services/booking/handler/booking.go` → `Create`
 **Repo:** `services/booking/repository/booking.go` → `InsertPassenger`, `InsertBooking`
 
-Two writes in **one transaction**:
-1. `INSERT INTO passengers (first_name, last_name, email, ...)` → returns `passenger_id`
-2. `UPDATE flights SET available_seats = available_seats - 1 WHERE id = $1 AND available_seats > 0` — if 0 rows affected → return 409 `NO_SEATS_AVAILABLE`
-3. `INSERT INTO bookings (booking_ref, flight_id, passenger_id, ...)` → returns `booking_id`
+Three steps in **one transaction** — use `SELECT … FOR UPDATE` to prevent overbooking under concurrent load:
+
+```sql
+BEGIN;
+
+-- Step 1: lock the flight row and read current seat count
+SELECT available_seats FROM flights WHERE id = $1 FOR UPDATE;
+-- If available_seats = 0 → ROLLBACK and return 409 NO_SEATS_AVAILABLE
+
+-- Step 2: insert passenger
+INSERT INTO passengers (first_name, last_name, email, ...) RETURNING id;
+
+-- Step 3: insert booking with total_amount_minor (copy from flights.base_price_minor)
+INSERT INTO bookings (booking_ref, flight_id, passenger_id, total_amount_minor, currency, ...)
+VALUES ($1, $2, $3, $4, $5, ...);
+
+-- Step 4: decrement seat counter
+UPDATE flights SET available_seats = available_seats - 1 WHERE id = $1;
+
+COMMIT;
+```
+
+> `total_amount_minor` must be copied from `flights.base_price_minor` at booking time — it's the price the passenger agreed to pay. Storing it on the booking prevents price-change issues later.
 
 Generate the 6-char PNR in Go before the transaction:
 ```go
@@ -346,10 +369,20 @@ err := client.Do(charge, &operations.CreateCharge{
 // charge.Status == "failed"     → status = "FAILED", check charge.FailureCode
 ```
 
-#### Amounts are in satang
+#### Amount validation — guard against mismatch
 
-`1 THB = 100 satang`. Always multiply. `3,500 THB → send 350000`.
-The `payments.amount` column stores satang. So does the API response.
+Before calling Omise, payment-service must fetch the booking and validate:
+```go
+if req.AmountMinor != booking.TotalAmountMinor || req.Currency != booking.Currency {
+    c.JSON(400, gin.H{"error": "AMOUNT_MISMATCH",
+        "message": "amount or currency does not match the booking"})
+    return
+}
+```
+
+This prevents a client from submitting a lower amount than the booking price.
+`request.amount_minor` and `payments.amount_minor` are satang (BIGINT). `3,500 THB → 350000`.
+**Do not accept NUMERIC/float for amounts anywhere in the codebase.**
 
 #### After a successful charge
 
@@ -415,7 +448,7 @@ If the booking_ref doesn't exist, return 404 `BOOKING_NOT_FOUND`.
 Join bookings → passengers, flights → routes, and payments (LEFT JOIN for traceability):
 
 ```sql
-SELECT b.id, b.booking_ref, b.status, b.total_amount, b.currency, b.created_at,
+SELECT b.id, b.booking_ref, b.status, b.total_amount_minor, b.currency, b.created_at,
        p.first_name, p.last_name, p.email, p.phone, p.passport_number, p.nationality,
        f.flight_number, r.origin_iata, r.destination_iata,
        f.departure_time, f.arrival_time,
@@ -708,6 +741,28 @@ After a successful Omise charge, if `PUT /api/bookings/:ref/status` call fails:
 - **Do** log the failure with the charge ID and `bookingRef`
 - **Do** return 201 with the charge result — the money was taken, the client must know
 
+### Rule 8 — All money is minor units (satang); no floats in business logic
+
+- Every monetary column in the DB is `BIGINT` (`_minor` suffix): `base_price_minor`, `total_amount_minor`, `amount_minor`
+- Every monetary variable in Go is `int64`
+- Conversion to/from THB (`÷100` / `×100`) happens **only in handlers** when reading request bodies or writing JSON responses
+- Never pass `float64` for an amount through a service or repository function
+- `booking.total_amount_minor` must equal `payment.amount_minor` — payment-service validates this before calling Omise (400 `AMOUNT_MISMATCH` if they differ)
+
+### Rule 9 — Concurrent booking must use SELECT FOR UPDATE
+
+`CreateBooking` must lock the flights row before checking and decrementing `available_seats`:
+```sql
+SELECT available_seats FROM flights WHERE id = $1 FOR UPDATE
+```
+Without this lock, two concurrent requests on a 1-seat flight can both read `available_seats = 1`, both pass the check, and both insert — resulting in overbooking. The integration test for concurrent booking validates this.
+
+### Rule 10 — `PUT /api/bookings/:ref/status` happy path must be contract-tested
+
+The internal status endpoint must be verified end-to-end (not just the 403 rejection):
+- A valid `X-Internal-Token` + `{status: CONFIRMED, paymentId: N}` → 200, booking flips to CONFIRMED
+- This is required in Layer 3 contract tests running against the live stack
+
 ### Error code reference
 
 **All services (applied by JWT middleware)**
@@ -736,8 +791,7 @@ After a successful Omise charge, if `PUT /api/bookings/:ref/status` call fails:
 
 | Scenario | Status | `error` |
 |---|---|---|
-| `flightId`, `totalAmount`, `passenger.firstName/lastName/email` missing | 400 | `MISSING_REQUIRED_FIELD` |
-| `totalAmount` ≤ 0 | 400 | `INVALID_FIELD` |
+| `flightId`, `passenger.firstName/lastName/email` missing | 400 | `MISSING_REQUIRED_FIELD` |
 | `available_seats` is 0 | 409 | `NO_SEATS_AVAILABLE` |
 | Booking `:bookingRef` not found | 404 | `BOOKING_NOT_FOUND` |
 | PUT status value not `CONFIRMED` | 400 | `INVALID_STATUS` |
@@ -747,8 +801,9 @@ After a successful Omise charge, if `PUT /api/bookings/:ref/status` call fails:
 
 | Scenario | Status | `error` |
 |---|---|---|
-| `bookingRef`, `bookingId`, `omiseToken`, `amount` missing | 400 | `MISSING_REQUIRED_FIELD` |
-| `amount` ≤ 0 | 400 | `INVALID_FIELD` |
+| `bookingRef`, `bookingId`, `omiseToken`, `amountMinor` missing | 400 | `MISSING_REQUIRED_FIELD` |
+| `amountMinor` ≤ 0 | 400 | `INVALID_FIELD` |
+| `amountMinor` or `currency` does not match booking | 400 | `AMOUNT_MISMATCH` |
 | Booking already `CONFIRMED` | 409 | `ALREADY_PAID` |
 | Card declined by Omise | 402 | `payment_failed` (lowercase — matches Omise vocabulary) |
 | No payment found for `:bookingRef` | 404 | `PAYMENT_NOT_FOUND` |
@@ -767,10 +822,11 @@ Define a repository **interface**, implement it in production, mock it in tests.
 |---|---|---|
 | flight-service | `SearchFlights` | valid params → flights; no match → empty slice; blank origin → error |
 | flight-service | `GetFlightByID` | valid id → flight; unknown id → ErrNotFound |
-| booking-service | `CreateBooking` | PNR is 6 chars; passenger insert called; booking insert called with correct flightId |
+| booking-service | `CreateBooking` | PNR is 6 chars; passenger insert called; booking insert called with correct `flightId` and `total_amount_minor` copied from flight; repo mock verifies `SELECT FOR UPDATE` called before decrement |
 | booking-service | `GetBookingByRef` | returns nested flight+passenger+paymentProvider+providerChargeId (non-nil when CONFIRMED); unknown ref → ErrNotFound |
 | booking-service | `UpdateBookingStatus` | updates status; unknown ref → ErrNotFound |
-| payment-service | `Charge` — success | Omise mock returns successful; DB insert with `status=SUCCEEDED`; booking-service mock `PUT /api/bookings/:ref/status` called once with `{status:CONFIRMED, paymentId:X}`; returns 201 |
+| payment-service | `Charge` — amount mismatch | `req.amountMinor != booking.total_amount_minor`; Omise **never called**; returns 400 `AMOUNT_MISMATCH` |
+| payment-service | `Charge` — success | Omise mock returns successful; DB insert with `status=SUCCEEDED`, `amount_minor` matching booking; booking-service mock `PUT /api/bookings/:ref/status` called once with `{status:CONFIRMED, paymentId:X}`; returns 201 |
 | payment-service | `Charge` — decline | Omise mock returns failed; DB insert with `status=FAILED`; booking-service `PUT /api/bookings/:ref/status` **never called**; returns 402 with `failureCode` |
 | payment-service | `Charge` — already paid | booking-service mock returns `CONFIRMED`; Omise **never called**; booking-service `PUT /api/bookings/:ref/status` **never called**; returns 409 `ALREADY_PAID` |
 | payment-service | `Charge` — PUT /api/bookings/:ref/status fails | Omise mock returns successful; DB insert with SUCCEEDED; booking-service mock returns error on `PUT /api/bookings/:ref/status`; **still returns 201** (charge succeeded); error logged |
@@ -785,8 +841,9 @@ Define a repository **interface**, implement it in production, mock it in tests.
 | Service | What to test |
 |---|---|
 | flight-service | Search returns ≥1 flight for BKK→SIN `date=2026-06-15`; empty slice for unknown route; `GetByID(1)` correct; `GetByID(99999)` ErrNotFound |
-| booking-service | `CreateBooking()` writes to `passengers` + `bookings`; PNR is unique; `GetByRef("SEED02")` returns full join (uses pre-seeded PENDING booking) |
-| payment-service | `Insert()` writes to `payments`; `FindByBookingRef("SEED01")` returns SUCCEEDED record; unknown ref → ErrNotFound |
+| booking-service | `CreateBooking()` writes to `passengers` + `bookings`; PNR is unique; `total_amount_minor` equals `flights.base_price_minor`; `GetByRef("SEED02")` returns full join (uses pre-seeded PENDING booking) |
+| booking-service | Concurrent `CreateBooking()` — run 2 goroutines simultaneously on a flight with 1 seat; exactly 1 succeeds (201) and 1 returns 409 `NO_SEATS_AVAILABLE`; `available_seats` ends at 0 |
+| payment-service | `Insert()` writes to `payments` with correct `amount_minor`; `FindByBookingRef("SEED01")` returns SUCCEEDED record with matching `amount_minor`; unknown ref → ErrNotFound |
 
 ### Layer 3 — Contract Tests
 
@@ -808,7 +865,9 @@ Run against live `docker compose` stack. All requests must include `Authorizatio
 | `GET /api/payments/SEED01` | 200; `status=SUCCEEDED`; `paymentProvider=OMISE`; `providerChargeId` non-empty |
 | `GET /api/payments/SEED02` | 200; `status=FAILED`; `failureCode=insufficient_fund` |
 | `GET /api/flights/search` — no `Authorization` header | 401 `UNAUTHORIZED` |
+| `PUT /api/bookings/SEED02/status` — valid `X-Internal-Token`, body `{status:CONFIRMED, paymentId:1}` | 200; subsequent `GET /api/bookings/SEED02` returns `status=CONFIRMED` |
 | `PUT /api/bookings/SEED01/status` — no `X-Internal-Token` | 403 `FORBIDDEN` (no JWT required on this route) |
+| `POST /api/payments/charge` — `amountMinor` differs from booking | 400 `AMOUNT_MISMATCH`; Omise not called |
 | `GET /health/live` + `GET /health/ready` — no `Authorization` header | 200 on all 3 services (health endpoints are unprotected) |
 
 ### Layer 4 — Load Tests (K6)
@@ -860,7 +919,7 @@ See `SCORECARD.md` for the full rubric.
 Implement the endpoints in order: Search → GetFlight → CreateBooking → Charge → UpdateStatus → GetBooking → GetPayment. Each one builds on the previous.
 
 **Q: What is satang?**
-Omise requires amounts in the smallest currency unit (like Stripe's cents). 1 THB = 100 satang. 3,500 THB = `350000`. The `payments.amount` column stores satang. Pass satang when creating a charge.
+Omise requires amounts in the smallest currency unit (like Stripe's cents). 1 THB = 100 satang. 3,500 THB = `350000`. The `payments.amount_minor` column stores satang. Pass satang when creating a charge. `request.amountMinor` must equal `booking.total_amount_minor` — validate before calling Omise.
 
 **Q: Why do I need both `bookingRef` and `bookingId` for payment?**
 `bookingRef` is the 6-char PNR used as a human-readable identifier. `bookingId` is the numeric DB row id. Omise doesn't know about either — you just need them to link the payment record back to the booking.

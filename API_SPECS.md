@@ -7,9 +7,11 @@ Services run on their own ports. Call them directly:
 
 Internal service-to-service calls use the Docker Compose service name (e.g. `http://booking-service:8082`).
 
-> **Amount convention:** All payment amounts are in **satang** (Thai smallest currency unit).
-> 1 THB = 100 satang. Always multiply when sending, divide when displaying.
-> Example: 3,500 THB → send `350000` to Omise and store `350000` in the DB.
+> **Monetary convention:** All money is stored as BIGINT minor units (satang) in the database (`_minor` column suffix).
+> 1 THB = 100 satang. 3,500 THB → stored as `350000`.
+> Flight and booking responses display major units (THB, e.g. `3500.00`) for readability — handlers divide by 100.
+> Payment request/response fields are named `amountMinor` and remain in satang to avoid ambiguity.
+> **Validation:** `request.amountMinor` must equal `booking.total_amount_minor` before charging Omise. Mismatch → 400 `AMOUNT_MISMATCH`.
 
 ---
 
@@ -401,18 +403,18 @@ curl https://vault.omise.co/tokens \
   "bookingRef": "QM7X2K",
   "bookingId": 42,
   "omiseToken": "tokn_test_xxxx",
-  "amount": 350000,
+  "amountMinor": 350000,
   "currency": "THB"
 }
 ```
 
-**Required fields:** `bookingRef`, `bookingId`, `omiseToken`, `amount`
+**Required fields:** `bookingRef`, `bookingId`, `omiseToken`, `amountMinor`
 
 ```bash
 curl -X POST http://localhost:8084/api/payments/charge \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"bookingRef":"QM7X2K","bookingId":42,"omiseToken":"tokn_test_xxxx","amount":350000,"currency":"THB"}'
+  -d '{"bookingRef":"QM7X2K","bookingId":42,"omiseToken":"tokn_test_xxxx","amountMinor":350000,"currency":"THB"}'
 ```
 
 **Response `201 Created`** — charge succeeded
@@ -422,7 +424,7 @@ curl -X POST http://localhost:8084/api/payments/charge \
   "paymentProvider": "OMISE",
   "providerChargeId": "chrg_test_5fzddg8p5j3qhp1w5jg",
   "status": "SUCCEEDED",
-  "amount": 350000,
+  "amountMinor": 350000,
   "currency": "THB",
   "paidAt": "2026-05-22T10:05:00Z"
 }
@@ -468,7 +470,7 @@ curl -H "Authorization: Bearer $TOKEN" "http://localhost:8084/api/payments/QM7X2
   "paymentProvider": "OMISE",
   "providerChargeId": "chrg_test_5fzddg8p5j3qhp1w5jg",
   "status": "SUCCEEDED",
-  "amount": 350000,
+  "amountMinor": 350000,
   "currency": "THB",
   "paidAt": "2026-05-22T10:05:00Z"
 }
@@ -483,7 +485,7 @@ curl -H "Authorization: Bearer $TOKEN" "http://localhost:8084/api/payments/QM7X2
   "status": "FAILED",
   "failureCode": "insufficient_fund",
   "failureMessage": "The card has insufficient funds.",
-  "amount": 350000,
+  "amountMinor": 350000,
   "currency": "THB",
   "paidAt": null
 }

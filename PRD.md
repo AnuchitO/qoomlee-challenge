@@ -78,9 +78,11 @@ Cards are tokenised client-side via Omise Vault (`https://vault.omise.co/tokens`
 
 | Table | Key columns |
 |---|---|
-| `flights` | `id`, `flight_number`, `origin`, `destination`, `departure_time`, `arrival_time`, `available_seats`, `base_price` |
+| `flights` | `id`, `flight_number`, `origin`, `destination`, `departure_time`, `arrival_time`, `available_seats`, `base_price_minor` (BIGINT satang), `currency` |
 | `passengers` | `id`, `first_name`, `last_name`, `email`, `phone`, `passport_number`, `date_of_birth`, `nationality` |
-| `bookings` | `id`, `booking_ref` (VARCHAR 6), `flight_id`, `passenger_id`, `status` (`PENDING`/`CONFIRMED`), `confirmed_payment_id` (FK → payments), `total_amount`, `currency` |
-| `payments` | `id`, `booking_ref`, `payment_provider` (`OMISE`/`2C2P`/…), `provider_charge_id`, `status` (`SUCCEEDED`/`FAILED`), `amount` (satang), `currency`, `failure_code` |
+| `bookings` | `id`, `booking_ref` (VARCHAR 6), `flight_id`, `passenger_id`, `status` (`PENDING`/`CONFIRMED`), `confirmed_payment_id` (FK → payments), `total_amount_minor` (BIGINT satang), `currency` |
+| `payments` | `id`, `booking_ref`, `payment_provider` (`OMISE`/`2C2P`/…), `provider_charge_id`, `status` (`SUCCEEDED`/`FAILED`), `amount_minor` (BIGINT satang), `currency`, `failure_code` |
+
+> **All monetary columns are BIGINT minor units (satang). No NUMERIC/DECIMAL anywhere. Convert ÷100 only at the API boundary (handler layer).**
 
 Schema: `infra/db/01_schema.sql`. Seed data: `infra/db/02_seed.sql`.

@@ -43,15 +43,15 @@ INSERT INTO routes (origin_iata, destination_iata, distance_km) VALUES
 -- INSERT INTO bookings to prevent overbooking.
 -- Note: QM101 available_seats=154 — 2 are held by pre-seeded bookings SEED01 and SEED02.
 INSERT INTO flights
-    (flight_number, route_id, aircraft_type_id, departure_time, arrival_time, base_price, available_seats)
+    (flight_number, route_id, aircraft_type_id, departure_time, arrival_time, base_price_minor, available_seats)
 VALUES
---   number   route  aircraft  departure (local+tz)            arrival (local+tz)             price    seats
-    ('QM101',   1,     1,    '2026-06-15 08:00:00+07', '2026-06-15 11:30:00+08',  3500.00,  154),  -- id=1 (2 seats pre-booked)
-    ('QM102',   1,     1,    '2026-06-15 14:00:00+07', '2026-06-15 17:30:00+08',  2800.00,   30),  -- id=2
-    ('SC201',   1,     1,    '2026-06-15 10:00:00+07', '2026-06-15 13:30:00+08',  2200.00,   78),  -- id=3
-    ('QM201',   2,     2,    '2026-06-15 07:30:00+07', '2026-06-15 11:00:00+08',  4500.00,  200),  -- id=4
-    ('QM301',   3,     2,    '2026-06-15 23:55:00+07', '2026-06-16 08:00:00+09',  9800.00,  150),  -- id=5 overnight
-    ('QM999',   1,     1,    '2026-06-15 22:00:00+07', '2026-06-16 01:30:00+08',  3500.00,    0);  -- id=6 SOLD OUT
+--   number   route  aircraft  departure (local+tz)            arrival (local+tz)             price(satang)  seats
+    ('QM101',   1,     1,    '2026-06-15 08:00:00+07', '2026-06-15 11:30:00+08',   350000,  154),  -- id=1 (2 seats pre-booked)
+    ('QM102',   1,     1,    '2026-06-15 14:00:00+07', '2026-06-15 17:30:00+08',   280000,   30),  -- id=2
+    ('SC201',   1,     1,    '2026-06-15 10:00:00+07', '2026-06-15 13:30:00+08',   220000,   78),  -- id=3
+    ('QM201',   2,     2,    '2026-06-15 07:30:00+07', '2026-06-15 11:00:00+08',   450000,  200),  -- id=4
+    ('QM301',   3,     2,    '2026-06-15 23:55:00+07', '2026-06-16 08:00:00+09',   980000,  150),  -- id=5 overnight
+    ('QM999',   1,     1,    '2026-06-15 22:00:00+07', '2026-06-16 01:30:00+08',   350000,    0);  -- id=6 SOLD OUT
 
 -- ── Seats for QM101 (flight id=1) ─────────────────────────────────────────────
 -- Rows 1–4   → BUSINESS  (4 rows × 6 cols = 24 seats)
@@ -81,15 +81,15 @@ VALUES ('Seed', 'User', 'seed@qoomlee.test', '+66800000001', 'SEED0001', '1990-0
 -- SEED01: CONFIRMED booking — use to test duplicate-payment guard (409 ALREADY_PAID)
 -- SEED02: PENDING booking   — use for GetByRef read tests and payment retry flow
 -- confirmed_payment_id is NULL here; wired to payments.id=1 via UPDATE below.
-INSERT INTO bookings (booking_ref, flight_id, passenger_id, status, total_amount, currency, created_at, updated_at)
+INSERT INTO bookings (booking_ref, flight_id, passenger_id, status, total_amount_minor, currency, created_at, updated_at)
 VALUES
-    ('SEED01', 1, 1, 'CONFIRMED', 3500.00, 'THB', '2026-06-01 00:00:00+00', '2026-06-01 00:05:00+00'),  -- id=1
-    ('SEED02', 1, 1, 'PENDING',   3500.00, 'THB', '2026-06-01 00:00:00+00', '2026-06-01 00:00:00+00');  -- id=2
+    ('SEED01', 1, 1, 'CONFIRMED', 350000, 'THB', '2026-06-01 00:00:00+00', '2026-06-01 00:05:00+00'),  -- id=1
+    ('SEED02', 1, 1, 'PENDING',   350000, 'THB', '2026-06-01 00:00:00+00', '2026-06-01 00:00:00+00');  -- id=2
 
 -- ── Pre-seeded payments ───────────────────────────────────────────────────────
 -- SEED01 payment: SUCCEEDED — use for FindByBookingRef read test
 -- SEED02 payment: FAILED    — use for GetPayment on a failed attempt (booking stays PENDING)
-INSERT INTO payments (booking_ref, booking_id, payment_provider, provider_charge_id, amount, currency, status, failure_code, failure_message, paid_at, created_at)
+INSERT INTO payments (booking_ref, booking_id, payment_provider, provider_charge_id, amount_minor, currency, status, failure_code, failure_message, paid_at, created_at)
 VALUES
     ('SEED01', 1, 'OMISE', 'chrg_test_seed01xxxxxxxxxx', 350000, 'THB', 'SUCCEEDED', NULL,                NULL,                              '2026-06-01 00:05:00+00', '2026-06-01 00:05:00+00'),  -- id=1
     ('SEED02', 2, 'OMISE', 'chrg_test_seed02xxxxxxxxxx', 350000, 'THB', 'FAILED',    'insufficient_fund', 'The card has insufficient funds.', NULL,                     '2026-06-01 00:01:00+00');  -- id=2

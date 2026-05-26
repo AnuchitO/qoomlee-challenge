@@ -80,7 +80,7 @@ Run: `go test ./...` in each service directory. All DB and HTTP calls must be mo
 
 | Criterion | Pass (2 pts) | Fail (0 pts) |
 |-----------|---|---|
-| `CreateBooking()` — PNR generated is 6 chars uppercase alphanumeric; passenger repo Insert called once; booking repo Insert called with correct `flightId` | | |
+| `CreateBooking()` — PNR generated is 6 chars uppercase alphanumeric; passenger repo Insert called once; booking repo Insert called with correct `flightId` and `total_amount_minor` copied from flight's `base_price_minor` | | |
 | `GetBookingByRef()` — returns full struct with nested flight+passenger; returns `ErrNotFound` for unknown ref | | |
 | `UpdateBookingStatus()` — updates DB with new status; returns `ErrNotFound` for unknown ref | | |
 
@@ -88,7 +88,8 @@ Run: `go test ./...` in each service directory. All DB and HTTP calls must be mo
 
 | Criterion | Pass (2 pts) | Fail (0 pts) |
 |-----------|---|---|
-| `Charge()` — success: mock Omise returns `"successful"`; payments repo Insert called with `status="SUCCEEDED"`; booking-service mock `PUT /api/bookings/:ref/status` called once with `{status:CONFIRMED, paymentId:X}`; response is 201 | | |
+| `Charge()` — amount mismatch: `req.amountMinor != booking.total_amount_minor`; Omise **never called**; response is 400 `AMOUNT_MISMATCH` | | |
+| `Charge()` — success: mock Omise returns `"successful"`; payments repo Insert called with `status="SUCCEEDED"` and `amount_minor` matching booking; booking-service mock `PUT /api/bookings/:ref/status` called once with `{status:CONFIRMED, paymentId:X}`; response is 201 | | |
 | `Charge()` — decline: mock Omise returns failure; payments repo Insert called with `status="FAILED"`; booking-service `PUT /api/bookings/:ref/status` **never called**; response is 402 with `failureCode` | | |
 | `Charge()` — already paid: booking-service mock returns `CONFIRMED`; Omise **never called**; booking-service `PUT /api/bookings/:ref/status` **never called**; response is 409 `ALREADY_PAID` | | |
 | `Charge()` — `PUT /api/bookings/:ref/status` fails: mock Omise succeeds; payments repo Insert called; booking-service mock returns error on `PUT /api/bookings/:ref/status`; response is still **201** (charge succeeded); failure logged | | |
@@ -103,9 +104,9 @@ Run: `go test ./...` in each service directory. All DB and HTTP calls must be mo
 | `JWTMiddleware` — valid RS256 token passes; missing/expired/wrong-algorithm token returns 401 `UNAUTHORIZED` | | |
 | `InternalTokenMiddleware` — correct `X-Internal-Token` passes; missing or wrong value returns 403 `FORBIDDEN` | | |
 
-**Layer 1 subtotal: __ / 26** _(2 pts × 13 criteria)_
+**Layer 1 subtotal: __ / 30** _(2 pts × 15 criteria)_
 
-> Evaluator: score 0/1/2 per criterion, max 12 pts total. Scale: `(raw / 26) × 12`, round down. Deduct 1 pt per criterion that partially passes.
+> Evaluator: score 0/1/2 per criterion, max 12 pts total. Scale: `(raw / 30) × 12`, round down. Deduct 1 pt per criterion that partially passes.
 
 **Layer 1 subtotal: __ / 12**
 
@@ -126,17 +127,20 @@ Run: `go test ./... -tags=integration`. Use `testcontainers-go` to spin up a rea
 
 | Criterion | Pass (2 pts) | Fail (0 pts) |
 |-----------|---|---|
-| `CreateBooking()` inserts rows into both `passengers` and `bookings`; `booking_ref` is unique 6-char string | | |
+| `CreateBooking()` inserts rows into `passengers` + `bookings`; `total_amount_minor` matches flight's `base_price_minor`; `booking_ref` is unique 6-char string | | |
+| Concurrent `CreateBooking()` — 2 goroutines on a 1-seat flight; exactly 1 succeeds, 1 returns 409; `available_seats` ends at 0 | | |
 | `GetByRef("SEED02")` returns full booking with nested passenger + flight (uses pre-seeded PENDING booking) | | |
 
 **payment-service**
 
 | Criterion | Pass (2 pts) | Fail (0 pts) |
 |-----------|---|---|
-| `Insert()` writes row to `payments` with correct `booking_ref` and `amount`; returns record with non-zero `id` | | |
-| `FindByBookingRef("SEED01")` returns `status=SUCCEEDED`; `FindByBookingRef("XXXXXX")` returns `ErrNotFound` (uses pre-seeded payment) | | |
+| `Insert()` writes row to `payments` with correct `booking_ref` and `amount_minor`; returns record with non-zero `id` | | |
+| `FindByBookingRef("SEED01")` returns `status=SUCCEEDED` with correct `amount_minor`; `FindByBookingRef("XXXXXX")` returns `ErrNotFound` | | |
 
-**Layer 2 subtotal: __ / 10** _(5 criteria × 2 pts — partial credit: 1 pt if test exists but assertion is incomplete)_
+**Layer 2 subtotal: __ / 14** _(7 criteria × 2 pts — partial credit: 1 pt if test exists but assertion is incomplete)_
+
+> Evaluator: 7 criteria × 2 = 14 raw; cap at 10. Scale: `(raw / 14) × 10`.
 
 ---
 
@@ -158,10 +162,12 @@ Run against live `docker compose` stack. Use `curl` or Go's `net/http` test clie
 | `GET /api/payments/SEED01` | 200; `status=SUCCEEDED`; `paymentProvider=OMISE`; `providerChargeId` non-empty | | |
 | `GET /api/payments/SEED02` | 200; `status=FAILED`; `failureCode=insufficient_fund` | | |
 | `GET /api/flights/search` — no `Authorization` header | 401 `UNAUTHORIZED` | | |
+| `PUT /api/bookings/SEED02/status` — valid `X-Internal-Token`, `{status:CONFIRMED, paymentId:1}` | 200; subsequent `GET /api/bookings/SEED02` returns `status=CONFIRMED` | | |
 | `PUT /api/bookings/SEED01/status` — no `X-Internal-Token` | 403 `FORBIDDEN` (and no JWT needed) | | |
+| `POST /api/payments/charge` — `amountMinor` differs from booking amount | 400 `AMOUNT_MISMATCH` | | |
 | `GET /health/live` and `GET /health/ready` — no `Authorization` header | All 3 services return 200 (health endpoints are unprotected) | | |
 
-**Layer 3 subtotal: __ / 8** _(14 checks × 1 pt, capped at 8. Prioritise the auth, traceability, and business-rule checks.)_
+**Layer 3 subtotal: __ / 8** _(17 checks × 1 pt, capped at 8. Prioritise the auth, traceability, amount-mismatch, and concurrent-booking checks.)_
 
 ---
 

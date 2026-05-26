@@ -2,12 +2,17 @@
 -- Single PostgreSQL database shared across all services (challenge setup)
 --
 -- Key conventions:
---   • Monetary amounts in the `payments` table are stored in SATANG (int8).
+--   • ALL monetary amounts use a single canonical representation: BIGINT minor units (satang).
 --     1 THB = 100 satang.  3,500 THB → 350000.
---     All other price columns (flights.base_price, bookings.total_amount)
---     are stored in THB as NUMERIC(10,2).
+--     Column names use the _minor suffix: base_price_minor, total_amount_minor, amount_minor.
+--     Conversion to/from major units (THB) happens ONLY at the API boundary (handler layer).
+--     No NUMERIC/DECIMAL is used for any business-logic monetary column.
+--   • Currency is stored as ISO 4217 CHAR(3) on every table that holds money.
+--   • payment-service MUST validate that request.amount_minor == booking.total_amount_minor
+--     and currencies match before calling Omise. Mismatches return 400 AMOUNT_MISMATCH.
 --   • flights.available_seats is a denormalised counter.
---     Services must decrement it inside the same transaction as INSERT INTO bookings.
+--     Services must lock the row (SELECT … FOR UPDATE) and decrement inside the same
+--     transaction as INSERT INTO bookings to prevent overbooking.
 --   • bookings.updated_at has no trigger — services must set it explicitly
 --     on every UPDATE.
 
@@ -38,8 +43,8 @@ CREATE TABLE flights (
     departure_time    TIMESTAMPTZ    NOT NULL,
     arrival_time      TIMESTAMPTZ    NOT NULL,
     status            VARCHAR(20)    NOT NULL DEFAULT 'SCHEDULED',
-    base_price        NUMERIC(10,2)  NOT NULL,           -- THB
-    currency          CHAR(3)        NOT NULL DEFAULT 'THB',
+    base_price_minor  BIGINT         NOT NULL,           -- minor units (satang); 3500 THB = 350000
+    currency          CHAR(3)        NOT NULL DEFAULT 'THB', -- ISO 4217
     available_seats   INT            NOT NULL            -- denormalised; decrement on booking
 );
 
@@ -76,8 +81,8 @@ CREATE TABLE bookings (
     seat_id              INT            REFERENCES seats(id),   -- NULL — seat picker out of scope
     status               VARCHAR(20)    NOT NULL DEFAULT 'PENDING', -- PENDING | CONFIRMED
     confirmed_payment_id INT,                                   -- FK added below; set when status→CONFIRMED
-    total_amount         NUMERIC(10,2)  NOT NULL,               -- THB
-    currency             CHAR(3)        NOT NULL DEFAULT 'THB',
+    total_amount_minor   BIGINT         NOT NULL,               -- minor units (satang); matches payment.amount_minor
+    currency             CHAR(3)        NOT NULL DEFAULT 'THB', -- ISO 4217
     created_at           TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
     updated_at           TIMESTAMPTZ    NOT NULL DEFAULT NOW()  -- set explicitly on UPDATE
 );
@@ -119,7 +124,7 @@ CREATE TABLE payments (
     booking_id            INT          REFERENCES bookings(id),
     payment_provider      VARCHAR(50)  NOT NULL DEFAULT 'OMISE', -- OMISE | 2C2P | STRIPE | …
     provider_charge_id    VARCHAR(100),                          -- provider's transaction reference
-    amount                BIGINT       NOT NULL,                 -- SATANG (1 THB = 100 satang)
+    amount_minor          BIGINT       NOT NULL,                 -- minor units (satang); MUST equal bookings.total_amount_minor
     currency              CHAR(3)      NOT NULL DEFAULT 'THB',
     status                VARCHAR(20)  NOT NULL DEFAULT 'PENDING', -- PENDING | SUCCEEDED | FAILED
     failure_code          VARCHAR(100),

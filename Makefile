@@ -128,6 +128,14 @@ ps: _check-compose
 	$(COMPOSE) ps
 
 # ====================================================================================
+# FRONTEND
+# ====================================================================================
+.PHONY: frontend # Start the Next.js frontend dev server (app/web)
+frontend:
+	@echo -e "$(BOLD)Starting frontend dev server...$(RESET)"
+	cd app/web && bun run dev
+
+# ====================================================================================
 # BUILD
 # ====================================================================================
 .PHONY: build # Build all Docker images

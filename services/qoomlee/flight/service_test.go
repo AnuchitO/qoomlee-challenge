@@ -27,96 +27,100 @@ func (m *mockRepository) GetByID(_ context.Context, _ int64) (*Flight, error) {
 
 // --- Service.Search tests ---
 
-func TestService_Search_HappyPath(t *testing.T) {
-	dep := time.Date(2026, 6, 15, 1, 0, 0, 0, time.UTC)
-	arr := time.Date(2026, 6, 15, 4, 30, 0, 0, time.UTC)
+func TestServiceSearch(t *testing.T) {
+	t.Run("happy path", func(t *testing.T) {
+		dep := time.Date(2026, 6, 15, 1, 0, 0, 0, time.UTC)
+		arr := time.Date(2026, 6, 15, 4, 30, 0, 0, time.UTC)
 
-	repo := &mockRepository{
-		flights: []Flight{
-			{
+		repo := &mockRepository{
+			flights: []Flight{
+				{
+					ID:             1,
+					FlightNumber:   "QM101",
+					BasePriceMinor: 350000,
+					DepartureTime:  dep,
+					ArrivalTime:    arr,
+				},
+			},
+		}
+
+		svc := NewService(repo)
+		flights, err := svc.Search(context.Background(), SearchParams{
+			Origin: "BKK", Destination: "SIN",
+			DateFrom: dep, DateTo: arr, Passengers: 1,
+		})
+
+		assert.NoError(t, err)
+		assert.Len(t, flights, 1)
+		assert.Equal(t, "3500.00", flights[0].BasePrice)
+		assert.Equal(t, 210, flights[0].DurationMinutes)
+	})
+
+	t.Run("returns empty slice when repo returns nil", func(t *testing.T) {
+		repo := &mockRepository{flights: nil}
+
+		svc := NewService(repo)
+		flights, err := svc.Search(context.Background(), SearchParams{Passengers: 1})
+
+		assert.NoError(t, err)
+		assert.NotNil(t, flights)
+		assert.Empty(t, flights)
+	})
+
+	t.Run("propagates repo error", func(t *testing.T) {
+		repo := &mockRepository{err: errors.New("db down")}
+
+		svc := NewService(repo)
+		flights, err := svc.Search(context.Background(), SearchParams{Passengers: 1})
+
+		assert.EqualError(t, err, "db down")
+		assert.Nil(t, flights)
+	})
+}
+
+// --- Service.GetByID tests ---
+
+func TestServiceGetByID(t *testing.T) {
+	t.Run("happy path", func(t *testing.T) {
+		dep := time.Date(2026, 6, 15, 1, 0, 0, 0, time.UTC)
+		arr := time.Date(2026, 6, 15, 4, 30, 0, 0, time.UTC)
+
+		repo := &mockRepository{
+			flight: &Flight{
 				ID:             1,
 				FlightNumber:   "QM101",
 				BasePriceMinor: 350000,
 				DepartureTime:  dep,
 				ArrivalTime:    arr,
 			},
-		},
-	}
+		}
 
-	svc := NewService(repo)
-	flights, err := svc.Search(context.Background(), SearchParams{
-		Origin: "BKK", Destination: "SIN",
-		DateFrom: dep, DateTo: arr, Passengers: 1,
+		svc := NewService(repo)
+		f, err := svc.GetByID(context.Background(), 1)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, f)
+		assert.Equal(t, "3500.00", f.BasePrice)
+		assert.Equal(t, 210, f.DurationMinutes)
 	})
 
-	assert.NoError(t, err)
-	assert.Len(t, flights, 1)
-	assert.Equal(t, "3500.00", flights[0].BasePrice)
-	assert.Equal(t, 210, flights[0].DurationMinutes)
-}
+	t.Run("not found", func(t *testing.T) {
+		repo := &mockRepository{err: ErrNotFound}
 
-func TestService_Search_ReturnsEmptySliceWhenNil(t *testing.T) {
-	repo := &mockRepository{flights: nil}
+		svc := NewService(repo)
+		f, err := svc.GetByID(context.Background(), 99999)
 
-	svc := NewService(repo)
-	flights, err := svc.Search(context.Background(), SearchParams{Passengers: 1})
+		assert.ErrorIs(t, err, ErrNotFound)
+		assert.Nil(t, f)
+	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, flights)
-	assert.Empty(t, flights)
-}
+	t.Run("propagates repo error", func(t *testing.T) {
+		repo := &mockRepository{err: errors.New("db down")}
 
-func TestService_Search_PropagatesRepoError(t *testing.T) {
-	repo := &mockRepository{err: errors.New("db down")}
+		svc := NewService(repo)
+		f, err := svc.GetByID(context.Background(), 1)
 
-	svc := NewService(repo)
-	flights, err := svc.Search(context.Background(), SearchParams{Passengers: 1})
-
-	assert.EqualError(t, err, "db down")
-	assert.Nil(t, flights)
-}
-
-// --- Service.GetByID tests (RED — stub returns nil,nil so will fail) ---
-
-func TestService_GetByID_HappyPath(t *testing.T) {
-	dep := time.Date(2026, 6, 15, 1, 0, 0, 0, time.UTC)
-	arr := time.Date(2026, 6, 15, 4, 30, 0, 0, time.UTC)
-
-	repo := &mockRepository{
-		flight: &Flight{
-			ID:             1,
-			FlightNumber:   "QM101",
-			BasePriceMinor: 350000,
-			DepartureTime:  dep,
-			ArrivalTime:    arr,
-		},
-	}
-
-	svc := NewService(repo)
-	f, err := svc.GetByID(context.Background(), 1)
-
-	assert.NoError(t, err)
-	assert.NotNil(t, f)
-	assert.Equal(t, "3500.00", f.BasePrice)
-	assert.Equal(t, 210, f.DurationMinutes)
-}
-
-func TestService_GetByID_NotFound(t *testing.T) {
-	repo := &mockRepository{err: ErrNotFound}
-
-	svc := NewService(repo)
-	f, err := svc.GetByID(context.Background(), 99999)
-
-	assert.ErrorIs(t, err, ErrNotFound)
-	assert.Nil(t, f)
-}
-
-func TestService_GetByID_PropagatesRepoError(t *testing.T) {
-	repo := &mockRepository{err: errors.New("db down")}
-
-	svc := NewService(repo)
-	f, err := svc.GetByID(context.Background(), 1)
-
-	assert.Error(t, err)
-	assert.Nil(t, f)
+		assert.Error(t, err)
+		assert.Nil(t, f)
+	})
 }

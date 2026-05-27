@@ -564,11 +564,11 @@ These records are ready-made in the DB from `02_seed.sql`. Use them in integrati
 
 | booking_ref | Payment status | `amountMinor` | `currency` | `amount` | paymentProvider | providerChargeId | Use for |
 |---|---|---|---|---|---|---|---|
-| `SEED01` | `SUCCEEDED` | 350000 | THB | "3500.00" | `OMISE` | `chrg_test_seed01xxxxxxxxxx` | `GET /api/payments/SEED01` returns `status: "SUCCEEDED"` |
-| `SEED02` | `FAILED` | 350000 | THB | "3500.00" | `OMISE` | `chrg_test_seed02xxxxxxxxxx` | `GET /api/payments/SEED02` returns `status: "FAILED"`, `failureCode: "insufficient_fund"` |
-| `MNKP23` | `SUCCEEDED` | 129000 | THB | "1290.00" | `OMISE` | `chrg_test_mnkp23xxxxxxxxxx` | Read test for KUL route confirmed payment |
-| `AKVWQ4` | `SUCCEEDED` | 289000 | THB | "2890.00" | `OMISE` | `chrg_test_akvwq4xxxxxxxxxx` | Read test for CGK route confirmed payment |
-| `NRPQ56` | `FAILED` | 129000 | THB | "1290.00" | `OMISE` | `chrg_test_nrpq56xxxxxxxxxx` | Booking stays `PENDING`; use `NRPQ56` to retry with success card |
+| `SEED01` | `SUCCEEDED` | 350000 | THB | "3500.00" | `OMISE` | `chrg_test_5xkm2r9p8wqv3ntzy7au` | `GET /api/payments/SEED01` returns `status: "SUCCEEDED"` |
+| `SEED02` | `FAILED` | 350000 | THB | "3500.00" | `OMISE` | `chrg_test_8jqw4n7k2xpm5vtzy1ar` | `GET /api/payments/SEED02` returns `status: "FAILED"`, `failureCode: "insufficient_fund"` |
+| `MNKP23` | `SUCCEEDED` | 129000 | THB | "1290.00" | `OMISE` | `chrg_test_3aw9m6k5xpqr2nvtz8yu` | Read test for KUL route confirmed payment |
+| `AKVWQ4` | `SUCCEEDED` | 289000 | THB | "2890.00" | `OMISE` | `chrg_test_7pn4w2m9xkqr6vtzy3au` | Read test for CGK route confirmed payment |
+| `NRPQ56` | `FAILED` | 129000 | THB | "1290.00" | `OMISE` | `chrg_test_2mk8p3n7xwqr5vtzy9au` | Booking stays `PENDING`; use `NRPQ56` to retry with success card |
 
 > **For unknown-ref tests** use any ref that doesn't exist, e.g. `XXXXXX` → must return 404.
 
@@ -1294,7 +1294,7 @@ Run against live `docker compose` stack. All requests must include `Authorizatio
 | `GET /api/flights/99999` | 404 `FLIGHT_NOT_FOUND` |
 | `POST /api/bookings` — valid body, `flightId=1` | 201; `bookingRef` exactly 6 chars; `bookingId` integer |
 | `POST /api/bookings` — `flightId=6` (QM999 SOLD OUT) | 409 `NO_SEATS_AVAILABLE` |
-| `GET /api/bookings/SEED01` | 200; `status=CONFIRMED`; `paymentProvider=OMISE`; `providerChargeId=chrg_test_seed01xxxxxxxxxx` (traceability check) |
+| `GET /api/bookings/SEED01` | 200; `status=CONFIRMED`; `paymentProvider=OMISE`; `providerChargeId=chrg_test_5xkm2r9p8wqv3ntzy7au` (traceability check) |
 | `GET /api/bookings/SEED02` | 200; `bookingRef`, `status`, `flight`, `passenger` all present; `paymentProvider=null`, `providerChargeId=null` (PENDING) |
 | `GET /api/bookings/XXXXXX` | 404 `BOOKING_NOT_FOUND` |
 | `POST /api/payments/charge` — `bookingRef=SEED01` (CONFIRMED) | 409 `ALREADY_PAID` (no Omise call — pure DB guard) |

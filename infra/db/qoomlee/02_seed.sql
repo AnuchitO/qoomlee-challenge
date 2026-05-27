@@ -121,10 +121,26 @@ VALUES
     ('NRPQ56', 7, 3, 'PENDING',   129000, 'THB', '2026-06-04 05:00:00+00', '2026-06-04 05:00:00+00'),  -- id=5  "1290.00" THB
     ('FMXB89',10, 5, 'PENDING',   320000, 'THB', '2026-06-05 02:00:00+00', '2026-06-05 02:00:00+00');  -- id=6  "3200.00" THB
 
--- ── Wire confirmed_payment_id (logical cross-DB reference) ────────────────────
--- payment DB payments.id=1 is the SUCCEEDED charge for SEED01
--- payment DB payments.id=3 is the SUCCEEDED charge for MNKP23
--- payment DB payments.id=4 is the SUCCEEDED charge for AKVWQ4
-UPDATE bookings SET confirmed_payment_id = 1 WHERE booking_ref = 'SEED01';
-UPDATE bookings SET confirmed_payment_id = 3 WHERE booking_ref = 'MNKP23';
-UPDATE bookings SET confirmed_payment_id = 4 WHERE booking_ref = 'AKVWQ4';
+-- ── Wire payment traceability for CONFIRMED bookings ─────────────────────────
+-- confirmed_payment_id: logical cross-DB reference to payment DB payments.id (NO FK)
+-- payment_provider + provider_charge_id: copied from Omise response at charge time
+--   so GET /api/bookings/:ref can return traceability without joining payment DB.
+-- provider_charge_id is the authoritative Omise charge ID (e.g. chrg_test_...).
+-- IDs must match provider_charge_id in infra/db/qoomlee-payment/02_seed.sql.
+UPDATE bookings SET
+    confirmed_payment_id = 1,
+    payment_provider     = 'OMISE',
+    provider_charge_id   = 'chrg_test_5xkm2r9p8wqv3ntzy7au'
+WHERE booking_ref = 'SEED01';
+
+UPDATE bookings SET
+    confirmed_payment_id = 3,
+    payment_provider     = 'OMISE',
+    provider_charge_id   = 'chrg_test_3aw9m6k5xpqr2nvtz8yu'
+WHERE booking_ref = 'MNKP23';
+
+UPDATE bookings SET
+    confirmed_payment_id = 4,
+    payment_provider     = 'OMISE',
+    provider_charge_id   = 'chrg_test_7pn4w2m9xkqr6vtzy3au'
+WHERE booking_ref = 'AKVWQ4';

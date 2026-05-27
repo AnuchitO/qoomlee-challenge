@@ -72,12 +72,7 @@ func (r *repository) GetByID(ctx context.Context, id int64) (*Flight, error) {
 	WHERE f.id = $1`
 
 	var f Flight
-	err := r.db.QueryRowContext(ctx, q, id).Scan(
-		&f.ID, &f.FlightNumber,
-		&f.Origin, &f.Destination,
-		&f.DepartureTime, &f.ArrivalTime,
-		&f.Status, &f.BasePriceMinor, &f.Currency, &f.AvailableSeats,
-	)
+	err := scanFlight(r.db.QueryRowContext(ctx, q, id), &f)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}

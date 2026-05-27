@@ -5,6 +5,7 @@ package flight
 import (
 	"context"
 	"database/sql"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -17,18 +18,22 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-// setupTestDB starts a postgres:16-alpine container, applies the qoomlee schema
-// and seed data, then returns a connected *sql.DB.
-// Cleanup (container termination + db close) is registered via t.Cleanup.
-func setupTestDB(t *testing.T) *sql.DB {
-	t.Helper()
+// sharedDB is initialised once in TestMain and reused across all integration tests.
+var sharedDB *sql.DB
+
+// TestMain starts a single PostgreSQL container for the whole integration test run,
+// applies schema + seed, then tears everything down after all tests finish.
+func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	schemaPath, err := filepath.Abs("../../../infra/db/qoomlee/01_schema.sql")
-	require.NoError(t, err, "resolve schema path")
-
+	if err != nil {
+		panic("resolve schema path: " + err.Error())
+	}
 	seedPath, err := filepath.Abs("../../../infra/db/qoomlee/02_seed.sql")
-	require.NoError(t, err, "resolve seed path")
+	if err != nil {
+		panic("resolve seed path: " + err.Error())
+	}
 
 	pgc, err := postgres.Run(ctx,
 		"postgres:16-alpine",
@@ -42,22 +47,26 @@ func setupTestDB(t *testing.T) *sql.DB {
 				WithStartupTimeout(90*time.Second),
 		),
 	)
-	require.NoError(t, err, "start postgres container")
-	t.Cleanup(func() { _ = pgc.Terminate(ctx) })
+	if err != nil {
+		panic("start postgres container: " + err.Error())
+	}
+	defer func() { _ = pgc.Terminate(ctx) }()
 
 	connStr, err := pgc.ConnectionString(ctx, "sslmode=disable")
-	require.NoError(t, err)
+	if err != nil {
+		panic("get connection string: " + err.Error())
+	}
 
-	db, err := sql.Open("postgres", connStr)
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = db.Close() })
+	sharedDB, err = sql.Open("postgres", connStr)
+	if err != nil {
+		panic("open db: " + err.Error())
+	}
+	defer func() { _ = sharedDB.Close() }()
 
-	require.NoError(t, db.PingContext(ctx), "ping postgres")
-	return db
+	os.Exit(m.Run())
 }
 
-// bkkDate builds a time.Time for midnight of the given date in UTC (parsed from YYYY-MM-DD).
-// The bkkDateToUTCRange helper in service.go converts it to the correct UTC window.
+// bkkDate builds midnight of the given calendar date in UTC for use with bkkDateToUTCRange.
 func bkkDate(year int, month time.Month, day int) time.Time {
 	return time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
 }
@@ -65,100 +74,89 @@ func bkkDate(year int, month time.Month, day int) time.Time {
 // ─── Search ──────────────────────────────────────────────────────────────────
 
 func TestRepositoryIntegration_Search_BKKtoSIN_Returns3Flights(t *testing.T) {
-	db := setupTestDB(t)
-	repo := NewRepository(db)
-
+	repo := NewRepository(sharedDB)
 	dateFrom, dateTo := bkkDateToUTCRange(bkkDate(2026, 6, 15))
+
 	flights, err := repo.Search(context.Background(), SearchParams{
 		Origin: "BKK", Destination: "SIN",
-		DateFrom: dateFrom, DateTo: dateTo,
-		Passengers: 1,
+		DateFrom: dateFrom, DateTo: dateTo, Passengers: 1,
 	})
 
 	require.NoError(t, err)
-	// QM101, SC201, QM102 — QM999 sold-out must be excluded
-	assert.Len(t, flights, 3, "expect 3 BKK→SIN flights on 2026-06-15 (QM999 excluded)")
+	assert.Len(t, flights, 3, "expect QM101, SC201, QM102; QM999 sold-out excluded")
 
-	numbers := flightNumbers(flights)
-	assert.Contains(t, numbers, "QM101")
-	assert.Contains(t, numbers, "SC201")
-	assert.Contains(t, numbers, "QM102")
-	assert.NotContains(t, numbers, "QM999", "sold-out QM999 must be excluded")
+	nums := flightNumbers(flights)
+	assert.Contains(t, nums, "QM101")
+	assert.Contains(t, nums, "SC201")
+	assert.Contains(t, nums, "QM102")
+	assert.NotContains(t, nums, "QM999")
 }
 
 func TestRepositoryIntegration_Search_OrderedByDeparture(t *testing.T) {
-	db := setupTestDB(t)
-	repo := NewRepository(db)
-
+	repo := NewRepository(sharedDB)
 	dateFrom, dateTo := bkkDateToUTCRange(bkkDate(2026, 6, 15))
+
 	flights, err := repo.Search(context.Background(), SearchParams{
 		Origin: "BKK", Destination: "SIN",
-		DateFrom: dateFrom, DateTo: dateTo,
-		Passengers: 1,
+		DateFrom: dateFrom, DateTo: dateTo, Passengers: 1,
 	})
 
 	require.NoError(t, err)
 	require.Len(t, flights, 3)
-	// QM101 08:00, SC201 10:00, QM102 14:00 — ascending departure order
+	// QM101 08:00 BKK < SC201 10:00 BKK < QM102 14:00 BKK
 	assert.Equal(t, "QM101", flights[0].FlightNumber)
 	assert.Equal(t, "SC201", flights[1].FlightNumber)
 	assert.Equal(t, "QM102", flights[2].FlightNumber)
 }
 
 func TestRepositoryIntegration_Search_AllFieldsPopulated(t *testing.T) {
-	db := setupTestDB(t)
-	repo := NewRepository(db)
-
+	repo := NewRepository(sharedDB)
 	dateFrom, dateTo := bkkDateToUTCRange(bkkDate(2026, 6, 15))
+
 	flights, err := repo.Search(context.Background(), SearchParams{
 		Origin: "BKK", Destination: "SIN",
-		DateFrom: dateFrom, DateTo: dateTo,
-		Passengers: 1,
+		DateFrom: dateFrom, DateTo: dateTo, Passengers: 1,
 	})
 
 	require.NoError(t, err)
 	require.NotEmpty(t, flights)
 
-	qm101 := flights[0]
-	assert.Equal(t, int64(1), qm101.ID)
-	assert.Equal(t, "QM101", qm101.FlightNumber)
-	assert.Equal(t, "BKK", qm101.Origin)
-	assert.Equal(t, "SIN", qm101.Destination)
-	assert.Equal(t, int64(350000), qm101.BasePriceMinor)
-	assert.Equal(t, "THB", qm101.Currency)
-	assert.Equal(t, 154, qm101.AvailableSeats)
-	assert.Equal(t, "SCHEDULED", qm101.Status)
-	assert.False(t, qm101.DepartureTime.IsZero())
-	assert.False(t, qm101.ArrivalTime.IsZero())
+	f := flights[0] // QM101
+	assert.Equal(t, int64(1), f.ID)
+	assert.Equal(t, "QM101", f.FlightNumber)
+	assert.Equal(t, "BKK", f.Origin)
+	assert.Equal(t, "SIN", f.Destination)
+	assert.Equal(t, int64(350000), f.BasePriceMinor)
+	assert.Equal(t, "THB", f.Currency)
+	assert.Equal(t, 154, f.AvailableSeats)
+	assert.Equal(t, "SCHEDULED", f.Status)
+	assert.False(t, f.DepartureTime.IsZero())
+	assert.False(t, f.ArrivalTime.IsZero())
 }
 
 func TestRepositoryIntegration_Search_ExcludesSoldOut(t *testing.T) {
-	db := setupTestDB(t)
-	repo := NewRepository(db)
-
+	repo := NewRepository(sharedDB)
 	dateFrom, dateTo := bkkDateToUTCRange(bkkDate(2026, 6, 15))
+
 	flights, err := repo.Search(context.Background(), SearchParams{
 		Origin: "BKK", Destination: "SIN",
-		DateFrom: dateFrom, DateTo: dateTo,
-		Passengers: 1,
+		DateFrom: dateFrom, DateTo: dateTo, Passengers: 1,
 	})
 
 	require.NoError(t, err)
 	for _, f := range flights {
-		assert.Greater(t, f.AvailableSeats, 0, "all results must have seats ≥ passengers (1)")
+		assert.Greater(t, f.AvailableSeats, 0)
 		assert.NotEqual(t, "QM999", f.FlightNumber)
 	}
 }
 
 func TestRepositoryIntegration_Search_DateFilter_NextDayNotInToday(t *testing.T) {
-	db := setupTestDB(t)
-	repo := NewRepository(db)
-
+	repo := NewRepository(sharedDB)
 	dateFrom, dateTo := bkkDateToUTCRange(bkkDate(2026, 6, 15))
+
 	flights, err := repo.Search(context.Background(), SearchParams{
 		Origin: "BKK", Destination: "SIN",
-		DateFrom: dateFrom, DateTo: dateTo,
-		Passengers: 1,
+		DateFrom: dateFrom, DateTo: dateTo, Passengers: 1,
 	})
 
 	require.NoError(t, err)
@@ -167,31 +165,26 @@ func TestRepositoryIntegration_Search_DateFilter_NextDayNotInToday(t *testing.T)
 }
 
 func TestRepositoryIntegration_Search_DateFilter_NextDayReturnsQM103(t *testing.T) {
-	db := setupTestDB(t)
-	repo := NewRepository(db)
-
+	repo := NewRepository(sharedDB)
 	dateFrom, dateTo := bkkDateToUTCRange(bkkDate(2026, 6, 16))
+
 	flights, err := repo.Search(context.Background(), SearchParams{
 		Origin: "BKK", Destination: "SIN",
-		DateFrom: dateFrom, DateTo: dateTo,
-		Passengers: 1,
+		DateFrom: dateFrom, DateTo: dateTo, Passengers: 1,
 	})
 
 	require.NoError(t, err)
 	require.Len(t, flights, 1)
 	assert.Equal(t, "QM103", flights[0].FlightNumber)
-	assert.NotContains(t, flightNumbers(flights), "QM101")
 }
 
 func TestRepositoryIntegration_Search_UnknownRoute_ReturnsEmpty(t *testing.T) {
-	db := setupTestDB(t)
-	repo := NewRepository(db)
-
+	repo := NewRepository(sharedDB)
 	dateFrom, dateTo := bkkDateToUTCRange(bkkDate(2026, 6, 15))
+
 	flights, err := repo.Search(context.Background(), SearchParams{
 		Origin: "XYZ", Destination: "ABC",
-		DateFrom: dateFrom, DateTo: dateTo,
-		Passengers: 1,
+		DateFrom: dateFrom, DateTo: dateTo, Passengers: 1,
 	})
 
 	require.NoError(t, err)
@@ -201,8 +194,7 @@ func TestRepositoryIntegration_Search_UnknownRoute_ReturnsEmpty(t *testing.T) {
 // ─── GetByID ─────────────────────────────────────────────────────────────────
 
 func TestRepositoryIntegration_GetByID_QM101(t *testing.T) {
-	db := setupTestDB(t)
-	repo := NewRepository(db)
+	repo := NewRepository(sharedDB)
 
 	f, err := repo.GetByID(context.Background(), 1)
 
@@ -221,8 +213,7 @@ func TestRepositoryIntegration_GetByID_QM101(t *testing.T) {
 }
 
 func TestRepositoryIntegration_GetByID_NotFound(t *testing.T) {
-	db := setupTestDB(t)
-	repo := NewRepository(db)
+	repo := NewRepository(sharedDB)
 
 	f, err := repo.GetByID(context.Background(), 99999)
 

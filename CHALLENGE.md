@@ -409,6 +409,286 @@ api.POST("/api/bookings", ...)
 | Negative | Interruption at any step does not corrupt data integrity |
 
 ---
+
+### QML-011 — Internal Token Guard Middleware
+
+> As a system, I want the internal status-update endpoint to accept only calls from payment-service using a shared secret so that no external caller can arbitrarily confirm a booking without payment.
+
+**Acceptance Criteria**
+
+- **Given** a request with a correct `X-Internal-Token` header
+  **When** `PUT /api/bookings/:bookingRef/status` is called
+  **Then** the request is processed normally (no JWT required)
+- **Given** a request with a missing `X-Internal-Token` header
+  **When** `PUT /api/bookings/:bookingRef/status` is called
+  **Then** the service returns `403` with `{ "error": "FORBIDDEN", "message": "internal token required" }`
+- **Given** a request with an incorrect token value
+  **When** `PUT /api/bookings/:bookingRef/status` is called
+  **Then** the service returns `403 FORBIDDEN`
+- **Given** the token comparison is implemented
+  **Then** `crypto/subtle.ConstantTimeCompare` must be used to prevent timing attacks — never use `==`
+- **Given** `INTERNAL_TOKEN` env var is empty or absent at startup
+  **When** the service starts
+  **Then** the service refuses to start (`os.Exit(1)`)
+- **Given** payment-service makes its internal callback
+  **Then** it must set `X-Internal-Token` from its own `INTERNAL_TOKEN` env var — both services share the same secret value
+
+**Technical Notes**
+
+- Middleware is wired only on `PUT /api/bookings/:bookingRef/status` — not on the `/api` group.
+- `INTERNAL_TOKEN` must be a high-entropy random value — generate with `openssl rand -hex 32`.
+- `crypto/subtle.ConstantTimeCompare` prevents timing side-channel attacks where an attacker could guess the token byte-by-byte by measuring response latency.
+
+```go
+import "crypto/subtle"
+
+func InternalTokenMiddleware(secret string) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        got := c.GetHeader("X-Internal-Token")
+        if subtle.ConstantTimeCompare([]byte(got), []byte(secret)) != 1 {
+            c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+                "error": "FORBIDDEN", "message": "internal token required",
+            })
+            return
+        }
+        c.Next()
+    }
+}
+```
+
+**Test Cases**
+
+| Layer | Type | Case |
+|---|---|---|
+| Unit | Positive | Correct `X-Internal-Token` → handler invoked |
+| Unit | Negative | Missing header → 403 |
+| Unit | Negative | Wrong token value → 403 |
+| Contract | Positive | `PUT /api/bookings/SEED02/status` with valid token → 200 |
+| Contract | Negative | `PUT /api/bookings/SEED01/status` without token → 403 |
+
+---
+
+### QML-012 — Rate Limiting
+
+> As a platform operator, I want per-IP rate limits on all endpoints so that no single client can exhaust server resources or disrupt other passengers.
+
+**Acceptance Criteria**
+
+- **Given** a single IP exceeds **10 requests/min** on `POST /api/payments/charge`
+  **When** the 11th request arrives
+  **Then** the service returns `429` with `{ "error": "RATE_LIMIT_EXCEEDED", "message": "Too many requests. Please try again later." }`
+- **Given** a single IP exceeds **30 requests/min** on `POST /api/bookings`
+  **When** the 31st request arrives
+  **Then** the service returns `429 RATE_LIMIT_EXCEEDED`
+- **Given** a single IP exceeds **100 requests/min** on `GET /api/flights/search`
+  **When** the 101st request arrives
+  **Then** the service returns `429 RATE_LIMIT_EXCEEDED`
+- **Given** a single IP exceeds **30 requests/min** on `GET /health/live` or `GET /health/ready`
+  **When** the 31st request arrives
+  **Then** the service returns `429 RATE_LIMIT_EXCEEDED` — health endpoints are unauthenticated and must be rate-limited to prevent DDoS
+- **Given** different IPs send requests simultaneously
+  **Then** limits are applied per-IP independently — one client's quota does not affect others
+
+**Rate Limit Table**
+
+| Endpoint | Requests/min | Burst | Reason |
+|---|---|---|---|
+| `GET /api/flights/search` | 100 | 20 | High-volume read |
+| `POST /api/bookings` | 30 | 5 | Write operation |
+| `POST /api/payments/charge` | 10 | 3 | Sensitive financial endpoint |
+| `GET /health/live` | 30 | 10 | Unauthenticated — DDoS protection |
+| `GET /health/ready` | 30 | 10 | Unauthenticated — DDoS protection |
+
+**Technical Notes**
+
+- Use `golang.org/x/time/rate` with an in-memory map keyed by `c.ClientIP()`.
+- Rate limit middleware must be registered before JWT middleware so that rate-limited health requests never reach auth checks.
+- Per-IP, not global — a single heavy client must not starve others.
+
+**Test Cases**
+
+| Layer | Type | Case |
+|---|---|---|
+| Unit | Positive | Requests within window → pass through |
+| Unit | Negative | 11th request on payment endpoint within window → 429 |
+| Unit | Positive | Two different IPs: each gets full quota independently |
+| Unit | Positive | Counter resets after window expires |
+| Contract | Negative | Burst `POST /api/bookings` >30 times → 429 |
+| K6 | Positive | `search.js` at 50 VUs produces some 429 responses confirming middleware is active |
+
+---
+
+### QML-013 — Passenger Email Validation
+
+> As a passenger, I want the system to reject bookings with a malformed email address so that my booking data is correct and confirmation emails are deliverable.
+
+**Acceptance Criteria**
+
+- **Given** a `POST /api/bookings` request with a well-formed email (e.g. `"user@example.com"`)
+  **When** the booking is created
+  **Then** the system accepts the request and returns `201`
+- **Given** a `POST /api/bookings` request with a malformed email (e.g. `"notanemail"`, `"@"`)
+  **When** the booking is submitted
+  **Then** the system returns `400` with `{ "error": "INVALID_FIELD", "message": "passenger email must be a valid email address" }`
+- **Given** a `POST /api/bookings` request with an email missing the domain (e.g. `"user@"`)
+  **When** the booking is submitted
+  **Then** the system returns `400 INVALID_FIELD`
+- **Given** a `POST /api/bookings` request with an email missing the local part (e.g. `"@example.com"`)
+  **When** the booking is submitted
+  **Then** the system returns `400 INVALID_FIELD`
+- **Given** a `POST /api/bookings` request with an empty email
+  **When** the booking is submitted
+  **Then** the system returns `400 MISSING_REQUIRED_FIELD` (existing check — not changed)
+
+**Technical Notes**
+
+- Validation belongs in `booking/create_handler.go`, after the existing non-empty field check.
+- Use `net/mail.ParseAddress()` from the standard library — no external dependency needed:
+
+```go
+if _, err := mail.ParseAddress(req.Passenger.Email); err != nil {
+    c.JSON(http.StatusBadRequest, apiErr("INVALID_FIELD", "passenger email must be a valid email address"))
+    return
+}
+```
+
+- Do not add validation in the service or repository layer — this is a boundary concern (user input).
+
+**Test Cases**
+
+| Layer | Type | Case |
+|---|---|---|
+| Unit | Positive | `"user@example.com"` → passes validation, booking created |
+| Unit | Negative | `"notanemail"` → 400 INVALID_FIELD |
+| Unit | Negative | `"@"` → 400 INVALID_FIELD |
+| Unit | Negative | `"user@"` → 400 INVALID_FIELD |
+| Unit | Negative | `""` (empty) → 400 MISSING_REQUIRED_FIELD (existing check) |
+
+---
+
+### QML-014 — Request Correlation ID
+
+> As an operator debugging a production incident, I want every log line to carry a unique request ID that also appears in the HTTP response so that I can correlate client-reported errors with server logs in seconds.
+
+**Acceptance Criteria**
+
+- **Given** any inbound HTTP request without an `X-Request-ID` header
+  **When** the request is received
+  **Then** a unique UUID v4 is generated and attached to the request context
+- **Given** a client sends an `X-Request-ID` header
+  **When** the request is received
+  **Then** the client-supplied value is used instead of generating a new one (allows end-to-end tracing)
+- **Given** any request that produces a log entry
+  **Then** every `slog` call in that request's lifecycle includes `"requestId"` as a structured field
+- **Given** any HTTP response
+  **Then** the `X-Request-ID` header is set on the response so the client can report it in bug reports
+- **Given** an error response (4xx or 5xx)
+  **Then** the log entry includes `"requestId"`, relevant domain fields (e.g. `"bookingRef"`, `"flightId"`), and `"err"`
+
+**Technical Notes**
+
+- Implement as a Gin middleware registered before all other middleware:
+
+```go
+func RequestIDMiddleware() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        id := c.GetHeader("X-Request-ID")
+        if id == "" {
+            id = uuid.New().String()
+        }
+        c.Set("requestId", id)
+        c.Header("X-Request-ID", id)
+        c.Next()
+    }
+}
+```
+
+- Extract in handlers via `c.GetString("requestId")` and pass to `slog` calls:
+
+```go
+slog.Error("create booking failed", "requestId", c.GetString("requestId"), "err", err)
+```
+
+**Test Cases**
+
+| Layer | Type | Case |
+|---|---|---|
+| Unit | Positive | Request with no `X-Request-ID` → response has a generated UUID header |
+| Unit | Positive | Request with `X-Request-ID: abc-123` → response echoes same value |
+| Unit | Positive | Error handler log includes `"requestId"` field |
+
+---
+
+### QML-015 — Structured Request Logging
+
+> As an operator, I want every HTTP request logged as a structured JSON line with method, path, status code, and latency so that log aggregators can query and alert on latency regressions and error rates.
+
+**Acceptance Criteria**
+
+- **Given** any HTTP request completes
+  **Then** a single JSON log line is emitted to stderr with at minimum:
+  ```json
+  { "level": "INFO", "msg": "request", "method": "GET", "path": "/api/flights/search", "status": 200, "latency_ms": 12, "requestId": "..." }
+  ```
+- **Given** `gin.Default()` is currently used
+  **Then** it must be replaced with `gin.New()` — the built-in text logger is removed
+- **Given** the response status is 5xx
+  **Then** the log level is `ERROR`; for 4xx it is `WARN`; for 2xx/3xx it is `INFO`
+- **Given** a handler panics
+  **Then** `gin.Recovery()` catches it, logs the panic with `slog.Error`, and returns `500`
+
+**Technical Notes**
+
+- Switch `cmd/main.go` from `gin.Default()` to `gin.New()` with explicit middleware registration order:
+
+```go
+r := gin.New()
+r.Use(gin.Recovery())
+r.Use(RequestIDMiddleware())   // must run first — provides requestId to logger
+r.Use(RequestLoggerMiddleware())
+r.Use(RateLimitMiddleware())
+// JWT middleware on /api group only
+```
+
+- Logger middleware must call `c.Next()` before reading status and latency:
+
+```go
+func RequestLoggerMiddleware() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        start := time.Now()
+        c.Next()
+        latency := time.Since(start).Milliseconds()
+        level := slog.LevelInfo
+        if c.Writer.Status() >= 500 {
+            level = slog.LevelError
+        } else if c.Writer.Status() >= 400 {
+            level = slog.LevelWarn
+        }
+        slog.Log(context.Background(), level, "request",
+            "method", c.Request.Method,
+            "path", c.FullPath(),
+            "status", c.Writer.Status(),
+            "latency_ms", latency,
+            "requestId", c.GetString("requestId"),
+        )
+    }
+}
+```
+
+- `slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, nil)))` is already in `main.go` — keep it.
+
+**Test Cases**
+
+| Layer | Type | Case |
+|---|---|---|
+| Unit | Positive | 200 response → log level INFO with `method`, `path`, `status`, `latency_ms` fields |
+| Unit | Positive | 500 response → log level ERROR |
+| Unit | Positive | 400 response → log level WARN |
+| Unit | Positive | `latency_ms` is a non-negative integer |
+| Manual | Positive | `docker compose up`, run any curl → log line contains `"latency_ms"` key in JSON output |
+
+---
+
 ## What's Provided
 
 | Provided | Location | Purpose |

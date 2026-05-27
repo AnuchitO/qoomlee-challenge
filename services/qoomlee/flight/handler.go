@@ -28,28 +28,19 @@ func (h *Handler) Search(c *gin.Context) {
 	passengersStr := c.DefaultQuery("passengers", "1")
 
 	if origin == "" || destination == "" || dateStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "MISSING_REQUIRED_FIELD",
-			"message": "origin, destination, and date are required",
-		})
+		c.JSON(http.StatusBadRequest, apiErr("MISSING_REQUIRED_FIELD", "origin, destination, and date are required"))
 		return
 	}
 
 	date, err := time.Parse("2006-01-02", dateStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "INVALID_DATE_FORMAT",
-			"message": "date must be in YYYY-MM-DD format",
-		})
+		c.JSON(http.StatusBadRequest, apiErr("INVALID_DATE_FORMAT", "date must be in YYYY-MM-DD format"))
 		return
 	}
 
 	passengers, err := strconv.Atoi(passengersStr)
 	if err != nil || passengers < 1 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "INVALID_FIELD",
-			"message": "passengers must be a positive integer",
-		})
+		c.JSON(http.StatusBadRequest, apiErr("INVALID_FIELD", "passengers must be a positive integer"))
 		return
 	}
 
@@ -64,10 +55,7 @@ func (h *Handler) Search(c *gin.Context) {
 	})
 	if err != nil {
 		slog.Error("search flights failed", "err", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "INTERNAL_ERROR",
-			"message": "An unexpected error occurred.",
-		})
+		c.JSON(http.StatusInternalServerError, apiErr("INTERNAL_ERROR", "An unexpected error occurred."))
 		return
 	}
 
@@ -76,32 +64,27 @@ func (h *Handler) Search(c *gin.Context) {
 
 // GetByID handles GET /api/flights/:id
 func (h *Handler) GetByID(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil || id < 1 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "INVALID_FIELD",
-			"message": "id must be a positive integer",
-		})
+		c.JSON(http.StatusBadRequest, apiErr("INVALID_FIELD", "id must be a positive integer"))
 		return
 	}
 
 	f, err := h.svc.GetByID(c.Request.Context(), id)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error":   "FLIGHT_NOT_FOUND",
-				"message": "flight not found",
-			})
+			c.JSON(http.StatusNotFound, apiErr("FLIGHT_NOT_FOUND", "flight not found"))
 			return
 		}
 		slog.Error("get flight by id failed", "id", id, "err", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "INTERNAL_ERROR",
-			"message": "An unexpected error occurred.",
-		})
+		c.JSON(http.StatusInternalServerError, apiErr("INTERNAL_ERROR", "An unexpected error occurred."))
 		return
 	}
 
 	c.JSON(http.StatusOK, f)
+}
+
+// apiErr builds the standard error response body.
+func apiErr(code, message string) gin.H {
+	return gin.H{"error": code, "message": message}
 }

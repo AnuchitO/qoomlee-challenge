@@ -2,7 +2,7 @@ package booking
 
 import (
 	"context"
-	"errors"
+	"math/rand"
 )
 
 // Service is the business-logic interface for the booking domain.
@@ -22,13 +22,25 @@ func NewService(repo Repository) Service {
 }
 
 func (s *service) Create(ctx context.Context, req CreateRequest) (*Booking, error) {
-	return nil, errors.New("not implemented")
+	pnr := generatePNR()
+	return s.repo.Create(ctx, req.FlightID, req.Passenger, pnr)
 }
 
 func (s *service) GetByRef(ctx context.Context, ref string) (*Booking, error) {
-	return nil, errors.New("not implemented")
+	return s.repo.GetByRef(ctx, ref)
 }
 
 func (s *service) UpdateStatus(ctx context.Context, ref string, req UpdateStatusRequest) error {
-	return errors.New("not implemented")
+	return s.repo.UpdateStatus(ctx, ref, req)
+}
+
+// generatePNR creates a random 6-character booking reference using an
+// unambiguous character set (no 0/O/I/1 confusion).
+func generatePNR() string {
+	const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+	b := make([]byte, 6)
+	for i := range b {
+		b[i] = chars[rand.Intn(len(chars))]
+	}
+	return string(b)
 }

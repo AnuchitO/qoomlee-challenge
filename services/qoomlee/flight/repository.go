@@ -8,6 +8,7 @@ import (
 // Repository is the data-access interface for flight queries.
 type Repository interface {
 	Search(ctx context.Context, params SearchParams) ([]Flight, error)
+	GetByID(ctx context.Context, id int64) (*Flight, error)
 }
 
 type repository struct {
@@ -20,6 +21,11 @@ func NewRepository(db *sql.DB) Repository {
 }
 
 func (r *repository) Search(ctx context.Context, params SearchParams) ([]Flight, error) {
-	// TODO: implement in GREEN phase
+	// TODO: implement SQL
+	return nil, nil
+}
+
+func (r *repository) GetByID(ctx context.Context, id int64) (*Flight, error) {
+	// TODO: implement SQL
 	return nil, nil
 }

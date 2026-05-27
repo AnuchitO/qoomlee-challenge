@@ -1,6 +1,12 @@
 package flight
 
-import "time"
+import (
+	"errors"
+	"time"
+)
+
+// ErrNotFound is returned by the repository when no flight row matches the query.
+var ErrNotFound = errors.New("flight not found")
 
 // Flight represents a single flight with all details needed by the API.
 type Flight struct {

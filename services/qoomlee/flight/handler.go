@@ -1,7 +1,6 @@
 package flight
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -10,16 +9,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var bkkLoc = time.FixedZone("UTC+7", 7*60*60)
-
 // Handler holds dependencies for flight HTTP handlers.
 type Handler struct {
-	repo Repository
+	svc Service
 }
 
 // NewHandler creates a new flight Handler.
-func NewHandler(repo Repository) *Handler {
-	return &Handler{repo: repo}
+func NewHandler(svc Service) *Handler {
+	return &Handler{svc: svc}
 }
 
 // Search handles GET /api/flights/search
@@ -57,15 +54,13 @@ func (h *Handler) Search(c *gin.Context) {
 
 	dateFrom, dateTo := bkkDateToUTCRange(date)
 
-	params := SearchParams{
+	flights, err := h.svc.Search(c.Request.Context(), SearchParams{
 		Origin:      origin,
 		Destination: destination,
 		DateFrom:    dateFrom,
 		DateTo:      dateTo,
 		Passengers:  passengers,
-	}
-
-	flights, err := h.repo.Search(c.Request.Context(), params)
+	})
 	if err != nil {
 		slog.Error("search flights failed", "err", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -75,24 +70,11 @@ func (h *Handler) Search(c *gin.Context) {
 		return
 	}
 
-	if flights == nil {
-		flights = []Flight{}
-	}
-	for i := range flights {
-		enrichFlight(&flights[i])
-	}
-
 	c.JSON(http.StatusOK, gin.H{"flights": flights})
 }
 
-// bkkDateToUTCRange converts a local BKK date to a [start, end) UTC window.
-func bkkDateToUTCRange(date time.Time) (start, end time.Time) {
-	startBKK := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, bkkLoc)
-	return startBKK.UTC(), startBKK.Add(24 * time.Hour).UTC()
-}
-
-// enrichFlight computes derived fields (BasePrice, DurationMinutes) in-place.
-func enrichFlight(f *Flight) {
-	f.BasePrice = fmt.Sprintf("%.2f", float64(f.BasePriceMinor)/100)
-	f.DurationMinutes = int(f.ArrivalTime.Sub(f.DepartureTime).Minutes())
+// GetByID handles GET /api/flights/:id
+func (h *Handler) GetByID(c *gin.Context) {
+	// TODO: implement in GREEN phase
+	c.JSON(http.StatusNotImplemented, gin.H{"error": "NOT_IMPLEMENTED", "message": "not yet implemented"})
 }

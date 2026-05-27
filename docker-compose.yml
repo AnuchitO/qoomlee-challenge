@@ -38,11 +38,7 @@ services:
     build: ./services/qoomlee
     environment:
       PORT:           8082
-      DB_HOST:        postgres-qoomlee
-      DB_PORT:        5432
-      DB_NAME:        ${POSTGRES_QOOMLEE_DB:-qoomlee}
-      DB_USER:        ${POSTGRES_USER:-qoomlee}
-      DB_PASS:        ${POSTGRES_PASSWORD:-qoomlee}
+      DATABASE_URL:   postgres://${POSTGRES_USER:-qoomlee}:${POSTGRES_PASSWORD:-qoomlee}@postgres-qoomlee:5432/${POSTGRES_QOOMLEE_DB:-qoomlee}?sslmode=disable
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
       INTERNAL_TOKEN: ${INTERNAL_TOKEN}
     ports:

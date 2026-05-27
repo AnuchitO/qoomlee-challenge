@@ -1,6 +1,7 @@
 package flight
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -75,6 +76,32 @@ func (h *Handler) Search(c *gin.Context) {
 
 // GetByID handles GET /api/flights/:id
 func (h *Handler) GetByID(c *gin.Context) {
-	// TODO: implement in GREEN phase
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "NOT_IMPLEMENTED", "message": "not yet implemented"})
+	idStr := c.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil || id < 1 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "INVALID_FIELD",
+			"message": "id must be a positive integer",
+		})
+		return
+	}
+
+	f, err := h.svc.GetByID(c.Request.Context(), id)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error":   "FLIGHT_NOT_FOUND",
+				"message": "flight not found",
+			})
+			return
+		}
+		slog.Error("get flight by id failed", "id", id, "err", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "INTERNAL_ERROR",
+			"message": "An unexpected error occurred.",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, f)
 }

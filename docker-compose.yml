@@ -57,11 +57,7 @@ services:
     build: ./services/payment
     environment:
       PORT:                8084
-      DB_HOST:             postgres-qoomlee-payment
-      DB_PORT:             5432
-      DB_NAME:             ${POSTGRES_PAYMENT_DB:-qoomlee_payment}
-      DB_USER:             ${POSTGRES_PAYMENT_USER:-qoomlee_payment}
-      DB_PASS:             ${POSTGRES_PASSWORD:-qoomlee}
+      DATABASE_URL:        postgres://${POSTGRES_PAYMENT_USER:-qoomlee_payment}:${POSTGRES_PASSWORD:-qoomlee}@postgres-qoomlee-payment:5432/${POSTGRES_PAYMENT_DB:-qoomlee_payment}?sslmode=disable
       QOOMLEE_SERVICE_URL: http://qoomlee-service:8082
       OMISE_PUBLIC_KEY:    ${OMISE_PUBLIC_KEY}
       OMISE_SECRET_KEY:    ${OMISE_SECRET_KEY}

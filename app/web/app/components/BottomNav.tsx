@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { href: "/", icon: "flight_takeoff", label: "Search" },
+  { href: "/flights", icon: "flight_takeoff", label: "Search" },
   { href: "/bookings", icon: "confirmation_number", label: "Bookings" },
   { href: "/checkin", icon: "how_to_reg", label: "Check-in" },
   { href: "/passes", icon: "qr_code_2", label: "Passes" },

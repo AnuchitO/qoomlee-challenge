@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const bkkOffset = 7 * 60 * 60 // UTC+7 in seconds
+var bkkLoc = time.FixedZone("UTC+7", 7*60*60)
 
 // Handler holds dependencies for flight HTTP handlers.
 type Handler struct {
@@ -55,16 +55,13 @@ func (h *Handler) Search(c *gin.Context) {
 		return
 	}
 
-	// Convert BKK (UTC+7) date to UTC range [start, end)
-	bkkLoc := time.FixedZone("UTC+7", bkkOffset)
-	startBKK := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, bkkLoc)
-	endBKK := startBKK.Add(24 * time.Hour)
+	dateFrom, dateTo := bkkDateToUTCRange(date)
 
 	params := SearchParams{
 		Origin:      origin,
 		Destination: destination,
-		DateFrom:    startBKK.UTC(),
-		DateTo:      endBKK.UTC(),
+		DateFrom:    dateFrom,
+		DateTo:      dateTo,
 		Passengers:  passengers,
 	}
 
@@ -78,16 +75,24 @@ func (h *Handler) Search(c *gin.Context) {
 		return
 	}
 
-	// Ensure we return an empty array (not null) when there are no results.
 	if flights == nil {
 		flights = []Flight{}
 	}
-
-	// Compute money display string and durationMinutes for each flight.
 	for i := range flights {
-		flights[i].BasePrice = fmt.Sprintf("%.2f", float64(flights[i].BasePriceMinor)/100)
-		flights[i].DurationMinutes = int(flights[i].ArrivalTime.Sub(flights[i].DepartureTime).Minutes())
+		enrichFlight(&flights[i])
 	}
 
 	c.JSON(http.StatusOK, gin.H{"flights": flights})
+}
+
+// bkkDateToUTCRange converts a local BKK date to a [start, end) UTC window.
+func bkkDateToUTCRange(date time.Time) (start, end time.Time) {
+	startBKK := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, bkkLoc)
+	return startBKK.UTC(), startBKK.Add(24 * time.Hour).UTC()
+}
+
+// enrichFlight computes derived fields (BasePrice, DurationMinutes) in-place.
+func enrichFlight(f *Flight) {
+	f.BasePrice = fmt.Sprintf("%.2f", float64(f.BasePriceMinor)/100)
+	f.DurationMinutes = int(f.ArrivalTime.Sub(f.DepartureTime).Minutes())
 }

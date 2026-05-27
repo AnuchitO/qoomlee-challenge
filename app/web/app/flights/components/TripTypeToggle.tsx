@@ -10,7 +10,7 @@ interface Props {
 export default function TripTypeToggle({ value, onChange }: Props) {
   return (
     <div className="flex bg-surface-container-low p-1 rounded-lg mb-lg">
-      {(["round", "oneway"] as TripType[]).map((type) => (
+      {(["oneway", "round"] as TripType[]).map((type) => (
         <button
           key={type}
           type="button"

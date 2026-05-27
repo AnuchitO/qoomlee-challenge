@@ -127,6 +127,11 @@
   background: linear-gradient(180deg, #0e70ca 0%, #1d4ed8 100%);
 }
 
+/* Hide native calendar picker icon — we use our own Material Symbol instead */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
 /* Hide scrollbar for filter chip row */
 .custom-scrollbar::-webkit-scrollbar {
   display: none;

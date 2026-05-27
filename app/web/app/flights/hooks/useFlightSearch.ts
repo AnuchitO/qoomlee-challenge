@@ -64,7 +64,7 @@ function computeErrors(state: FlightSearchState): ValidationErrors {
 
 export function useFlightSearch(): UseFlightSearch {
   const [state, setState] = useState<FlightSearchState>({
-    tripType: "round",
+    tripType: "oneway",
     origin: "",
     destination: "",
     departureDate: null,

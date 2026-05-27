@@ -7,6 +7,7 @@ interface Props {
   placeholder: string;
   error?: string;
   onChange: (v: string) => void;
+  rightSlot?: React.ReactNode;
 }
 
 export default function AirportInput({
@@ -16,6 +17,7 @@ export default function AirportInput({
   placeholder,
   error,
   onChange,
+  rightSlot,
 }: Props) {
   return (
     <div className="space-y-sm">
@@ -36,6 +38,7 @@ export default function AirportInput({
           maxLength={3}
           onChange={(e) => onChange(e.target.value)}
         />
+        {rightSlot}
       </div>
       {error && <p className="text-label-sm text-error px-1">{error}</p>}
     </div>

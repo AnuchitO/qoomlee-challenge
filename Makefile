@@ -159,31 +159,39 @@ test-unit:
 	@echo -e "$(BOLD)Running unit tests...$(RESET)"
 	@for svc in $(SERVICES); do \
 	  echo -e "  $(CYAN)→$(RESET)  $$svc"; \
-	  (cd $(SVC_DIR)/$$svc && go test ./... -short -count=1 2>&1 | tail -5) || \
-	    echo -e "    $(RED)✗$(RESET)  failed — run 'make test-$$svc' for details"; \
+	  (cd $(SVC_DIR)/$$svc && go test ./... -count=1) || exit 1; \
 	done
 	@echo -e "\n  $(GREEN)✓$(RESET)  Unit tests complete"
 
-.PHONY: test-integration # Run integration tests with real DB (testcontainers-go)
+.PHONY: test-integration # Run integration tests with real DB (testcontainers-go, requires Docker)
 test-integration:
 	@echo -e "$(BOLD)Running integration tests (testcontainers-go)...$(RESET)"
-	@echo -e "  $(DIM)Note: Docker must be running — pulls postgres image on first run$(RESET)"
+	@echo -e "  $(DIM)Note: Docker must be running — pulls postgres:16-alpine on first run$(RESET)"
 	@for svc in $(SERVICES); do \
 	  echo -e "  $(CYAN)→$(RESET)  $$svc"; \
-	  (cd $(SVC_DIR)/$$svc && go test ./... -run Integration -count=1 2>&1 | tail -5) || \
-	    echo -e "    $(YELLOW)⚠$(RESET)  No Integration tests yet — implement with testcontainers-go"; \
+	  (cd $(SVC_DIR)/$$svc && go test ./... -tags=integration -run Integration -v -count=1) || exit 1; \
 	done
 	@echo -e "\n  $(GREEN)✓$(RESET)  Integration tests complete"
 
-.PHONY: test-qoomlee # Run qoomlee-service tests only
+.PHONY: test-qoomlee # Run qoomlee-service unit tests only
 test-qoomlee:
-	@echo -e "$(BOLD)qoomlee-service tests$(RESET)"
-	cd services/qoomlee && go test ./... -v -count=1
+	@echo -e "$(BOLD)qoomlee-service unit tests$(RESET)"
+	cd $(SVC_DIR)/qoomlee && go test ./... -v -count=1
 
-.PHONY: test-payment # Run payment-service tests only
+.PHONY: test-qoomlee-integration # Run qoomlee-service integration tests (requires Docker)
+test-qoomlee-integration:
+	@echo -e "$(BOLD)qoomlee-service integration tests$(RESET)"
+	cd $(SVC_DIR)/qoomlee && go test ./... -tags=integration -run Integration -v -count=1
+
+.PHONY: test-payment # Run payment-service unit tests only
 test-payment:
-	@echo -e "$(BOLD)payment-service tests$(RESET)"
-	cd services/payment && go test ./... -v -count=1
+	@echo -e "$(BOLD)payment-service unit tests$(RESET)"
+	cd $(SVC_DIR)/payment && go test ./... -v -count=1
+
+.PHONY: test-payment-integration # Run payment-service integration tests (requires Docker)
+test-payment-integration:
+	@echo -e "$(BOLD)payment-service integration tests$(RESET)"
+	cd $(SVC_DIR)/payment && go test ./... -tags=integration -run Integration -v -count=1
 
 # ====================================================================================
 # SCORE AND QUALITY CHECKS
@@ -237,7 +245,7 @@ lint-go:
 fmt:
 	@echo -e "$(BOLD)Formatting Go services...$(RESET)"
 	@for svc in $(SERVICES); do \
-	  gofmt -w $$svc/; \
+	  gofmt -w $(SVC_DIR)/$$svc/; \
 	done
 	@echo -e "  $(GREEN)✓$(RESET)  Go code formatted"
 

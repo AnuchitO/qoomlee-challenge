@@ -39,7 +39,7 @@ CREATE TABLE routes (
 
 CREATE TABLE flights (
     id                SERIAL PRIMARY KEY,
-    flight_number     VARCHAR(10)    NOT NULL UNIQUE,
+    flight_number     VARCHAR(10)    NOT NULL,
     route_id          INT            REFERENCES routes(id),
     aircraft_type_id  INT            REFERENCES aircraft_types(id),
     departure_time    TIMESTAMPTZ    NOT NULL,
@@ -47,7 +47,8 @@ CREATE TABLE flights (
     status            VARCHAR(20)    NOT NULL DEFAULT 'SCHEDULED',
     base_price_minor  BIGINT         NOT NULL,           -- minor units (satang); 3500 THB = 350000
     currency          CHAR(3)        NOT NULL DEFAULT 'THB', -- ISO 4217
-    available_seats   INT            NOT NULL            -- denormalised; decrement on booking
+    available_seats   INT            NOT NULL,           -- denormalised; decrement on booking
+    UNIQUE (flight_number, departure_time)               -- same flight number runs on different dates
 );
 
 CREATE TABLE seats (

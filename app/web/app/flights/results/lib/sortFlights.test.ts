@@ -30,7 +30,7 @@ describe("sortFlights", () => {
     expect(sorted[2].basePriceMinor).toBe(500000);
   });
 
-  it.skip("sorts by departure time ascending", () => {
+  it("sorts by departure time ascending", () => {
     const sorted = sortFlights([cheap, pricey, mid], "departure");
 
     expect(sorted[0].id).toBe(mid.id);   // 01:00
@@ -38,7 +38,7 @@ describe("sortFlights", () => {
     expect(sorted[2].id).toBe(cheap.id);  // 03:00
   });
 
-  it.skip("sorts by duration ascending (shortest first)", () => {
+  it("sorts by duration ascending (shortest first)", () => {
     const sorted = sortFlights([cheap, mid, pricey], "duration");
 
     expect(sorted[0].durationMinutes).toBe(150);
@@ -46,7 +46,7 @@ describe("sortFlights", () => {
     expect(sorted[2].durationMinutes).toBe(300);
   });
 
-  it.skip("sorts by best: shortest duration then price", () => {
+  it("sorts by best: shortest duration then price", () => {
     const sorted = sortFlights([cheap, mid, pricey], "best");
 
     // pricey is shortest (150 min), mid next (210 min), cheap last (300 min)
@@ -55,7 +55,7 @@ describe("sortFlights", () => {
     expect(sorted[2].id).toBe(cheap.id);
   });
 
-  it.skip("does not mutate the original array", () => {
+  it("does not mutate the original array", () => {
     const original = [pricey, cheap, mid];
     const copy = [...original];
     sortFlights(original, "price");

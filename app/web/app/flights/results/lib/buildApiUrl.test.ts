@@ -15,7 +15,7 @@ describe("buildApiUrl", () => {
     );
   });
 
-  it.skip("maps 'departure' query param to 'date' API param", () => {
+  it("maps 'departure' query param to 'date' API param", () => {
     const url = buildApiUrl({
       origin: "BKK",
       destination: "SIN",
@@ -27,7 +27,7 @@ describe("buildApiUrl", () => {
     expect(url).not.toContain("departure=");
   });
 
-  it.skip("uses NEXT_PUBLIC_QOOMLEE_API_URL env when set", () => {
+  it("uses NEXT_PUBLIC_QOOMLEE_API_URL env when set", () => {
     process.env.NEXT_PUBLIC_QOOMLEE_API_URL = "http://api.example.com";
 
     const url = buildApiUrl({
@@ -37,7 +37,7 @@ describe("buildApiUrl", () => {
       passengers: "1",
     });
 
-    expect(url).toStartWith("http://api.example.com");
+    expect(url.startsWith("http://api.example.com")).toBe(true);
     delete process.env.NEXT_PUBLIC_QOOMLEE_API_URL;
   });
 });

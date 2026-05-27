@@ -316,27 +316,63 @@ As a passenger, I want to search for flights so that I can find available flight
 
 **Acceptance Criteria**
 
-- **Given** an API request to protected endpoint
-  **When** the request is made
-  **Then** all API endpoints require valid JWT token in Authorization header
-- **Given** an API request with invalid or missing token
-  **When** the request is processed
-  **Then** the system returns `401 UNAUTHORIZED`
-- **Given** a health check request
-  **When** the request is made
-  **Then** health endpoints are accessible without authentication
-- **Given** an internal service-to-service call
-  **When** the call is made
-  **Then** the system uses separate authentication mechanism
+- **Given** a request with a valid RS256 JWT in `Authorization: Bearer <token>`
+  **When** the request hits any `/api/*` route
+  **Then** the request is passed through to the handler
+- **Given** a request with no `Authorization` header
+  **When** the request hits any `/api/*` route
+  **Then** the service returns `401` with `{ "error": "UNAUTHORIZED", "message": "missing or invalid token" }`
+- **Given** a request with an expired JWT
+  **When** the request hits any `/api/*` route
+  **Then** the service returns `401 UNAUTHORIZED`
+- **Given** a request signed with the wrong algorithm (e.g. HS256)
+  **When** the request hits any `/api/*` route
+  **Then** the service returns `401 UNAUTHORIZED` (algorithm must be validated explicitly)
+- **Given** `PUT /api/bookings/:bookingRef/status`
+  **When** called with a valid `X-Internal-Token` and no JWT
+  **Then** the request is allowed — this route is exempt from JWT
+- **Given** `GET /health/live` or `GET /health/ready`
+  **When** called with no token
+  **Then** the request is allowed — health probes are unprotected
+- **Given** `JWT_PUBLIC_KEY` env var is absent at startup
+  **When** the service starts
+  **Then** the service refuses to start (`os.Exit(1)`)
+- **Given** `JWT_PRIVATE_KEY` is used only for local token generation (`make jwt-token`)
+  **Then** the private key must never be present in any running container — only `JWT_PUBLIC_KEY` in env
+
+**Technical Notes**
+
+- Algorithm: RS256 (asymmetric). Use `github.com/golang-jwt/jwt/v5`.
+- Required JWT claims: `sub` (subject), `exp` (expiry). Reject if either is missing.
+- Middleware wired on the `/api` group in `cmd/main.go`, NOT on the health or internal routes.
+- Use router groups to separate unprotected routes from JWT-protected ones:
+
+```go
+// No JWT — health probes + internal service endpoint
+open := r.Group("/")
+open.GET("/health/live", ...)
+open.GET("/health/ready", ...)
+open.PUT("/api/bookings/:ref/status", middleware.InternalToken(...), h.UpdateStatus)
+
+// JWT required — all public API endpoints
+api := r.Group("/")
+api.Use(middleware.JWTMiddleware(os.Getenv("JWT_PUBLIC_KEY")))
+api.GET("/api/flights/search", ...)
+api.POST("/api/bookings", ...)
+```
 
 **Test Cases**
 
-| Type | Case |
-|---|---|
-| Positive | API calls with valid JWT return expected responses |
-| Negative | API calls without JWT return `401 UNAUTHORIZED` |
-| Negative | API calls with expired JWT return `401 UNAUTHORIZED` |
-| Normal | Health endpoints return `200` without JWT |
+| Layer | Type | Case |
+|---|---|---|
+| Unit | Positive | Valid RS256 token → handler receives request |
+| Unit | Negative | Missing `Authorization` header → 401 |
+| Unit | Negative | Expired token → 401 |
+| Unit | Negative | HS256-signed token → 401 (algorithm mismatch) |
+| Unit | Negative | Malformed token string → 401 |
+| Contract | Negative | `GET /api/flights/search` without token → 401 |
+| Contract | Positive | `GET /health/live` without token → 200 |
+| Contract | Positive | `PUT /api/bookings/SEED02/status` with valid internal token, no JWT → 200 |
 
 ---
 
@@ -373,7 +409,6 @@ As a passenger, I want to search for flights so that I can find available flight
 | Negative | Interruption at any step does not corrupt data integrity |
 
 ---
-
 ## What's Provided
 
 | Provided | Location | Purpose |

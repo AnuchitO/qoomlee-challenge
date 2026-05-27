@@ -25,6 +25,28 @@
 
 ---
 
+## Story Status
+
+| # | Story | Service | Status |
+|---|-------|---------|--------|
+| QML-001 | Search Flights | qoomlee-service | ✅ Done |
+| QML-002 | View Flight Details | qoomlee-service | ✅ Done |
+| QML-003 | Create a Booking | qoomlee-service | ✅ Done |
+| QML-004 | View Booking Details | qoomlee-service | ✅ Done |
+| QML-005 | Pay for Booking | payment-service | ⬜ Todo |
+| QML-006 | View Payment Receipt | payment-service | ⬜ Todo |
+| QML-007 | Prevent Overbooking | qoomlee-service | ✅ Done |
+| QML-008 | Prevent Duplicate Payments | payment-service | ⬜ Todo |
+| QML-009 | Handle Payment Failures Gracefully | payment-service | ⬜ Todo |
+| QML-010 | Secure Authentication via JWT | both services | ⬜ Todo |
+| QML-011 | Internal Token Guard Middleware | qoomlee-service | ⬜ Todo |
+| QML-012 | Rate Limiting | both services | ⬜ Todo |
+| QML-013 | Passenger Email Validation | qoomlee-service | ⬜ Todo |
+| QML-014 | Request Correlation ID | both services | ⬜ Todo |
+| QML-015 | Structured Request Logging | both services | ⬜ Todo |
+
+---
+
 ## What You're Building
 
 You're building the backend for a simple airline booking system called **Qoomlee**.
@@ -47,7 +69,7 @@ As a passenger, I want to search for flights so that I can find available flight
 
 ---
 
-### QML-001 — Search Flights
+### QML-001 — Search Flights · ✅ Done
 
 > As a passenger, I want to search for flights by origin, destination, and date so that I can find suitable travel options.
 
@@ -74,7 +96,7 @@ As a passenger, I want to search for flights so that I can find available flight
 
 ---
 
-### QML-002 — View Flight Details
+### QML-002 — View Flight Details · ✅ Done
 
 > As a passenger, I want to view detailed flight information so that I can confirm flight times, prices, and availability before booking.
 
@@ -100,7 +122,7 @@ As a passenger, I want to search for flights so that I can find available flight
 
 ---
 
-### QML-003 — Create a Booking
+### QML-003 — Create a Booking · ✅ Done
 
 > As a passenger, I want to create a booking for a flight so that I can reserve my seat and receive a booking reference.
 
@@ -130,7 +152,7 @@ As a passenger, I want to search for flights so that I can find available flight
 
 ---
 
-### QML-004 — View Booking Details
+### QML-004 — View Booking Details · ✅ Done
 
 > As a passenger, I want to view my booking details so that I can confirm my reservation information including flight and passenger details.
 
@@ -160,7 +182,7 @@ As a passenger, I want to search for flights so that I can find available flight
 
 ---
 
-### QML-005 — Pay for Booking
+### QML-005 — Pay for Booking · ⬜ Todo
 
 > As a passenger, I want to pay for my booking securely so that I can confirm my reservation and receive payment confirmation.
 
@@ -193,7 +215,7 @@ As a passenger, I want to search for flights so that I can find available flight
 
 ---
 
-### QML-006 — View Payment Receipt
+### QML-006 — View Payment Receipt · ⬜ Todo
 
 > As a passenger, I want to view my payment receipt so that I can have proof of payment and booking confirmation.
 
@@ -222,7 +244,7 @@ As a passenger, I want to search for flights so that I can find available flight
 
 ---
 
-### QML-007 — Prevent Overbooking
+### QML-007 — Prevent Overbooking · ✅ Done
 
 > As a system, I want to ensure that bookings cannot be overbooked so that I maintain accurate seat availability.
 
@@ -251,7 +273,7 @@ As a passenger, I want to search for flights so that I can find available flight
 
 ---
 
-### QML-008 — Prevent Duplicate Payments
+### QML-008 — Prevent Duplicate Payments · ⬜ Todo
 
 > As a system, I want to prevent duplicate payments for the same booking so that I avoid charging customers multiple times.
 
@@ -280,7 +302,7 @@ As a passenger, I want to search for flights so that I can find available flight
 
 ---
 
-### QML-009 — Handle Payment Failures Gracefully
+### QML-009 — Handle Payment Failures Gracefully · ⬜ Todo
 
 > As a system, I want to handle payment failures gracefully so that pending bookings remain available for retry.
 
@@ -310,7 +332,7 @@ As a passenger, I want to search for flights so that I can find available flight
 
 ---
 
-### QML-010 — Secure Authentication via JWT
+### QML-010 — Secure Authentication via JWT · ⬜ Todo
 
 > As a system, I want to ensure secure authentication using JWT so that only authorized users can access booking functionality.
 
@@ -410,7 +432,7 @@ api.POST("/api/bookings", ...)
 
 ---
 
-### QML-011 — Internal Token Guard Middleware
+### QML-011 — Internal Token Guard Middleware · ⬜ Todo
 
 > As a system, I want the internal status-update endpoint to accept only calls from payment-service using a shared secret so that no external caller can arbitrarily confirm a booking without payment.
 
@@ -468,7 +490,7 @@ func InternalTokenMiddleware(secret string) gin.HandlerFunc {
 
 ---
 
-### QML-012 — Rate Limiting
+### QML-012 — Rate Limiting · ⬜ Todo
 
 > As a platform operator, I want per-IP rate limits on all endpoints so that no single client can exhaust server resources or disrupt other passengers.
 
@@ -518,7 +540,7 @@ func InternalTokenMiddleware(secret string) gin.HandlerFunc {
 
 ---
 
-### QML-013 — Passenger Email Validation
+### QML-013 — Passenger Email Validation · ⬜ Todo
 
 > As a passenger, I want the system to reject bookings with a malformed email address so that my booking data is correct and confirmation emails are deliverable.
 
@@ -566,7 +588,7 @@ if _, err := mail.ParseAddress(req.Passenger.Email); err != nil {
 
 ---
 
-### QML-014 — Request Correlation ID
+### QML-014 — Request Correlation ID · ⬜ Todo
 
 > As an operator debugging a production incident, I want every log line to carry a unique request ID that also appears in the HTTP response so that I can correlate client-reported errors with server logs in seconds.
 
@@ -619,7 +641,7 @@ slog.Error("create booking failed", "requestId", c.GetString("requestId"), "err"
 
 ---
 
-### QML-015 — Structured Request Logging
+### QML-015 — Structured Request Logging · ⬜ Todo
 
 > As an operator, I want every HTTP request logged as a structured JSON line with method, path, status code, and latency so that log aggregators can query and alert on latency regressions and error rates.
 

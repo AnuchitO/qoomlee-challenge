@@ -19,7 +19,7 @@ describe("useFlightSearch", () => {
 
   // ── buildSearchUrl ─────────────────────────────────────────────────────────
 
-  it.skip("buildSearchUrl returns correct query string for a valid round trip", () => {
+  it("buildSearchUrl returns correct query string for a valid round trip", () => {
     const { result } = renderHook(() => useFlightSearch());
 
     act(() => {
@@ -37,7 +37,7 @@ describe("useFlightSearch", () => {
     );
   });
 
-  it.skip("buildSearchUrl omits returnDate for one-way trip", () => {
+  it("buildSearchUrl omits returnDate for one-way trip", () => {
     const { result } = renderHook(() => useFlightSearch());
 
     act(() => {
@@ -56,7 +56,7 @@ describe("useFlightSearch", () => {
 
   // ── swapAirports ───────────────────────────────────────────────────────────
 
-  it.skip("swapAirports exchanges origin and destination", () => {
+  it("swapAirports exchanges origin and destination", () => {
     const { result } = renderHook(() => useFlightSearch());
 
     act(() => {
@@ -74,7 +74,7 @@ describe("useFlightSearch", () => {
 
   // ── validate — happy paths ─────────────────────────────────────────────────
 
-  it.skip("validate returns true for a complete round-trip form", () => {
+  it("validate returns true for a complete round-trip form", () => {
     const { result } = renderHook(() => useFlightSearch());
 
     act(() => {
@@ -88,7 +88,7 @@ describe("useFlightSearch", () => {
     expect(result.current.errors).toEqual({});
   });
 
-  it.skip("validate returns true for a complete one-way form (no return date required)", () => {
+  it("validate returns true for a complete one-way form (no return date required)", () => {
     const { result } = renderHook(() => useFlightSearch());
 
     act(() => {
@@ -104,7 +104,7 @@ describe("useFlightSearch", () => {
 
   // ── validate — negative cases ──────────────────────────────────────────────
 
-  it.skip("validate sets errors.origin when origin is empty", () => {
+  it("validate sets errors.origin when origin is empty", () => {
     const { result } = renderHook(() => useFlightSearch());
 
     act(() => {
@@ -117,7 +117,7 @@ describe("useFlightSearch", () => {
     expect(result.current.errors.origin).toBeDefined();
   });
 
-  it.skip("validate sets errors.destination when destination is empty", () => {
+  it("validate sets errors.destination when destination is empty", () => {
     const { result } = renderHook(() => useFlightSearch());
 
     act(() => {
@@ -130,7 +130,7 @@ describe("useFlightSearch", () => {
     expect(result.current.errors.destination).toBeDefined();
   });
 
-  it.skip("validate sets errors.destination when origin equals destination", () => {
+  it("validate sets errors.destination when origin equals destination", () => {
     const { result } = renderHook(() => useFlightSearch());
 
     act(() => {
@@ -144,7 +144,7 @@ describe("useFlightSearch", () => {
     expect(result.current.errors.destination).toBeDefined();
   });
 
-  it.skip("validate sets errors.departureDate when departure date is missing", () => {
+  it("validate sets errors.departureDate when departure date is missing", () => {
     const { result } = renderHook(() => useFlightSearch());
 
     act(() => {
@@ -157,7 +157,7 @@ describe("useFlightSearch", () => {
     expect(result.current.errors.departureDate).toBeDefined();
   });
 
-  it.skip("validate sets errors.returnDate for round trip with missing return date", () => {
+  it("validate sets errors.returnDate for round trip with missing return date", () => {
     const { result } = renderHook(() => useFlightSearch());
 
     act(() => {
@@ -171,7 +171,7 @@ describe("useFlightSearch", () => {
     expect(result.current.errors.returnDate).toBeDefined();
   });
 
-  it.skip("validate sets errors.returnDate when return date is before departure date", () => {
+  it("validate sets errors.returnDate when return date is before departure date", () => {
     const { result } = renderHook(() => useFlightSearch());
 
     act(() => {

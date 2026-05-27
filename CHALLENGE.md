@@ -2,6 +2,29 @@
 
 ---
 
+## Table of Contents
+
+1. [What You're Building](#whats-building)
+2. [User Stories](#user-stories)
+3. [Full Flow Acceptance Criteria](#full-flow-acceptance-criteria)
+4. [What's Provided](#whats-provided)
+5. [What You Build](#what-you-build)
+6. [Team Setup](#team-setup)
+7. [Start Here](#start-here)
+8. [Technology Stack](#technology-stack)
+9. [Service Architecture](#service-architecture)
+10. [The Database](#the-database)
+11. [How the Endpoints Connect](#how-the-endpoints-connect)
+12. [Endpoint Specifications](#endpoint-specifications)
+13. [Infrastructure Requirements](#infrastructure-requirements)
+14. [Implementation Requirements](#implementation-requirements)
+15. [Testing Requirements](#testing-requirements)
+16. [Constraints](#constraints)
+17. [Scoring](#scoring)
+18. [FAQ](#faq)
+
+---
+
 ## What You're Building
 
 You're building the backend for a simple airline booking system called **Qoomlee**.
@@ -16,255 +39,342 @@ Search flights  →  Pick a flight  →  Book a seat  →  Pay  →  Get confirm
 Your job is to make that entire journey work — from searching available flights
 all the way to a confirmed, paid booking.
 
+---
+
 ## User Stories
 
 As a passenger, I want to search for flights so that I can find available flights between destinations on a specific date.
 
-**Story QML-001**: As a passenger, I want to search for flights by origin, destination, and date so that I can find suitable travel options.
+---
 
-*Acceptance Criteria:*
-- Given a valid origin airport code, destination airport code, and date
-  When I search for available flights
-  Then the system returns a list of matching flights with flight number, departure/arrival times, price, and available seats
-- Given no flights match the search criteria
-  When I search for available flights
-  Then the system returns an empty list
-- Given missing required search parameters
-  When I search for available flights
-  Then the system returns an appropriate error response
+### QML-001 — Search Flights
 
-*Test Cases:*
-- Positive: Search for BKK→SIN on 2026-06-15 returns matching flights
-- Negative: Search with missing origin returns 400 MISSING_REQUIRED_FIELD
-- Negative: Search with invalid date format returns 400 INVALID_DATE_FORMAT
-- Normal: Search for sold-out flights excludes them from results
+> As a passenger, I want to search for flights by origin, destination, and date so that I can find suitable travel options.
 
-**Story QML-002**: As a passenger, I want to view detailed flight information so that I can confirm flight times, prices, and availability before booking.
+**Acceptance Criteria**
 
-*Acceptance Criteria:*
-- Given a valid flight ID
-  When I request detailed flight information
-  Then the system returns complete flight details including flight number, route, departure/arrival times, price, and available seats
-- Given a flight ID that does not exist
-  When I request detailed flight information
-  Then the system returns a 404 error
-- Given a valid flight
-  When I request detailed flight information
-  Then the system calculates and includes duration from departure and arrival times
+- **Given** a valid origin airport code, destination airport code, and date
+  **When** I search for available flights
+  **Then** the system returns a list of matching flights with flight number, departure/arrival times, price, and available seats
+- **Given** no flights match the search criteria
+  **When** I search for available flights
+  **Then** the system returns an empty list
+- **Given** missing required search parameters
+  **When** I search for available flights
+  **Then** the system returns an appropriate error response
 
-*Test Cases:*
-- Positive: GET /api/flights/1 returns complete flight details
-- Negative: GET /api/flights/99999 returns 404 FLIGHT_NOT_FOUND
-- Normal: Response includes durationMinutes field
+**Test Cases**
 
-**Story QML-003**: As a passenger, I want to create a booking for a flight so that I can reserve my seat and receive a booking reference.
+| Type | Case |
+|---|---|
+| Positive | Search for BKK→SIN on 2026-06-15 returns matching flights |
+| Negative | Search with missing origin returns `400 MISSING_REQUIRED_FIELD` |
+| Negative | Search with invalid date format returns `400 INVALID_DATE_FORMAT` |
+| Normal | Search for sold-out flights excludes them from results |
 
-*Acceptance Criteria:*
-- Given valid flight ID and passenger details
-  When I create a booking
-  Then the system creates the booking and returns a 6-character booking reference (PNR)
-- Given a booking request with valid details
-  When I create a booking
-  Then the system decrements available seats for the flight
-- Given a flight with no available seats
-  When I attempt to create a booking
-  Then the system prevents overbooking and returns an appropriate error
-- Given a booking request
-  When I create a booking
-  Then the system ensures total amount matches flight price at time of booking
+---
 
-*Test Cases:*
-- Positive: POST /api/bookings with valid flight ID returns 201 with bookingRef
-- Negative: POST for sold-out flight returns 409 NO_SEATS_AVAILABLE
-- Negative: POST with missing passenger details returns 400 MISSING_REQUIRED_FIELD
-- Normal: Concurrent bookings on 1-seat flight results in 1 success and 1 failure
+### QML-002 — View Flight Details
 
-**Story QML-004**: As a passenger, I want to view my booking details so that I can confirm my reservation information including flight and passenger details.
+> As a passenger, I want to view detailed flight information so that I can confirm flight times, prices, and availability before booking.
 
-*Acceptance Criteria:*
-- Given a valid booking reference
-  When I request booking details
-  Then the system returns booking details with nested passenger and flight information
-- Given a valid booking reference
-  When I request booking details
-  Then the system returns details including booking status, PNR, passenger info, and flight details
-- Given a booking reference that does not exist
-  When I request booking details
-  Then the system returns a 404 error
-- Given a confirmed booking
-  When I request booking details
-  Then the system includes payment provider and charge ID information
+**Acceptance Criteria**
 
-*Test Cases:*
-- Positive: GET /api/bookings/SEED01 returns complete booking with CONFIRMED status
-- Negative: GET /api/bookings/XXXXXX returns 404 BOOKING_NOT_FOUND
-- Normal: PENDING bookings show null for payment provider fields
-- Normal: CONFIRMED bookings show paymentProvider and providerChargeId
+- **Given** a valid flight ID
+  **When** I request detailed flight information
+  **Then** the system returns complete flight details including flight number, route, departure/arrival times, price, and available seats
+- **Given** a flight ID that does not exist
+  **When** I request detailed flight information
+  **Then** the system returns a 404 error
+- **Given** a valid flight
+  **When** I request detailed flight information
+  **Then** the system calculates and includes duration from departure and arrival times
 
-**Story QML-005**: As a passenger, I want to pay for my booking securely so that I can confirm my reservation and receive payment confirmation.
+**Test Cases**
 
-*Acceptance Criteria:*
-- Given a valid booking reference and card token
-  When I initiate payment
-  Then the system charges payment using Omise
-- Given a payment request with amount
-  When I initiate payment
-  Then the system validates amount matches booking total before charging
-- Given a successful payment
-  When the payment completes
-  Then the system updates booking status to CONFIRMED
-- Given a payment request
-  When I initiate payment
-  Then the system records payment details in payment database
-- Given an already confirmed booking
-  When I attempt to make payment
-  Then the system prevents duplicate payments
+| Type | Case |
+|---|---|
+| Positive | `GET /api/flights/1` returns complete flight details |
+| Negative | `GET /api/flights/99999` returns `404 FLIGHT_NOT_FOUND` |
+| Normal | Response includes `durationMinutes` field |
 
-*Test Cases:*
-- Positive: POST /api/payments/charge with success card returns 201 with SUCCEEDED status
-- Negative: POST with decline card returns 402 PAYMENT_FAILED
-- Negative: POST for already CONFIRMED booking returns 409 ALREADY_PAID
-- Negative: POST with mismatched amount returns 400 AMOUNT_MISMATCH
+---
 
-**Story QML-006**: As a passenger, I want to view my payment receipt so that I can have proof of payment and booking confirmation.
+### QML-003 — Create a Booking
 
-*Acceptance Criteria:*
-- Given a valid booking reference
-  When I request payment details
-  Then the system returns payment details for that booking
-- Given a payment exists
-  When I request payment details
-  Then the system returns details including payment status, amount, provider, and timestamps
-- Given multiple payment attempts for the same booking
-  When I request payment details
-  Then the system returns the most recent payment attempt
-- Given no payment exists for the booking reference
-  When I request payment details
-  Then the system returns a 404 error
+> As a passenger, I want to create a booking for a flight so that I can reserve my seat and receive a booking reference.
 
-*Test Cases:*
-- Positive: GET /api/payments/SEED01 returns SUCCEEDED payment details
-- Negative: GET /api/payments/XXXXXX returns 404 PAYMENT_NOT_FOUND
-- Normal: Returns latest payment when multiple attempts exist for same booking
+**Acceptance Criteria**
 
-**Story QML-007**: As a system, I want to ensure that bookings cannot be overbooked so that I maintain accurate seat availability.
+- **Given** valid flight ID and passenger details
+  **When** I create a booking
+  **Then** the system creates the booking and returns a 6-character booking reference (PNR)
+- **Given** a booking request with valid details
+  **When** I create a booking
+  **Then** the system decrements available seats for the flight
+- **Given** a flight with no available seats
+  **When** I attempt to create a booking
+  **Then** the system prevents overbooking and returns an appropriate error
+- **Given** a booking request
+  **When** I create a booking
+  **Then** the system ensures total amount matches flight price at time of booking
 
-*Acceptance Criteria:*
-- Given a booking request
-  When the system processes the booking
-  Then the system uses SELECT FOR UPDATE to lock flight row during booking
-- Given a booking request
-  When the system processes the booking
-  Then the system checks available seats before creating booking
-- Given concurrent booking requests
-  When the system processes them
-  Then the system prevents concurrent bookings from exceeding seat capacity
-- Given no seats are available
-  When I attempt to create a booking
-  Then the transaction rolls back
+**Test Cases**
 
-*Test Cases:*
-- Normal: Concurrent requests on 1-seat flight results in 1 success and 1 failure
-- Positive: Booking on flight with available seats succeeds
-- Negative: Booking on sold-out flight returns 409 NO_SEATS_AVAILABLE
+| Type | Case |
+|---|---|
+| Positive | `POST /api/bookings` with valid flight ID returns `201` with `bookingRef` |
+| Negative | `POST` for sold-out flight returns `409 NO_SEATS_AVAILABLE` |
+| Negative | `POST` with missing passenger details returns `400 MISSING_REQUIRED_FIELD` |
+| Normal | Concurrent bookings on 1-seat flight results in 1 success and 1 failure |
 
-**Story QML-008**: As a system, I want to prevent duplicate payments for the same booking so that I avoid charging customers multiple times.
+---
 
-*Acceptance Criteria:*
-- Given a payment request
-  When the system processes the payment
-  Then the system checks booking status before processing payment
-- Given a payment request for an already CONFIRMED booking
-  When the system processes the payment
-  Then the system rejects the payment
-- Given a duplicate payment attempt
-  When I initiate payment
-  Then the system returns 409 ALREADY_PAID error
-- Given a payment request
-  When the system processes the payment
-  Then the system calls qoomlee-service to verify booking status before charging
+### QML-004 — View Booking Details
 
-*Test Cases:*
-- Positive: Payment for PENDING booking succeeds
-- Negative: Payment for CONFIRMED booking returns 409 ALREADY_PAID
-- Negative: Second payment attempt for same booking returns 409 ALREADY_PAID
+> As a passenger, I want to view my booking details so that I can confirm my reservation information including flight and passenger details.
 
-**Story QML-009**: As a system, I want to handle payment failures gracefully so that pending bookings remain available for retry.
+**Acceptance Criteria**
 
-*Acceptance Criteria:*
-- Given a payment failure (e.g., declined card)
-  When the payment processing completes
-  Then the system records FAILED payment in database
-- Given a failed payment
-  When the payment processing completes
-  Then the system keeps booking in PENDING status
-- Given a payment failure
-  When the system processes the failure
-  Then the system returns appropriate error message for the failure type
-- Given a booking with failed payment
-  When I attempt payment again
-  Then the system allows retry with different payment method
+- **Given** a valid booking reference
+  **When** I request booking details
+  **Then** the system returns booking details with nested passenger and flight information
+- **Given** a valid booking reference
+  **When** I request booking details
+  **Then** the system returns details including booking status, PNR, passenger info, and flight details
+- **Given** a booking reference that does not exist
+  **When** I request booking details
+  **Then** the system returns a 404 error
+- **Given** a confirmed booking
+  **When** I request booking details
+  **Then** the system includes payment provider and charge ID information
 
-*Test Cases:*
-- Normal: Payment with declined card results in FAILED payment record
-- Normal: Booking remains PENDING after failed payment
-- Positive: Booking can be retried with success card after failure
-- Negative: Failed payment returns 402 with failure details
+**Test Cases**
 
-**Story QML-010**: As a system, I want to ensure secure authentication using JWT so that only authorized users can access booking functionality.
+| Type | Case |
+|---|---|
+| Positive | `GET /api/bookings/SEED01` returns complete booking with `CONFIRMED` status |
+| Negative | `GET /api/bookings/XXXXXX` returns `404 BOOKING_NOT_FOUND` |
+| Normal | `PENDING` bookings show `null` for payment provider fields |
+| Normal | `CONFIRMED` bookings show `paymentProvider` and `providerChargeId` |
 
-*Acceptance Criteria:*
-- Given an API request to protected endpoint
-  When the request is made
-  Then all API endpoints require valid JWT token in Authorization header
-- Given an API request with invalid or missing token
-  When the request is processed
-  Then the system returns 401 UNAUTHORIZED
-- Given a health check request
-  When the request is made
-  Then health endpoints are accessible without authentication
-- Given an internal service-to-service call
-  When the call is made
-  Then the system uses separate authentication mechanism
+---
 
-*Test Cases:*
-- Positive: API calls with valid JWT return expected responses
-- Negative: API calls without JWT return 401 UNAUTHORIZED
-- Negative: API calls with expired JWT return 401 UNAUTHORIZED
-- Normal: Health endpoints return 200 without JWT
+### QML-005 — Pay for Booking
+
+> As a passenger, I want to pay for my booking securely so that I can confirm my reservation and receive payment confirmation.
+
+**Acceptance Criteria**
+
+- **Given** a valid booking reference and card token
+  **When** I initiate payment
+  **Then** the system charges payment using Omise
+- **Given** a payment request with amount
+  **When** I initiate payment
+  **Then** the system validates amount matches booking total before charging
+- **Given** a successful payment
+  **When** the payment completes
+  **Then** the system updates booking status to `CONFIRMED`
+- **Given** a payment request
+  **When** I initiate payment
+  **Then** the system records payment details in payment database
+- **Given** an already confirmed booking
+  **When** I attempt to make payment
+  **Then** the system prevents duplicate payments
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Positive | `POST /api/payments/charge` with success card returns `201` with `SUCCEEDED` status |
+| Negative | `POST` with decline card returns `402 PAYMENT_FAILED` |
+| Negative | `POST` for already `CONFIRMED` booking returns `409 ALREADY_PAID` |
+| Negative | `POST` with mismatched amount returns `400 AMOUNT_MISMATCH` |
+
+---
+
+### QML-006 — View Payment Receipt
+
+> As a passenger, I want to view my payment receipt so that I can have proof of payment and booking confirmation.
+
+**Acceptance Criteria**
+
+- **Given** a valid booking reference
+  **When** I request payment details
+  **Then** the system returns payment details for that booking
+- **Given** a payment exists
+  **When** I request payment details
+  **Then** the system returns details including payment status, amount, provider, and timestamps
+- **Given** multiple payment attempts for the same booking
+  **When** I request payment details
+  **Then** the system returns the most recent payment attempt
+- **Given** no payment exists for the booking reference
+  **When** I request payment details
+  **Then** the system returns a 404 error
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Positive | `GET /api/payments/SEED01` returns `SUCCEEDED` payment details |
+| Negative | `GET /api/payments/XXXXXX` returns `404 PAYMENT_NOT_FOUND` |
+| Normal | Returns latest payment when multiple attempts exist for same booking |
+
+---
+
+### QML-007 — Prevent Overbooking
+
+> As a system, I want to ensure that bookings cannot be overbooked so that I maintain accurate seat availability.
+
+**Acceptance Criteria**
+
+- **Given** a booking request
+  **When** the system processes the booking
+  **Then** the system uses `SELECT FOR UPDATE` to lock flight row during booking
+- **Given** a booking request
+  **When** the system processes the booking
+  **Then** the system checks available seats before creating booking
+- **Given** concurrent booking requests
+  **When** the system processes them
+  **Then** the system prevents concurrent bookings from exceeding seat capacity
+- **Given** no seats are available
+  **When** I attempt to create a booking
+  **Then** the transaction rolls back
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Normal | Concurrent requests on 1-seat flight results in 1 success and 1 failure |
+| Positive | Booking on flight with available seats succeeds |
+| Negative | Booking on sold-out flight returns `409 NO_SEATS_AVAILABLE` |
+
+---
+
+### QML-008 — Prevent Duplicate Payments
+
+> As a system, I want to prevent duplicate payments for the same booking so that I avoid charging customers multiple times.
+
+**Acceptance Criteria**
+
+- **Given** a payment request
+  **When** the system processes the payment
+  **Then** the system checks booking status before processing payment
+- **Given** a payment request for an already `CONFIRMED` booking
+  **When** the system processes the payment
+  **Then** the system rejects the payment
+- **Given** a duplicate payment attempt
+  **When** I initiate payment
+  **Then** the system returns `409 ALREADY_PAID` error
+- **Given** a payment request
+  **When** the system processes the payment
+  **Then** the system calls qoomlee-service to verify booking status before charging
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Positive | Payment for `PENDING` booking succeeds |
+| Negative | Payment for `CONFIRMED` booking returns `409 ALREADY_PAID` |
+| Negative | Second payment attempt for same booking returns `409 ALREADY_PAID` |
+
+---
+
+### QML-009 — Handle Payment Failures Gracefully
+
+> As a system, I want to handle payment failures gracefully so that pending bookings remain available for retry.
+
+**Acceptance Criteria**
+
+- **Given** a payment failure (e.g., declined card)
+  **When** the payment processing completes
+  **Then** the system records `FAILED` payment in database
+- **Given** a failed payment
+  **When** the payment processing completes
+  **Then** the system keeps booking in `PENDING` status
+- **Given** a payment failure
+  **When** the system processes the failure
+  **Then** the system returns appropriate error message for the failure type
+- **Given** a booking with failed payment
+  **When** I attempt payment again
+  **Then** the system allows retry with different payment method
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Normal | Payment with declined card results in `FAILED` payment record |
+| Normal | Booking remains `PENDING` after failed payment |
+| Positive | Booking can be retried with success card after failure |
+| Negative | Failed payment returns `402` with failure details |
+
+---
+
+### QML-010 — Secure Authentication via JWT
+
+> As a system, I want to ensure secure authentication using JWT so that only authorized users can access booking functionality.
+
+**Acceptance Criteria**
+
+- **Given** an API request to protected endpoint
+  **When** the request is made
+  **Then** all API endpoints require valid JWT token in Authorization header
+- **Given** an API request with invalid or missing token
+  **When** the request is processed
+  **Then** the system returns `401 UNAUTHORIZED`
+- **Given** a health check request
+  **When** the request is made
+  **Then** health endpoints are accessible without authentication
+- **Given** an internal service-to-service call
+  **When** the call is made
+  **Then** the system uses separate authentication mechanism
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Positive | API calls with valid JWT return expected responses |
+| Negative | API calls without JWT return `401 UNAUTHORIZED` |
+| Negative | API calls with expired JWT return `401 UNAUTHORIZED` |
+| Normal | Health endpoints return `200` without JWT |
+
+---
 
 ## Full Flow Acceptance Criteria
 
 **End-to-End Journey Test**: As a passenger, I want to complete the full booking journey from searching flights to receiving payment confirmation so that I can successfully book a flight.
 
-*Given*: A passenger with a valid JWT token
-*When*: The passenger performs the complete booking journey:
-  1. Searches for flights from BKK to SIN on 2026-06-15
-  2. Views details of a specific flight (e.g., flight ID 1)
-  3. Creates a booking for that flight with valid passenger details
-  4. Receives a booking reference (PNR) and confirms the booking is in PENDING status
-  5. Obtains an Omise card token for a success card (4242...)
-  6. Charges the card for the booking using the correct amount
-  7. Verifies the booking status changes to CONFIRMED
-  8. Views the payment receipt to confirm successful payment
-*Then*: The entire journey completes successfully with:
-  - Appropriate HTTP status codes at each step (200, 201)
-  - Correct data persisted in respective databases
-  - Proper error handling for invalid inputs
-  - Secure authentication maintained throughout
-  - Accurate seat availability updated
+**Given** a passenger with a valid JWT token
+**When** the passenger performs the complete booking journey:
 
-*Full Flow Test Case*:
-- Positive: Complete journey from flight search to payment confirmation executes without errors
-- Verification: Booking shows CONFIRMED status with payment traceability
-- Verification: Flight seat availability decreases by 1
-- Negative: Interruption at any step does not corrupt data integrity
+1. Searches for flights from BKK to SIN on 2026-06-15
+2. Views details of a specific flight (e.g., flight ID 1)
+3. Creates a booking for that flight with valid passenger details
+4. Receives a booking reference (PNR) and confirms the booking is in `PENDING` status
+5. Obtains an Omise card token for a success card (4242...)
+6. Charges the card for the booking using the correct amount
+7. Verifies the booking status changes to `CONFIRMED`
+8. Views the payment receipt to confirm successful payment
+
+**Then** the entire journey completes successfully with:
+- Appropriate HTTP status codes at each step (200, 201)
+- Correct data persisted in respective databases
+- Proper error handling for invalid inputs
+- Secure authentication maintained throughout
+- Accurate seat availability updated
+
+**Full Flow Test Cases**
+
+| Type | Case |
+|---|---|
+| Positive | Complete journey from flight search to payment confirmation executes without errors |
+| Verification | Booking shows `CONFIRMED` status with payment traceability |
+| Verification | Flight seat availability decreases by 1 |
+| Negative | Interruption at any step does not corrupt data integrity |
 
 ---
 
 ## What's Provided
-
-You are given:
 
 | Provided | Location | Purpose |
 |---|---|---|
@@ -359,9 +469,9 @@ curl -H "Authorization: Bearer $TOKEN" \
 | postgres-qoomlee | — | PostgreSQL 16 | 5433 (host) |
 | postgres-qoomlee-payment | — | PostgreSQL 16 | 5434 (host) |
 
-**Unit tests:** `go test ./...` with `testify` + `testify/mock`
-**Integration tests:** `testcontainers-go` (real PostgreSQL container)
-**Load tests:** K6
+- **Unit tests:** `go test ./...` with `testify` + `testify/mock`
+- **Integration tests:** `testcontainers-go` (real PostgreSQL container)
+- **Load tests:** K6
 
 ---
 
@@ -377,7 +487,8 @@ Domain Folder (e.g. flight/, booking/, payment/)
 └── models.go       — data structures for this domain
 ```
 
-Benefits of domain-oriented organization:
+**Benefits of domain-oriented organization:**
+
 - **Locality**: Related code (handlers, services, repositories) lives together
 - **Encapsulation**: Each domain is self-contained with clear boundaries
 - **Deletability**: Entire domains can be removed without affecting others
@@ -385,6 +496,7 @@ Benefits of domain-oriented organization:
 - **Testability**: Each domain can be tested independently
 
 Alternative three-layer pattern (by layer):
+
 ```
 Layered approach:
 ├── handler/        — all HTTP handlers
@@ -405,7 +517,7 @@ Two isolated PostgreSQL databases — one per service. **Do not modify the schem
 
 `payments.booking_id` and `bookings.confirmed_payment_id` are logical cross-DB references (plain `INT` columns, no FK constraints). Consistency is maintained at the application layer: payment-service calls `GET /api/bookings/:ref` before charging and `PUT /api/bookings/:ref/status` after a successful charge. It **never** queries the booking database directly.
 
-### Seed flights
+### Seed Flights
 
 **2026-06-15 — primary test date (use for all booking and payment tests)**
 
@@ -429,13 +541,15 @@ Two isolated PostgreSQL databases — one per service. **Do not modify the schem
 | 11 | QM103 | BKK → SIN | 09:00 | 310000 | THB | "3100.00" | 160 | Must appear in `date=2026-06-16` search; must **not** appear in `date=2026-06-15` search |
 | 12 | QM202 | BKK → HKG | 11:00 | 490000 | THB | "4900.00" | 200 | Must appear in `date=2026-06-16` search; must **not** appear in `date=2026-06-15` search |
 
-**QM999 will not appear in search results** (`available_seats=0` is filtered out) but can be targeted by `POST /api/bookings` to trigger a 409.
+> **QM999 will not appear in search results** (`available_seats=0` is filtered out) but can be targeted by `POST /api/bookings` to trigger a 409.
 
 > Departure times are stored as `TIMESTAMPTZ` in UTC: 08:00 BKK (UTC+7) = 01:00 UTC.
 
-### Pre-seeded test bookings and payments
+### Pre-seeded Test Bookings and Payments
 
 These records are ready-made in the DB from `02_seed.sql`. Use them in integration and contract tests to avoid building state from scratch.
+
+**Bookings**
 
 | booking_ref | Flight | Passenger | Status | `totalAmountMinor` | `currency` | `totalAmount` | Use for |
 |---|---|---|---|---|---|---|---|
@@ -445,6 +559,8 @@ These records are ready-made in the DB from `02_seed.sql`. Use them in integrati
 | `AKVWQ4` | QM501 (BKK→CGK) | Akira Tanaka | `CONFIRMED` | 289000 | THB | "2890.00" | Foreign-passenger confirmed booking reads |
 | `NRPQ56` | QM401 (BKK→KUL) | Narumon Pattanakit | `PENDING` | 129000 | THB | "1290.00" | **Retry-payment test** — has a prior `FAILED` payment; charge again with success card |
 | `FMXB89` | QM601 (BKK→MNL) | Ahmad Fauzi | `PENDING` | 320000 | THB | "3200.00" | **First-charge flow** — no prior payment attempt |
+
+**Payments**
 
 | booking_ref | Payment status | `amountMinor` | `currency` | `amount` | paymentProvider | providerChargeId | Use for |
 |---|---|---|---|---|---|---|---|
@@ -456,7 +572,7 @@ These records are ready-made in the DB from `02_seed.sql`. Use them in integrati
 
 > **For unknown-ref tests** use any ref that doesn't exist, e.g. `XXXXXX` → must return 404.
 
-### Key tables
+### Key Tables
 
 ```
 flights    — id, flight_number, route_id, departure_time, arrival_time,
@@ -470,15 +586,15 @@ passengers — id, first_name, last_name, email, phone,
 payments   — id, booking_ref, booking_id, payment_provider (OMISE|2C2P|…),
              provider_charge_id, amount_minor (BIGINT, satang), currency, status,
              failure_code, failure_message, paid_at
+```
 
 > **Monetary convention:** ALL money columns are BIGINT minor units (satang).
 > 3,500 THB → stored as 350000. No NUMERIC/DECIMAL anywhere.
 > Every monetary field in API requests and responses is a triple: `*Minor` (int64 satang), `currency`, and `*` (formatted display string, e.g. `"3500.00"`).
 > Handlers compute `int64 ÷ 100` to produce the display string. Never use floats for money.
-```
 
-Booking DB schema: `infra/db/qoomlee/01_schema.sql` — Seed: `infra/db/qoomlee/02_seed.sql`
-Payment DB schema: `infra/db/qoomlee-payment/01_schema.sql` — Seed: `infra/db/qoomlee-payment/02_seed.sql`
+- Booking DB schema: `infra/db/qoomlee/01_schema.sql` — Seed: `infra/db/qoomlee/02_seed.sql`
+- Payment DB schema: `infra/db/qoomlee-payment/01_schema.sql` — Seed: `infra/db/qoomlee-payment/02_seed.sql`
 
 ---
 
@@ -528,12 +644,13 @@ Below are the key implementation notes for each.
 
 ### 1. `GET /api/flights/search`
 
-**File:** `services/qoomlee/flight/handler.go` → `Search`
-**Repo:** `services/qoomlee/flight/repository.go` → `Search`
+- **File:** `services/qoomlee/flight/handler.go` → `Search`
+- **Repo:** `services/qoomlee/flight/repository.go` → `Search`
 
 Query parameters: `origin`, `destination`, `date` (YYYY-MM-DD), `passengers` (default 1).
 
 SQL to implement:
+
 ```sql
 SELECT f.id, f.flight_number,
        r.origin_iata, r.destination_iata,
@@ -556,17 +673,17 @@ Compute `durationMinutes` from `arrival_time - departure_time` in Go.
 
 ### 2. `GET /api/flights/:id`
 
-**File:** `services/qoomlee/flight/handler.go` → `GetByID`
-**Repo:** `services/qoomlee/flight/repository.go` → `GetByID`
+- **File:** `services/qoomlee/flight/handler.go` → `GetByID`
+- **Repo:** `services/qoomlee/flight/repository.go` → `GetByID`
 
-Same columns as search. If no row found, return 404 `FLIGHT_NOT_FOUND`.
+Same columns as search. If no row found, return `404 FLIGHT_NOT_FOUND`.
 
 ---
 
 ### 3. `POST /api/bookings`
 
-**File:** `services/qoomlee/booking/handler.go` → `Create`
-**Repo:** `services/qoomlee/booking/repository.go` → `InsertPassenger`, `InsertBooking`
+- **File:** `services/qoomlee/booking/handler.go` → `Create`
+- **Repo:** `services/qoomlee/booking/repository.go` → `InsertPassenger`, `InsertBooking`
 
 Three steps in **one transaction** — use `SELECT … FOR UPDATE` to prevent overbooking under concurrent load:
 
@@ -593,6 +710,7 @@ COMMIT;
 > `total_amount_minor` must be copied from `flights.base_price_minor` at booking time — it's the price the passenger agreed to pay. Storing it on the booking prevents price-change issues later.
 
 Generate the 6-char PNR in Go before the transaction:
+
 ```go
 const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 // Pick 6 random characters from chars
@@ -602,10 +720,10 @@ const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
 ### 4. `POST /api/payments/charge`
 
-**File:** `services/payment/payment/handler.go` → `Charge`
-**Repo:** `services/payment/payment/repository.go` → `Insert`
+- **File:** `services/payment/payment/handler.go` → `Charge`
+- **Repo:** `services/payment/payment/repository.go` → `Insert`
 
-#### How Omise works (credit card, synchronous)
+#### How Omise Works (credit card, synchronous)
 
 Omise credit card charges return the **final result immediately** — no webhook, no callback URL needed. This is why we scope to credit card only.
 
@@ -619,7 +737,7 @@ Client                         Your server                    Omise
   │◄── 201 or 402 ─────────────────│                             │
 ```
 
-#### Getting an Omise token
+#### Getting an Omise Token
 
 The client must first call Omise's vault to tokenise the card. The token is single-use.
 
@@ -659,9 +777,10 @@ err := client.Do(charge, &operations.CreateCharge{
 // charge.Status == "failed"     → status = "FAILED", check charge.FailureCode
 ```
 
-#### Amount validation — guard against mismatch
+#### Amount Validation — Guard Against Mismatch
 
 Before calling Omise, payment-service must fetch the booking and validate:
+
 ```go
 if req.AmountMinor != booking.TotalAmountMinor || req.Currency != booking.Currency {
     c.JSON(400, gin.H{"error": "AMOUNT_MISMATCH",
@@ -674,9 +793,10 @@ This prevents a client from submitting a lower amount than the booking price.
 `request.amount_minor` and `payments.amount_minor` are satang (BIGINT). `3,500 THB → 350000`.
 **Do not accept NUMERIC/float for amounts anywhere in the codebase.**
 
-#### After a successful charge
+#### After a Successful Charge
 
 Call `PUT http://qoomlee-service:8082/api/bookings/{bookingRef}/status` with:
+
 ```json
 {
   "status":            "CONFIRMED",
@@ -685,19 +805,20 @@ Call `PUT http://qoomlee-service:8082/api/bookings/{bookingRef}/status` with:
   "providerChargeId":  <charge.ID from Omise response>
 }
 ```
+
 - Use `QOOMLEE_SERVICE_URL` env var (already set in docker-compose).
 - Include the `X-Internal-Token: <INTERNAL_TOKEN>` header (qoomlee-service will reject the call without it).
 - Do **not** send a JWT — this is a service-to-service call, not a user request.
 - `paymentProvider` and `providerChargeId` are stored directly in the bookings row. `GET /api/bookings/:ref` returns them without any JOIN (the payment DB is not accessible from qoomlee-service).
 - If this call fails: **do not return 500**. Log it and return 201 anyway — the charge already succeeded.
 
-#### Guard: reject duplicate payment
+#### Guard: Reject Duplicate Payment
 
-Before calling Omise, call `GET http://qoomlee-service:8082/api/bookings/{bookingRef}` (use `QOOMLEE_SERVICE_URL` env var). If booking `status == "CONFIRMED"`, return 409 `ALREADY_PAID` without calling Omise.
+Before calling Omise, call `GET http://qoomlee-service:8082/api/bookings/{bookingRef}` (use `QOOMLEE_SERVICE_URL` env var). If booking `status == "CONFIRMED"`, return `409 ALREADY_PAID` without calling Omise.
 
 This API call also validates the amount: compare `req.AmountMinor` against `booking.TotalAmountMinor` and `req.Currency` against `booking.Currency` before charging.
 
-#### Test cards
+#### Test Cards
 
 | Card number | Result | failureCode |
 |---|---|---|
@@ -710,8 +831,8 @@ Use any future expiry (e.g. `12/2028`), any 3-digit CVV, any cardholder name.
 
 ### 5. `PUT /api/bookings/:bookingRef/status`
 
-**File:** `services/qoomlee/booking/handler.go` → `UpdateStatus`
-**Repo:** `services/qoomlee/booking/repository.go` → `UpdateStatus`
+- **File:** `services/qoomlee/booking/handler.go` → `UpdateStatus`
+- **Repo:** `services/qoomlee/booking/repository.go` → `UpdateStatus`
 
 Called **only by payment-service** after a successful charge. Not a public endpoint.
 
@@ -721,7 +842,7 @@ This route is **excluded from the JWT middleware** — there is no user to authe
 X-Internal-Token: <INTERNAL_TOKEN env var>
 ```
 
-Return 403 if the header is missing or wrong. No 401 on this route.
+Return `403` if the header is missing or wrong. No `401` on this route.
 
 ```sql
 UPDATE bookings
@@ -733,8 +854,8 @@ SET status               = $1,
 WHERE booking_ref = $5
 ```
 
-Only `CONFIRMED` is a valid value in this challenge. Return 400 `INVALID_STATUS` for anything else.
-If the booking_ref doesn't exist, return 404 `BOOKING_NOT_FOUND`.
+Only `CONFIRMED` is a valid value in this challenge. Return `400 INVALID_STATUS` for anything else.
+If the booking_ref doesn't exist, return `404 BOOKING_NOT_FOUND`.
 
 > Because payment-service has its own database, qoomlee-service cannot JOIN payments at read time. Instead, `PUT /api/bookings/:ref/status` must receive `paymentProvider` and `providerChargeId` in the request body and store them in the bookings row. `GET /api/bookings/:ref` returns these values directly without any JOIN.
 
@@ -742,8 +863,8 @@ If the booking_ref doesn't exist, return 404 `BOOKING_NOT_FOUND`.
 
 ### 6. `GET /api/bookings/:bookingRef`
 
-**File:** `services/qoomlee/booking/handler.go` → `GetByRef`
-**Repo:** `services/qoomlee/booking/repository.go` → `GetByRef`
+- **File:** `services/qoomlee/booking/handler.go` → `GetByRef`
+- **Repo:** `services/qoomlee/booking/repository.go` → `GetByRef`
 
 Join bookings → passengers, flights → routes. `paymentProvider` and `providerChargeId` are stored directly on bookings when the status is updated to CONFIRMED:
 
@@ -763,19 +884,21 @@ WHERE b.booking_ref = $1
 > Because payment-service has its own database, qoomlee-service cannot JOIN to the payments table. Instead, `PUT /api/bookings/:ref/status` receives `paymentProvider` and `providerChargeId` in its request body and stores them in the bookings row. Return them as `paymentProvider` and `providerChargeId` in the JSON response (both `null` for PENDING bookings).
 
 Update the bookings schema to add these columns:
+
 ```sql
 ALTER TABLE bookings
     ADD COLUMN payment_provider   VARCHAR(50),
     ADD COLUMN provider_charge_id VARCHAR(100);
 ```
+
 (Already included in `infra/db/qoomlee/01_schema.sql`.)
 
 ---
 
 ### 7. `GET /api/payments/:bookingRef`
 
-**File:** `services/payment/payment/handler.go` → `GetByBookingRef`
-**Repo:** `services/payment/payment/repository.go` → `GetByBookingRef`
+- **File:** `services/payment/payment/handler.go` → `GetByBookingRef`
+- **Repo:** `services/payment/payment/repository.go` → `GetByBookingRef`
 
 ```sql
 SELECT id, booking_ref, booking_id, payment_provider, provider_charge_id,
@@ -840,6 +963,7 @@ Apply per-IP rate limiting using `golang.org/x/time/rate`. Use an in-memory stor
 > Health endpoints are unauthenticated by design, which makes them reachable without a token — and therefore a potential DDoS vector. Rate limiting them prevents an attacker from flooding the service with health requests to exhaust resources.
 
 On limit exceeded return **429 Too Many Requests**:
+
 ```json
 { "error": "RATE_LIMIT_EXCEEDED", "message": "Too many requests. Please try again later." }
 ```
@@ -885,7 +1009,7 @@ Authorization: Bearer <token>
 - Tokens are signed with an RSA **private key** (`JWT_PRIVATE_KEY` — **test tooling only**, never loaded by any service at runtime).
 - All three services verify incoming tokens using the RSA **public key** (`JWT_PUBLIC_KEY`).
 - Algorithm: `RS256`. Required claims: `sub`, `exp`.
-- Missing or invalid token → 401 `UNAUTHORIZED`
+- Missing or invalid token → `401 UNAUTHORIZED`
 
 > **`PUT /api/bookings/:ref/status` is excluded from JWT** — it's a service-to-service call with no user. See the `X-Internal-Token` section below.
 
@@ -915,6 +1039,7 @@ func JWTMiddleware(publicKeyPEM string) gin.HandlerFunc {
 ```
 
 Apply it globally in `main.go`:
+
 ```go
 r.Use(middleware.JWTMiddleware(os.Getenv("JWT_PUBLIC_KEY")))
 r.GET("/health/live", ...)   // health endpoints registered BEFORE the middleware
@@ -992,20 +1117,20 @@ Add a Gin middleware that logs one JSON line per request with `method`, `path`, 
 
 ## Implementation Requirements
 
-### Requirement 1 — Always return JSON
+### Requirement 1 — Always Return JSON
 
 Every response (including errors) must have `Content-Type: application/json`. Never return raw text.
 
-### Requirement 2 — Error response shape
+### Requirement 2 — Error Response Shape
 
 ```json
 { "error": "ERROR_CODE", "message": "Human-readable explanation." }
 ```
 
-`error` — `UPPER_SNAKE_CASE` machine-readable code
-`message` — plain English; never a raw Go error or SQL message
+- `error` — `UPPER_SNAKE_CASE` machine-readable code
+- `message` — plain English; never a raw Go error or SQL message
 
-### Requirement 3 — Correct HTTP status codes
+### Requirement 3 — Correct HTTP Status Codes
 
 | Situation | Status |
 |---|---|
@@ -1020,7 +1145,7 @@ Every response (including errors) must have `Content-Type: application/json`. Ne
 | Rate limit exceeded | `429 Too Many Requests` |
 | Unexpected server error | `500 Internal Server Error` |
 
-### Requirement 4 — Log internally, hide externally
+### Requirement 4 — Log Internally, Hide Externally
 
 ```go
 if err != nil {
@@ -1030,11 +1155,11 @@ if err != nil {
 }
 ```
 
-### Requirement 5 — Never swallow errors
+### Requirement 5 — Never Swallow Errors
 
 Every `err` return value must be checked. Ignoring an error and continuing is a bug.
 
-### Requirement 6 — Payment-service must never access the booking database
+### Requirement 6 — Payment-service Must Never Access the Booking Database
 
 Payment-service connects to `postgres-qoomlee-payment` only. It physically cannot access the booking database — there are no credentials, no host, no `DB_*` env vars pointing to `postgres-qoomlee`.
 
@@ -1042,37 +1167,41 @@ Booking status changes go exclusively through `PUT http://qoomlee-service:8082/a
 
 This is enforced by topology (separate DB instances), not just convention. Any attempt to hardcode booking DB connection strings in payment-service is a failing criterion.
 
-### Requirement 7 — Payment→booking failure
+### Requirement 7 — Payment→Booking Failure
 
 After a successful Omise charge, if `PUT /api/bookings/:ref/status` call fails:
+
 - **Do not** return 500
 - **Do** log the failure with the charge ID and `bookingRef`
 - **Do** return 201 with the charge result — the money was taken, the client must know
 
-### Requirement 8 — All money is minor units (satang); no floats in business logic
+### Requirement 8 — All Money Is Minor Units (satang); No Floats in Business Logic
 
 - Every monetary column in the DB is `BIGINT` (`_minor` suffix): `base_price_minor`, `total_amount_minor`, `amount_minor`
 - Every monetary variable in Go is `int64`
 - Conversion to/from THB (`÷100` / `×100`) happens **only in handlers** when reading request bodies or writing JSON responses
 - Never pass `float64` for an amount through a service or repository function
 - Every monetary field in API requests and responses is a triple: `*Minor` (int64 satang), `currency`, and `*` (formatted display string, e.g. `"3500.00"`); never return or accept a JSON float for a monetary amount
-- `booking.total_amount_minor` must equal `payment.amount_minor` — payment-service validates this before calling Omise (400 `AMOUNT_MISMATCH` if they differ)
+- `booking.total_amount_minor` must equal `payment.amount_minor` — payment-service validates this before calling Omise (`400 AMOUNT_MISMATCH` if they differ)
 
-### Requirement 9 — Concurrent booking must use SELECT FOR UPDATE
+### Requirement 9 — Concurrent Booking Must Use SELECT FOR UPDATE
 
 `CreateBooking` must lock the flights row before checking and decrementing `available_seats`:
+
 ```sql
 SELECT available_seats FROM flights WHERE id = $1 FOR UPDATE
 ```
+
 Without this lock, two concurrent requests on a 1-seat flight can both read `available_seats = 1`, both pass the check, and both insert — resulting in overbooking. The integration test for concurrent booking validates this.
 
-### Requirement 10 — `PUT /api/bookings/:ref/status` happy path must be contract-tested
+### Requirement 10 — `PUT /api/bookings/:ref/status` Happy Path Must Be Contract-tested
 
 The internal status endpoint must be verified end-to-end (not just the 403 rejection):
+
 - A valid `X-Internal-Token` + `{status: CONFIRMED, paymentId: N}` → 200, booking flips to CONFIRMED
 - This is required in Layer 3 contract tests running against the live stack
 
-### Error code reference
+### Error Code Reference
 
 **All services (applied by JWT middleware)**
 
@@ -1086,7 +1215,7 @@ The internal status endpoint must be verified end-to-end (not just the 403 rejec
 |---|---|---|
 | Missing or wrong `X-Internal-Token` | 403 | `FORBIDDEN` |
 
-**qoomlee-service (flight endpoints)**
+**qoomlee-service — flight endpoints**
 
 | Scenario | Status | `error` |
 |---|---|---|
@@ -1096,7 +1225,7 @@ The internal status endpoint must be verified end-to-end (not just the 403 rejec
 | Flight `:id` not found | 404 | `FLIGHT_NOT_FOUND` |
 | DB error | 500 | `INTERNAL_ERROR` |
 
-**qoomlee-service (booking endpoints)**
+**qoomlee-service — booking endpoints**
 
 | Scenario | Status | `error` |
 |---|---|---|
@@ -1138,7 +1267,7 @@ Define a repository **interface**, implement it in production, mock it in tests.
 | payment-service | `Charge` — success | qoomlee-service mock returns PENDING booking; Omise mock returns successful; DB insert with `status=SUCCEEDED`, `amount_minor` matching booking; qoomlee-service mock `PUT /api/bookings/:ref/status` called once with `{status:CONFIRMED, paymentId:X, paymentProvider:OMISE, providerChargeId:chrg_...}`; returns 201 |
 | payment-service | `Charge` — decline | qoomlee-service mock returns PENDING booking; Omise mock returns failed; DB insert with `status=FAILED`; qoomlee-service `PUT /api/bookings/:ref/status` **never called**; returns 402 with `failureCode` |
 | payment-service | `Charge` — already paid | qoomlee-service mock `GET /api/bookings/:ref` returns `CONFIRMED`; Omise **never called**; qoomlee-service `PUT /api/bookings/:ref/status` **never called**; returns 409 `ALREADY_PAID` |
-| payment-service | `Charge` — PUT /api/bookings/:ref/status fails | qoomlee-service mock returns PENDING booking; Omise mock returns successful; DB insert with SUCCEEDED; qoomlee-service mock returns error on `PUT /api/bookings/:ref/status`; **still returns 201** (charge succeeded); error logged |
+| payment-service | `Charge` — PUT fails | qoomlee-service mock returns PENDING booking; Omise mock returns successful; DB insert with SUCCEEDED; qoomlee-service mock returns error on `PUT /api/bookings/:ref/status`; **still returns 201** (charge succeeded); error logged |
 | payment-service | `GetByBookingRef` | returns 200 with `paymentProvider` + `providerChargeId`; unknown ref → 404 |
 | middleware | `JWTMiddleware` | valid token → passes through; missing token → 401; expired token → 401; wrong algorithm → 401 |
 | middleware | `InternalTokenMiddleware` | correct token → passes through; missing header → 403; wrong value → 403 |
@@ -1225,34 +1354,45 @@ See `SCORECARD.md` for the full rubric.
 ## FAQ
 
 **Q: Where do I start?**
+
 Implement endpoints in order: Search → GetFlight → CreateBooking → Charge → UpdateStatus → GetBooking → GetPayment. Each one builds on the previous. qoomlee-service owns the first 5 endpoints; payment-service owns the last 2.
 
 **Q: What is satang?**
+
 Omise requires amounts in the smallest currency unit (like Stripe's cents). 1 THB = 100 satang. 3,500 THB = `350000`. The `payments.amount_minor` column stores satang. Pass satang when creating a charge. `request.amountMinor` must equal `booking.total_amount_minor` — validate before calling Omise.
 
 **Q: Why do I need both `bookingRef` and `bookingId` for payment?**
+
 `bookingRef` is the 6-char PNR used as a human-readable identifier. `bookingId` is the numeric DB row id. Omise doesn't know about either — you just need them to link the payment record back to the booking.
 
 **Q: My payment succeeded but GET /api/bookings still shows PENDING.**
+
 The payment service must call `PUT /api/bookings/{ref}/status` internally after a successful charge. If you haven't implemented that PUT handler yet, or haven't wired the HTTP call in payment-service, the status won't update.
 
 **Q: How does payment-service call qoomlee-service?**
+
 Via HTTP using the `QOOMLEE_SERVICE_URL` env var (already `http://qoomlee-service:8082` in docker-compose). Make an HTTP PUT call in the Charge handler after recording the SUCCEEDED payment.
 
 **Q: Do I need a public URL for Omise callbacks?**
+
 No. Credit card charges are synchronous — Omise returns the result in the same API call. No webhook, no public URL needed.
 
 **Q: Do I need authentication?**
+
 Yes, but differently per caller type. Client-facing endpoints (`/api/*` except `PUT /api/bookings/:ref/status`) require `Authorization: Bearer <jwt>` (RS256, verified by `JWT_PUBLIC_KEY`). The internal `PUT /api/bookings/:ref/status` endpoint is excluded from JWT — it only accepts `X-Internal-Token`. Use `make jwt-token` to generate a test token for curl.
 
 **Q: Can I add packages to go.mod?**
+
 Yes. The existing `go.mod` for payment-service already includes Gin, `lib/pq`, and the Omise SDK. Add anything you need.
 
 **Q: What is `PUT /api/bookings/:ref/status`? Users don't call it?**
+
 Correct. It's called internally by payment-service after a successful charge to flip the booking from PENDING to CONFIRMED. It's not exposed to end users but it must exist for the end-to-end flow to work.
 
 **Q: What does booking `status` mean?**
+
 `PENDING` = booked, not yet paid. `CONFIRMED` = paid successfully. Payment-service is responsible for calling qoomlee-service to set CONFIRMED.
 
 **Q: Should I build a checkin-service or touch the `checkins` table?**
+
 No. Ignore them entirely — out of scope.

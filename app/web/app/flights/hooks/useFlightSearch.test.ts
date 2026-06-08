@@ -5,10 +5,10 @@ import { useFlightSearch } from "./useFlightSearch";
 describe("useFlightSearch", () => {
   // ── default state ──────────────────────────────────────────────────────────
 
-  it("initialises with round-trip, 1 passenger, economy", () => {
+  it("initialises with oneway, 1 passenger, economy", () => {
     const { result } = renderHook(() => useFlightSearch());
 
-    expect(result.current.state.tripType).toBe("round");
+    expect(result.current.state.tripType).toBe("oneway");
     expect(result.current.state.passengers).toBe(1);
     expect(result.current.state.cabinClass).toBe("economy");
     expect(result.current.state.origin).toBe("");
@@ -23,6 +23,7 @@ describe("useFlightSearch", () => {
     const { result } = renderHook(() => useFlightSearch());
 
     act(() => {
+      result.current.setTripType("round");
       result.current.setOrigin("BKK");
       result.current.setDestination("SIN");
       result.current.setDepartureDate("2026-06-15");
@@ -78,6 +79,7 @@ describe("useFlightSearch", () => {
     const { result } = renderHook(() => useFlightSearch());
 
     act(() => {
+      result.current.setTripType("round");
       result.current.setOrigin("BKK");
       result.current.setDestination("SIN");
       result.current.setDepartureDate("2026-06-15");
@@ -110,7 +112,6 @@ describe("useFlightSearch", () => {
     act(() => {
       result.current.setDestination("SIN");
       result.current.setDepartureDate("2026-06-15");
-      result.current.setReturnDate("2026-06-22");
     });
 
     expect(result.current.validate()).toBe(false);
@@ -123,7 +124,6 @@ describe("useFlightSearch", () => {
     act(() => {
       result.current.setOrigin("BKK");
       result.current.setDepartureDate("2026-06-15");
-      result.current.setReturnDate("2026-06-22");
     });
 
     expect(result.current.validate()).toBe(false);
@@ -137,7 +137,6 @@ describe("useFlightSearch", () => {
       result.current.setOrigin("BKK");
       result.current.setDestination("BKK");
       result.current.setDepartureDate("2026-06-15");
-      result.current.setReturnDate("2026-06-22");
     });
 
     expect(result.current.validate()).toBe(false);
@@ -150,7 +149,6 @@ describe("useFlightSearch", () => {
     act(() => {
       result.current.setOrigin("BKK");
       result.current.setDestination("SIN");
-      result.current.setReturnDate("2026-06-22");
     });
 
     expect(result.current.validate()).toBe(false);
@@ -161,6 +159,7 @@ describe("useFlightSearch", () => {
     const { result } = renderHook(() => useFlightSearch());
 
     act(() => {
+      result.current.setTripType("round");
       result.current.setOrigin("BKK");
       result.current.setDestination("SIN");
       result.current.setDepartureDate("2026-06-15");
@@ -175,6 +174,7 @@ describe("useFlightSearch", () => {
     const { result } = renderHook(() => useFlightSearch());
 
     act(() => {
+      result.current.setTripType("round");
       result.current.setOrigin("BKK");
       result.current.setDestination("SIN");
       result.current.setDepartureDate("2026-06-22");

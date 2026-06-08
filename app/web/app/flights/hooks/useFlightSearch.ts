@@ -73,8 +73,10 @@ export function useFlightSearch(): UseFlightSearch {
     cabinClass: "economy",
   });
 
-  // Use a ref so validate() can expose errors synchronously without a re-render cycle.
+  // Ref for synchronous reads (unit tests); tick forces a re-render so the UI
+  // actually displays the error messages after validate() is called.
   const errorsRef = useRef<ValidationErrors>({});
+  const [, setErrorsTick] = useState(0);
 
   const setTripType = (tripType: TripType) =>
     setState((s) => ({ ...s, tripType }));
@@ -107,6 +109,7 @@ export function useFlightSearch(): UseFlightSearch {
   const validate = (): boolean => {
     const errs = computeErrors(state);
     errorsRef.current = errs;
+    setErrorsTick((t) => t + 1);
     return Object.keys(errs).length === 0;
   };
 

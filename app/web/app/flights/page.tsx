@@ -14,12 +14,11 @@ export default function FlightsPage() {
   return (
     <>
       <TopAppBar />
-      <main className="pb-24">
+      <main className="pb-24 md:pb-8">
         {/* Hero Banner */}
-        <section className="hero-gradient px-container-margin-mobile pt-xl pb-xxl relative overflow-hidden">
-          <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-background to-transparent opacity-40" />
-          <div className="relative z-10">
-            <h1 className="text-headline-lg-mobile text-white mb-xs">
+        <section className="hero-gradient pt-xl pb-xxl relative overflow-hidden">
+          <div className="px-container-margin-mobile md:px-container-margin-desktop max-w-6xl mx-auto relative z-10">
+            <h1 className="text-headline-lg-mobile md:text-headline-lg text-white mb-xs">
               Flight Search
             </h1>
             <p className="text-body-md text-white/90">
@@ -33,9 +32,11 @@ export default function FlightsPage() {
           </div>
         </section>
 
-        <SearchForm />
-        <PopularDestinations />
-        <TravelTip />
+        <div className="md:max-w-6xl md:mx-auto">
+          <SearchForm />
+          <PopularDestinations />
+          <TravelTip />
+        </div>
       </main>
       <BottomNav />
     </>

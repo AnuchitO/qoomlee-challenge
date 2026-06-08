@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 interface Props {
   departureDate: string | null;
@@ -11,6 +11,7 @@ interface Props {
   onDepartureChange: (d: string | null) => void;
   onReturnChange: (d: string | null) => void;
   onAddReturn?: () => void;
+  boxMinHeight?: number;
 }
 
 export default function DateRangePicker({
@@ -22,18 +23,32 @@ export default function DateRangePicker({
   onDepartureChange,
   onReturnChange,
   onAddReturn,
+  boxMinHeight,
 }: Props) {
+  const boxStyle = boxMinHeight ? { minHeight: boxMinHeight } : undefined;
   const today = new Date().toISOString().split("T")[0];
   const departureRef = useRef<HTMLInputElement>(null);
   const returnRef = useRef<HTMLInputElement>(null);
+  const [shouldAutoOpen, setShouldAutoOpen] = useState(false);
 
   const openPicker = (ref: React.RefObject<HTMLInputElement | null>) => {
-    try {
-      ref.current?.showPicker();
-    } catch {
-      ref.current?.focus();
-    }
+    try { ref.current?.showPicker(); } catch { ref.current?.focus(); }
   };
+
+  // After "Add return" switches isReturnEnabled → true, auto-open the picker.
+  // useLayoutEffect fires synchronously after DOM mutations while the browser's
+  // user-gesture window (transient activation) is still valid for showPicker().
+  useLayoutEffect(() => {
+    if (isReturnEnabled && shouldAutoOpen) {
+      setShouldAutoOpen(false);
+      if (returnRef.current) {
+        // Force the browser to compute layout so showPicker positions correctly.
+        // Without this, the input's bounding rect is still (0,0) at this point.
+        returnRef.current.getBoundingClientRect();
+        openPicker(returnRef);
+      }
+    }
+  }, [isReturnEnabled, shouldAutoOpen]);
 
   return (
     <div className="grid grid-cols-2 gap-md">
@@ -44,6 +59,7 @@ export default function DateRangePicker({
         </label>
         <div
           onClick={() => openPicker(departureRef)}
+          style={boxStyle}
           className={`flex items-center gap-sm border rounded-xl p-md bg-surface-bright cursor-pointer ${
             departureError ? "border-error" : "border-outline-variant"
           }`}
@@ -74,6 +90,7 @@ export default function DateRangePicker({
           <>
             <div
               onClick={() => openPicker(returnRef)}
+              style={boxStyle}
               className={`flex items-center gap-sm border rounded-xl p-md transition-colors bg-surface-bright cursor-pointer ${
                 returnError ? "border-error" : "border-outline-variant"
               }`}
@@ -97,7 +114,8 @@ export default function DateRangePicker({
         ) : (
           <button
             type="button"
-            onClick={onAddReturn}
+            onClick={() => { setShouldAutoOpen(true); onAddReturn?.(); }}
+            style={boxStyle}
             className="flex items-center gap-sm border border-dashed border-outline-variant rounded-xl p-md w-full bg-surface-bright hover:bg-surface-container-high active:scale-95 transition-all cursor-pointer"
           >
             <svg

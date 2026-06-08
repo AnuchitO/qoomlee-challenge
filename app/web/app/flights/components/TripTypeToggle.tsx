@@ -25,7 +25,6 @@ export default function TripTypeToggle({ value, onChange }: Props) {
             <button
               key={type}
               type="button"
-              role="button"
               onClick={() => onChange(type)}
               className="flex-shrink-0 flex items-center justify-center rounded-full px-5 py-2 font-bold text-sm transition-colors whitespace-nowrap"
               style={{

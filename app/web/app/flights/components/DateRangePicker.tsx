@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
+import { showDatePicker } from "../utils/datePicker";
 
 interface Props {
   departureDate: string | null;
@@ -31,21 +32,12 @@ export default function DateRangePicker({
   const returnRef = useRef<HTMLInputElement>(null);
   const [shouldAutoOpen, setShouldAutoOpen] = useState(false);
 
-  const openPicker = (ref: React.RefObject<HTMLInputElement | null>) => {
-    try { ref.current?.showPicker(); } catch { ref.current?.focus(); }
-  };
-
-  // After "Add return" switches isReturnEnabled → true, auto-open the picker.
-  // useLayoutEffect fires synchronously after DOM mutations while the browser's
-  // user-gesture window (transient activation) is still valid for showPicker().
   useLayoutEffect(() => {
     if (isReturnEnabled && shouldAutoOpen) {
       setShouldAutoOpen(false);
       if (returnRef.current) {
-        // Force the browser to compute layout so showPicker positions correctly.
-        // Without this, the input's bounding rect is still (0,0) at this point.
         returnRef.current.getBoundingClientRect();
-        openPicker(returnRef);
+        showDatePicker(returnRef);
       }
     }
   }, [isReturnEnabled, shouldAutoOpen]);
@@ -58,7 +50,7 @@ export default function DateRangePicker({
           Departure
         </label>
         <div
-          onClick={() => openPicker(departureRef)}
+          onClick={() => showDatePicker(departureRef)}
           style={boxStyle}
           className={`flex items-center gap-sm border rounded-xl p-md bg-surface-bright cursor-pointer ${
             departureError ? "border-error" : "border-outline-variant"
@@ -89,7 +81,7 @@ export default function DateRangePicker({
         {isReturnEnabled ? (
           <>
             <div
-              onClick={() => openPicker(returnRef)}
+              onClick={() => showDatePicker(returnRef)}
               style={boxStyle}
               className={`flex items-center gap-sm border rounded-xl p-md transition-colors bg-surface-bright cursor-pointer ${
                 returnError ? "border-error" : "border-outline-variant"

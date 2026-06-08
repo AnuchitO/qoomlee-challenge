@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFlightSearch } from "../hooks/useFlightSearch";
+import { showDatePicker } from "../utils/datePicker";
 import TripTypeToggle from "./TripTypeToggle";
 import DateRangePicker from "./DateRangePicker";
 import PassengerSelector from "./PassengerSelector";
@@ -20,9 +21,6 @@ const addReturnSvg = (
   </svg>
 );
 
-function openDatePicker(ref: React.RefObject<HTMLInputElement | null>) {
-  try { ref.current?.showPicker(); } catch { ref.current?.focus(); }
-}
 
 export default function SearchForm() {
   const router = useRouter();
@@ -49,8 +47,8 @@ export default function SearchForm() {
     if (state.tripType === "round" && autoOpenReturn) {
       setAutoOpenReturn(false);
       if (returnRef.current) {
-        returnRef.current.getBoundingClientRect(); // force layout before showPicker
-        try { returnRef.current.showPicker(); } catch { returnRef.current.focus(); }
+        returnRef.current.getBoundingClientRect();
+        showDatePicker(returnRef);
       }
     }
   }, [state.tripType, autoOpenReturn]);
@@ -62,7 +60,6 @@ export default function SearchForm() {
     transition: "transform 0.35s ease",
   };
 
-  // ── Reusable date box used in the lg: flat row ──────────────────────────────
   const dateBoxClass = (hasError: boolean) =>
     `flex items-center gap-sm border rounded-xl px-md bg-surface-bright cursor-pointer min-h-[70px] ${
       hasError ? "border-error" : "border-outline-variant"
@@ -72,7 +69,7 @@ export default function SearchForm() {
     <section className="px-container-margin-mobile md:px-container-margin-desktop -mt-10 relative z-20">
       <div className="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant p-md">
 
-        {/* ── Row 1: trip type + passengers ───────────────────────────────────── */}
+        {/* row 1: trip type + passengers */}
         <div className="flex items-center justify-between gap-md mb-md">
           <TripTypeToggle value={state.tripType} onChange={setTripType} />
           <div className="hidden md:block shrink-0">
@@ -85,12 +82,7 @@ export default function SearchForm() {
           </div>
         </div>
 
-        {/* ════════════════════════════════════════════════════════════════════
-            lg: FLAT ROW — each field its own flex column, all same height
-            Phantom labels on Swap and Search columns align them with the inputs.
-            mb-[17px] on Swap button centres it in the 70 px input zone:
-              (70px input − 36px button) / 2 = 17 px
-        ════════════════════════════════════════════════════════════════════ */}
+        {/* lg+ — flat single row, one flex column per field */}
         <div className="hidden lg:flex lg:items-end lg:gap-sm">
 
           {/* From */}
@@ -139,7 +131,7 @@ export default function SearchForm() {
           {/* Departure */}
           <div className="flex-1 min-w-0 flex flex-col gap-xs">
             <label className="text-label-sm text-on-surface-variant px-1">Departure</label>
-            <div onClick={() => openDatePicker(departureRef)} className={dateBoxClass(!!errors.departureDate)}>
+            <div onClick={() => showDatePicker(departureRef)} className={dateBoxClass(!!errors.departureDate)}>
               <span className="material-symbols-outlined text-outline shrink-0 text-[20px]">calendar_today</span>
               <input
                 ref={departureRef}
@@ -158,7 +150,7 @@ export default function SearchForm() {
             <label className="text-label-sm text-on-surface-variant px-1">Return</label>
             {state.tripType === "round" ? (
               <>
-                <div onClick={() => openDatePicker(returnRef)} className={dateBoxClass(!!errors.returnDate)}>
+                <div onClick={() => showDatePicker(returnRef)} className={dateBoxClass(!!errors.returnDate)}>
                   <span className="material-symbols-outlined text-outline shrink-0 text-[20px]">calendar_today</span>
                   <input
                     ref={returnRef}
@@ -196,10 +188,7 @@ export default function SearchForm() {
           </div>
         </div>
 
-        {/* ════════════════════════════════════════════════════════════════════
-            md: COMPACT 2-COL GRID (768 px – 1023 px)
-            [From+swap+To] [Dates] [Search]
-        ════════════════════════════════════════════════════════════════════ */}
+        {/* md only — 2-col grid: [From+swap+To] [Dates] [Search] */}
         <div
           className="hidden md:grid lg:hidden md:gap-md md:items-start"
           style={{ gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr) auto" }}
@@ -270,10 +259,7 @@ export default function SearchForm() {
           </button>
         </div>
 
-        {/* ════════════════════════════════════════════════════════════════════
-            MOBILE layout (< 768 px)
-            Stacked card for From / To, absolute swap button over divider
-        ════════════════════════════════════════════════════════════════════ */}
+        {/* mobile */}
         <div className="md:hidden space-y-md">
 
           <div>

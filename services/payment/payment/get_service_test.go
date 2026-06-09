@@ -46,4 +46,27 @@ func TestServiceGetByBookingRef(t *testing.T) {
 		assert.EqualError(t, err, "db down")
 		assert.Nil(t, p)
 	})
+
+	// QML-009: FAILED payment failure details propagate through the service layer
+	t.Run("returns FAILED payment with failure code and message, paidAt zero", func(t *testing.T) {
+		want := &Payment{
+			ID:             2,
+			BookingRef:     "QM7X2K",
+			Status:         "FAILED",
+			AmountMinor:    350000,
+			Currency:       "THB",
+			FailureCode:    "insufficient_fund",
+			FailureMessage: "The card has insufficient funds.",
+		}
+		repo := &mockRepository{getPayment: want}
+		svc := NewService(&mockBookingClient{}, &mockOmiser{}, repo)
+
+		p, err := svc.GetByBookingRef(context.Background(), "QM7X2K")
+
+		require.NoError(t, err)
+		assert.Equal(t, "FAILED", p.Status)
+		assert.Equal(t, "insufficient_fund", p.FailureCode)
+		assert.Equal(t, "The card has insufficient funds.", p.FailureMessage)
+		assert.True(t, p.PaidAt.IsZero(), "paidAt must be zero for FAILED payment")
+	})
 }

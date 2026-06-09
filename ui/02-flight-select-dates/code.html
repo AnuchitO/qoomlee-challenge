@@ -1,0 +1,338 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Select Dates - Qoomlee</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-surface": "#213145",
+                    "secondary-container": "#b9d3fd",
+                    "on-surface-variant": "#414752",
+                    "secondary-fixed": "#d4e3ff",
+                    "inverse-primary": "#a5c8ff",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-container": "#425b7f",
+                    "primary": "#0057a2",
+                    "tertiary-fixed": "#ffddb2",
+                    "on-secondary-fixed": "#001c3a",
+                    "surface-container-high": "#dce9ff",
+                    "on-primary-fixed-variant": "#004786",
+                    "on-background": "#0b1c30",
+                    "surface-container": "#e5eeff",
+                    "on-tertiary-fixed": "#291800",
+                    "surface-variant": "#d3e4fe",
+                    "surface-bright": "#f8f9ff",
+                    "secondary": "#465f84",
+                    "on-primary-container": "#f0f4ff",
+                    "surface-dim": "#cbdbf5",
+                    "on-error": "#ffffff",
+                    "error": "#ba1a1a",
+                    "on-error-container": "#93000a",
+                    "surface": "#f8f9ff",
+                    "outline": "#717783",
+                    "on-secondary": "#ffffff",
+                    "on-surface": "#0b1c30",
+                    "on-tertiary-fixed-variant": "#624000",
+                    "outline-variant": "#c1c6d4",
+                    "tertiary": "#784f00",
+                    "on-primary-fixed": "#001c3a",
+                    "secondary-fixed-dim": "#aec8f2",
+                    "surface-tint": "#005faf",
+                    "primary-fixed-dim": "#a5c8ff",
+                    "inverse-on-surface": "#eaf1ff",
+                    "error-container": "#ffdad6",
+                    "background": "#f8f9ff",
+                    "tertiary-container": "#986500",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-fixed-dim": "#ffb94c",
+                    "surface-container-highest": "#d3e4fe",
+                    "on-primary": "#ffffff",
+                    "primary-fixed": "#d4e3ff",
+                    "on-tertiary-container": "#fff2e5",
+                    "on-secondary-fixed-variant": "#2e486b",
+                    "surface-container-low": "#eff4ff",
+                    "primary-container": "#0e70ca"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sm": "8px",
+                    "container-margin-desktop": "32px",
+                    "xxl": "48px",
+                    "xl": "32px",
+                    "container-margin-mobile": "16px",
+                    "gutter": "16px",
+                    "xs": "4px",
+                    "lg": "24px",
+                    "md": "16px",
+                    "base": "8px"
+            },
+            "fontFamily": {
+                    "mono-data": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "label-md": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "mono-data": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+        }
+        .day-cell {
+            min-height: 44px;
+            min-width: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+        .range-bg {
+            background-color: rgba(212, 227, 255, 0.4);
+            position: absolute;
+            inset: 4px 0;
+            z-index: 0;
+        }
+        .range-start .range-bg { left: 50%; border-top-left-radius: 9999px; border-bottom-left-radius: 9999px; }
+        .range-end .range-bg { right: 50%; border-top-right-radius: 9999px; border-bottom-right-radius: 9999px; }
+        .in-range .range-bg { left: 0; right: 0; }
+        
+        /* Hide scrollbar but keep functionality */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container">
+<!-- Header (TopAppBar variant) -->
+<header class="fixed top-0 left-0 w-full z-50 bg-surface border-b border-outline-variant h-[64px] flex items-center px-container-margin-mobile shadow-sm">
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors active:scale-95 duration-150">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<h1 class="flex-1 text-center font-headline-md text-headline-md font-bold tracking-tight text-on-surface">Select Dates</h1>
+<button class="px-3 py-2 text-primary font-label-md text-label-md hover:bg-primary-container/10 rounded-lg transition-colors">
+            Clear
+        </button>
+</header>
+<main class="pt-[64px] pb-[180px] max-w-md mx-auto">
+<!-- Month Navigation -->
+<div class="sticky top-[64px] z-40 bg-surface px-container-margin-mobile py-md flex items-center justify-between">
+<button class="p-2 text-primary hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<h2 class="font-headline-md text-headline-md text-on-surface">October 2024</h2>
+<button class="p-2 text-primary hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+<!-- Calendar Section: October -->
+<section class="px-container-margin-mobile">
+<!-- Day Labels -->
+<div class="calendar-grid mb-sm">
+<div class="text-center font-label-sm text-label-sm text-on-surface-variant">S</div>
+<div class="text-center font-label-sm text-label-sm text-on-surface-variant">M</div>
+<div class="text-center font-label-sm text-label-sm text-on-surface-variant">T</div>
+<div class="text-center font-label-sm text-label-sm text-on-surface-variant">W</div>
+<div class="text-center font-label-sm text-label-sm text-on-surface-variant">T</div>
+<div class="text-center font-label-sm text-label-sm text-on-surface-variant">F</div>
+<div class="text-center font-label-sm text-label-sm text-on-surface-variant">S</div>
+</div>
+<!-- Grid October -->
+<div class="calendar-grid gap-y-1">
+<!-- Empty cells for start of month (Oct 2024 starts on Tue) -->
+<div class="day-cell"></div>
+<div class="day-cell"></div>
+<!-- Past Dates -->
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">1</div>
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">2</div>
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">3</div>
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">4</div>
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">5</div>
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">6</div>
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">7</div>
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">8</div>
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">9</div>
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">10</div>
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">11</div>
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">12</div>
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">13</div>
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">14</div>
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">15</div>
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">16</div>
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">17</div>
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">18</div>
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">19</div>
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">20</div>
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">21</div>
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">22</div>
+<div class="day-cell text-outline pointer-events-none font-body-md text-body-md">23</div>
+<!-- Selected Start: Oct 24 -->
+<div class="day-cell range-start group">
+<div class="range-bg"></div>
+<span class="relative z-10 w-10 h-10 flex items-center justify-center bg-primary-container text-on-primary-container rounded-full border-2 border-primary font-bold">24</span>
+</div>
+<!-- In Range -->
+<div class="day-cell in-range">
+<div class="range-bg"></div>
+<span class="relative z-10 font-body-md text-body-md">25</span>
+</div>
+<div class="day-cell in-range">
+<div class="range-bg"></div>
+<span class="relative z-10 font-body-md text-body-md">26</span>
+</div>
+<div class="day-cell in-range">
+<div class="range-bg"></div>
+<span class="relative z-10 font-body-md text-body-md">27</span>
+</div>
+<div class="day-cell in-range">
+<div class="range-bg"></div>
+<span class="relative z-10 font-body-md text-body-md">28</span>
+</div>
+<div class="day-cell in-range">
+<div class="range-bg"></div>
+<span class="relative z-10 font-body-md text-body-md">29</span>
+</div>
+<div class="day-cell in-range">
+<div class="range-bg"></div>
+<span class="relative z-10 font-body-md text-body-md">30</span>
+</div>
+<!-- Selected End: Oct 31 -->
+<div class="day-cell range-end">
+<div class="range-bg"></div>
+<span class="relative z-10 w-10 h-10 flex items-center justify-center bg-primary-container text-on-primary-container rounded-full font-bold">31</span>
+</div>
+</div>
+</section>
+<!-- Calendar Section: November -->
+<section class="px-container-margin-mobile mt-xl">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-md">November 2024</h2>
+<div class="calendar-grid gap-y-1">
+<!-- Nov 2024 starts on Fri -->
+<div class="day-cell"></div>
+<div class="day-cell"></div>
+<div class="day-cell"></div>
+<div class="day-cell"></div>
+<div class="day-cell"><span class="font-body-md text-body-md">1</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">2</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">3</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">4</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">5</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">6</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">7</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">8</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">9</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">10</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">11</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">12</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">13</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">14</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">15</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">16</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">17</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">18</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">19</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">20</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">21</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">22</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">23</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">24</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">25</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">26</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">27</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">28</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">29</span></div>
+<div class="day-cell"><span class="font-body-md text-body-md">30</span></div>
+</div>
+</section>
+<!-- Decorative Spacer Image -->
+<div class="px-container-margin-mobile mt-xl">
+<div class="relative h-40 rounded-xl overflow-hidden shadow-lg border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="An expansive view from an airplane window looking out over a sea of soft white clouds at sunrise. The sky transitions from a deep sapphire blue at the top to a bright, warm gold near the horizon, reflecting the Aero-Modernist theme. The composition is clean and minimalist, conveying a sense of calm, premium travel and the efficiency of the airline brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDirqQUU3F3kzZnJkdDLrzt6DC7rdixzNU-74RrIgbGJ5EvEJBUkl-waYfYctw_1cuXrxo3-zp_ZFzBZ-hLHOj5_jjntpa8gQLK1RCdvn0KUactwyZfEEaL3_oG6lMI2hA-egAY4RqFPD7DDhxlDUvw2LjLqwnzOnwGGBnsDrlwVjB6ZPS8ewWPzl4MZ6JYS12ZZ7x0_P2k-RgevD2GCa0buer5aoqj5pr40yd_9ItGLL-WJuEUBFKP3wYVU2aBD9MVzKpArwO9Chs">
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end p-4">
+<p class="text-white font-label-md">Plan your next horizon with Qoomlee.</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Sticky Container -->
+<div class="fixed bottom-0 left-0 w-full z-50 bg-surface-container-low p-container-margin-mobile shadow-[0_-4px_12px_rgba(0,0,0,0.05)] border-t border-outline-variant">
+<!-- Summary Bar -->
+<div class="flex items-center justify-center gap-md mb-md">
+<!-- Departure Chip -->
+<div class="flex items-center gap-sm bg-surface-container px-4 py-2 rounded-full border border-outline-variant">
+<span class="material-symbols-outlined text-primary text-[18px]">flight_takeoff</span>
+<div class="flex flex-col">
+<span class="text-[10px] text-on-surface-variant leading-none uppercase tracking-wider">Departure</span>
+<span class="font-label-md text-on-surface">Oct 24</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline">arrow_forward</span>
+<!-- Return Chip -->
+<div class="flex items-center gap-sm bg-surface-container px-4 py-2 rounded-full border border-outline-variant">
+<span class="material-symbols-outlined text-primary text-[18px]">flight_land</span>
+<div class="flex flex-col">
+<span class="text-[10px] text-on-surface-variant leading-none uppercase tracking-wider">Return</span>
+<span class="font-label-md text-on-surface">Oct 31</span>
+</div>
+</div>
+</div>
+<!-- Confirm Button -->
+<button class="w-full bg-primary-container hover:bg-primary transition-all active:scale-95 text-on-primary-container font-headline-md text-headline-md h-[56px] rounded-xl flex items-center justify-center shadow-lg">
+            Confirm · Oct 24 – Oct 31
+        </button>
+</div>
+<!-- Navigation Overlay (Hidden on Calendar Screen for focus, but defined for structure) -->
+<script>
+        // Simple micro-interaction for date selection simulation
+        document.querySelectorAll('.day-cell:not(.text-outline)').forEach(cell => {
+            cell.addEventListener('click', function() {
+                // Toggle effect logic would go here in a real app
+                this.classList.add('scale-90');
+                setTimeout(() => this.classList.remove('scale-90'), 100);
+            });
+        });
+    </script>
+</body></html>

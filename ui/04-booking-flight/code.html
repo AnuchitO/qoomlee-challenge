@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-variant": "#d3e4fe",
+                    "tertiary-fixed-dim": "#ffb94c",
+                    "tertiary-container": "#986500",
+                    "on-secondary-fixed-variant": "#2e486b",
+                    "secondary-container": "#b9d3fd",
+                    "inverse-on-surface": "#eaf1ff",
+                    "surface-container-high": "#dce9ff",
+                    "inverse-surface": "#213145",
+                    "surface-bright": "#f8f9ff",
+                    "on-secondary": "#ffffff",
+                    "primary": "#0057a2",
+                    "on-primary-fixed": "#001c3a",
+                    "primary-fixed": "#d4e3ff",
+                    "outline": "#717783",
+                    "error": "#ba1a1a",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed": "#d4e3ff",
+                    "on-tertiary-container": "#fff2e5",
+                    "on-error": "#ffffff",
+                    "surface-container-highest": "#d3e4fe",
+                    "on-tertiary-fixed": "#291800",
+                    "primary-fixed-dim": "#a5c8ff",
+                    "secondary": "#465f84",
+                    "on-background": "#0b1c30",
+                    "on-surface": "#0b1c30",
+                    "outline-variant": "#c1c6d4",
+                    "on-tertiary-fixed-variant": "#624000",
+                    "tertiary": "#784f00",
+                    "primary-container": "#0e70ca",
+                    "on-primary": "#ffffff",
+                    "background": "#f8f9ff",
+                    "surface-tint": "#005faf",
+                    "surface-dim": "#cbdbf5",
+                    "on-primary-container": "#f0f4ff",
+                    "surface-container": "#e5eeff",
+                    "on-surface-variant": "#414752",
+                    "surface-container-low": "#eff4ff",
+                    "surface": "#f8f9ff",
+                    "tertiary-fixed": "#ffddb2",
+                    "inverse-primary": "#a5c8ff",
+                    "on-primary-fixed-variant": "#004786",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed-dim": "#aec8f2",
+                    "on-secondary-container": "#425b7f",
+                    "on-error-container": "#93000a",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-fixed": "#001c3a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "container-margin-desktop": "32px",
+                    "xl": "32px",
+                    "sm": "8px",
+                    "md": "16px",
+                    "lg": "24px",
+                    "base": "8px",
+                    "xxl": "48px",
+                    "container-margin-mobile": "16px",
+                    "xs": "4px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "body-md": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "label-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "mono-data": ["Inter"]
+            },
+            "fontSize": {
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "mono-data": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .boarding-pass-dash {
+            background-image: linear-gradient(to right, #c1c6d4 50%, transparent 50%);
+            background-size: 10px 1px;
+            background-repeat: repeat-x;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopAppBar -->
+<header class="bg-surface-bright border-b border-outline-variant shadow-sm flex justify-between items-center w-full px-container-margin-mobile py-md h-16 sticky top-0 z-40">
+<div class="flex items-center gap-md">
+<button class="text-primary hover:bg-surface-container-high transition-colors p-sm rounded-full">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<span class="font-headline-lg-mobile text-headline-lg-mobile tracking-tight text-primary">Qoomlee</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-secondary-container overflow-hidden border border-outline-variant">
+<img alt="User profile photo" class="w-full h-full object-cover" data-alt="A professional headshot of a smiling person against a soft, out-of-focus urban background. The lighting is natural and bright, conveying a sense of approachability and modern corporate style. The image has a clean aesthetic that perfectly aligns with a premium travel application's light-mode interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsPMWkBRdUfRIKBF_ytOFoWjb6OJqAfammaf8DG7ESa4ndAQTt5otEtoNPjhiLPDgcZM7CA0DMTMN1mxkYpFOi45860LTs8Oq1tLTjBmE-FweN1xgemchmJZufTNyaINqEvwaszNB3vS065_xb841WJcVnNXKiaG-uihQhumgc6OC6SlKSJJI8nnjDnMpRX3IpTA8UJ8D3cDUxuGz35AlOjfGNuIWqB-1QQOPqhYosz6z6j9CD3L2JESU9P14gX5t0WYD_Nz7Q1AM"/>
+</div>
+</header>
+<main class="max-w-md mx-auto pb-xxl px-container-margin-mobile">
+<!-- Hero Section -->
+<section class="mt-lg mb-lg">
+<div class="relative rounded-xl overflow-hidden h-40 flex items-end p-lg">
+<img alt="Clouds and sky" class="absolute inset-0 w-full h-full object-cover" data-alt="An expansive view of soft, ethereal white clouds floating against a brilliant deep blue sky during the bright midday. The perspective is from an airplane window, showing the vast horizon and the clear, airy atmosphere typical of high-altitude flight. The visual style is clean, optimistic, and premium, using the brand's primary sky blue palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLRiEjn9D2qhXL_qb7nOWs3gM1a3ds4lyAzCUwuuf_9VWj759SWNSUj9G-QT_lR3m59CNFEkfcNzBiRSkP8N46qixJ3_UZTSf054Z5Sp4IBpduiW66TfTt44PM-3I1dyJ6uA-9uivo1s6dfTkF7c60BEUPt25zb5Du4hY1meC_4S1sHyCHMiKepkMLjoFmcq9t8hx3iZFN7tlOS75mQnrIqSQsVAZcaSgR9QDCXG2OKNKSAqEtBCMUDiKtCtTP9d6KqgTFfsR1AkI"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent"></div>
+<h1 class="relative font-headline-lg-mobile text-headline-lg-mobile text-on-primary">Book Your Flight</h1>
+</div>
+</section>
+<!-- Flight Summary (Contextual Anchor) -->
+<section class="mb-lg">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-[0px_2px_4px_rgba(0,0,0,0.05)] overflow-hidden">
+<div class="bg-secondary px-lg py-md flex justify-between items-center text-on-secondary">
+<span class="font-label-md text-label-md">Flight Summary</span>
+<span class="font-mono-data text-mono-data uppercase">QM-204</span>
+</div>
+<div class="p-lg">
+<div class="flex justify-between items-center mb-md">
+<div class="text-left">
+<p class="font-headline-md text-headline-md text-primary">BKK</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Bangkok</p>
+</div>
+<div class="flex flex-col items-center flex-1 px-md">
+<span class="material-symbols-outlined text-outline-variant" data-icon="flight_takeoff">flight_takeoff</span>
+<div class="w-full h-[1px] bg-outline-variant relative my-sm">
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary"></div>
+</div>
+</div>
+<div class="text-right">
+<p class="font-headline-md text-headline-md text-primary">SYD</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Sydney</p>
+</div>
+</div>
+<div class="flex items-center gap-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="calendar_today">calendar_today</span>
+<span class="font-label-md text-label-md">May 20, 2024 • 09:30 AM</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Passenger Info Form -->
+<section class="mb-lg">
+<div class="flex items-center gap-sm mb-md">
+<span class="material-symbols-outlined text-primary" data-icon="person">person</span>
+<h2 class="font-headline-md text-headline-md">Passenger Details</h2>
+</div>
+<div class="space-y-md">
+<div class="grid grid-cols-2 gap-md">
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface-variant ml-sm">First Name</label>
+<input class="w-full bg-surface-bright border border-outline-variant rounded-xl px-md py-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-outline/50" placeholder="e.g. John" type="text"/>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface-variant ml-sm">Last Name</label>
+<input class="w-full bg-surface-bright border border-outline-variant rounded-xl px-md py-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-outline/50" placeholder="e.g. Doe" type="text"/>
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface-variant ml-sm">Email Address</label>
+<input class="w-full bg-surface-bright border border-outline-variant rounded-xl px-md py-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-outline/50" placeholder="john.doe@example.com" type="email"/>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-label-md text-on-surface-variant ml-sm">Phone Number</label>
+<div class="flex gap-sm">
+<select class="bg-surface-container-low border border-outline-variant rounded-xl px-sm font-label-md text-label-md">
+<option>+66</option>
+<option>+61</option>
+</select>
+<input class="flex-1 bg-surface-bright border border-outline-variant rounded-xl px-md py-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-outline/50" placeholder="000 000 000" type="tel"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Price Summary Card -->
+<section class="mb-xxl">
+<div class="bg-surface-container border border-outline-variant rounded-xl p-lg shadow-sm">
+<h2 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-md">Payment Summary</h2>
+<div class="space-y-sm">
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant font-body-md text-body-md">Base Fare (1x Adult)</span>
+<span class="text-on-surface font-label-md text-label-md">$840.00</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant font-body-md text-body-md">Taxes &amp; Fees</span>
+<span class="text-on-surface font-label-md text-label-md">$124.50</span>
+</div>
+<!-- Gold Accent Upgrade Suggestion -->
+<div class="mt-md p-md bg-tertiary-fixed rounded-xl flex items-center justify-between border border-tertiary/20">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-tertiary" data-icon="workspace_premium" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+<div>
+<p class="font-label-md text-label-md text-on-tertiary-fixed">Upgrade to Business</p>
+<p class="text-[10px] text-on-tertiary-fixed-variant leading-none">Lounge access &amp; more</p>
+</div>
+</div>
+<span class="font-label-md text-label-md text-tertiary-container">+$299</span>
+</div>
+<div class="boarding-pass-dash h-px w-full my-lg"></div>
+<div class="flex justify-between items-center">
+<span class="font-headline-md text-headline-md text-on-surface">Total Amount</span>
+<span class="font-headline-lg-mobile text-headline-lg-mobile text-primary">$964.50</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Fixed CTA Area -->
+<div class="fixed bottom-0 left-0 w-full bg-surface-bright/80 backdrop-blur-md border-t border-outline-variant px-container-margin-mobile py-md z-40">
+<div class="max-w-md mx-auto">
+<button class="w-full bg-primary text-on-primary font-label-md text-label-md py-lg rounded-xl shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-sm">
+                    Continue to Payment
+                    <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Suppressed BottomNavBar as this is a focused checkout journey -->
+</body></html>

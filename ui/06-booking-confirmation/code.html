@@ -1,0 +1,293 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Booking Confirmation - Qoomlee</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#a5c8ff",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed-variant": "#004786",
+                        "tertiary-fixed-dim": "#ffb94c",
+                        "background": "#f8f9ff",
+                        "surface-dim": "#cbdbf5",
+                        "on-background": "#0b1c30",
+                        "surface-variant": "#d3e4fe",
+                        "primary-fixed": "#d4e3ff",
+                        "on-tertiary-fixed": "#291800",
+                        "on-error-container": "#93000a",
+                        "inverse-on-surface": "#eaf1ff",
+                        "error": "#ba1a1a",
+                        "inverse-surface": "#213145",
+                        "tertiary": "#784f00",
+                        "on-surface": "#0b1c30",
+                        "outline": "#717783",
+                        "surface-container": "#e5eeff",
+                        "secondary": "#465f84",
+                        "on-secondary-fixed-variant": "#2e486b",
+                        "inverse-primary": "#a5c8ff",
+                        "surface-container-low": "#eff4ff",
+                        "surface": "#f8f9ff",
+                        "primary": "#0057a2",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-container": "#f0f4ff",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed-dim": "#aec8f2",
+                        "tertiary-container": "#986500",
+                        "on-secondary": "#ffffff",
+                        "outline-variant": "#c1c6d4",
+                        "on-tertiary-container": "#fff2e5",
+                        "on-secondary-fixed": "#001c3a",
+                        "secondary-fixed": "#d4e3ff",
+                        "on-secondary-container": "#425b7f",
+                        "secondary-container": "#b9d3fd",
+                        "tertiary-fixed": "#ffddb2",
+                        "error-container": "#ffdad6",
+                        "on-primary": "#ffffff",
+                        "on-surface-variant": "#414752",
+                        "on-primary-fixed": "#001c3a",
+                        "primary-container": "#0e70ca",
+                        "surface-tint": "#005faf",
+                        "surface-container-high": "#dce9ff",
+                        "on-tertiary-fixed-variant": "#624000",
+                        "surface-container-highest": "#d3e4fe",
+                        "surface-bright": "#f8f9ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "md": "16px",
+                        "xxl": "48px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "container-margin-desktop": "32px",
+                        "base": "8px",
+                        "container-margin-mobile": "16px",
+                        "sm": "8px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "mono-data": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "mono-data": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .hero-gradient {
+            background: linear-gradient(135deg, #0e70ca 0%, #004786 100%);
+        }
+        @keyframes scale-up {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .animate-scale-up {
+            animation: scale-up 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen pb-32">
+<!-- Top App Bar -->
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-gutter h-16 bg-surface border-b border-outline-variant shadow-sm">
+<div class="w-10"></div> <!-- Spacer to center headline -->
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary">Qoomlee</h1>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors active:scale-95 duration-150">
+<span class="material-symbols-outlined text-primary" data-icon="share">share</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-16 max-w-md mx-auto">
+<!-- Success Hero Section -->
+<section class="hero-gradient px-gutter pt-xl pb-xxl text-center flex flex-col items-center">
+<div class="animate-scale-up mb-md">
+<span class="material-symbols-outlined text-white text-[80px]" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-white mb-xs">Booking Confirmed!</h2>
+<p class="font-body-md text-body-md text-white opacity-80">Your adventure begins here ✈</p>
+</section>
+<!-- PNR Card -->
+<div class="px-gutter -mt-xl relative z-10">
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-lg p-md">
+<div class="flex justify-between items-start mb-sm">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block mb-xs uppercase tracking-wider">Booking Reference</span>
+<span class="font-mono-data text-headline-lg text-primary tracking-[0.15em] font-bold">QM92Z4</span>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full border border-outline-variant hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="copy_all">copy_all</span>
+</button>
+</div>
+<div class="border-t border-outline-variant pt-sm mt-sm">
+<p class="font-label-md text-label-md text-on-surface-variant">QQ101 · BKK → SYD · Thu, 24 Oct 2024 · 08:00</p>
+</div>
+</div>
+</div>
+<!-- Flight Timeline Card -->
+<section class="px-gutter mt-lg">
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-md">
+<div class="flex items-start justify-between relative">
+<!-- Left: Departure -->
+<div class="flex flex-col z-10">
+<span class="font-headline-md text-headline-md">08:00</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">BKK</span>
+<span class="font-label-sm text-label-sm text-outline">Terminal 1</span>
+</div>
+<!-- Center: Timeline Visual -->
+<div class="flex-1 flex flex-col items-center px-sm mt-2">
+<div class="w-full flex items-center relative h-6">
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="flight_takeoff">flight_takeoff</span>
+<div class="flex-1 border-b-2 border-dashed border-primary mx-1"></div>
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="flight">flight</span>
+<div class="flex-1 border-b-2 border-dashed border-primary mx-1"></div>
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="flight_land">flight_land</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary bg-primary-fixed px-2 rounded-full mt-2">8h 30m Direct</span>
+</div>
+<!-- Right: Arrival -->
+<div class="flex flex-col items-end z-10 text-right">
+<span class="font-headline-md text-headline-md">16:30</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">SYD</span>
+<span class="font-label-sm text-label-sm text-outline">Terminal 1</span>
+</div>
+</div>
+<div class="mt-md pt-md border-t border-outline-variant flex justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline">From</span>
+<span class="font-label-md text-label-md">Bangkok Suvarnabhumi</span>
+</div>
+<div class="flex flex-col text-right">
+<span class="font-label-sm text-label-sm text-outline">To</span>
+<span class="font-label-md text-label-md">Sydney Kingsford Smith</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Passenger Info -->
+<section class="px-gutter mt-md">
+<div class="bg-surface-container rounded-xl p-md flex items-center">
+<div class="w-10 h-10 bg-primary-container rounded-full flex items-center justify-center mr-md">
+<span class="material-symbols-outlined text-on-primary-container" data-icon="person">person</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Jonathan Doe</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Seat 14A · Economy</span>
+</div>
+</div>
+</section>
+<!-- Action List -->
+<section class="px-gutter mt-lg space-y-md">
+<button class="w-full bg-surface-container-lowest rounded-xl border border-outline-variant p-md flex items-center justify-between hover:bg-surface-container-low transition-all active:scale-95">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-primary mr-md" data-icon="calendar_add_on">calendar_add_on</span>
+<span class="font-label-md text-label-md">Add to Calendar</span>
+</div>
+<span class="material-symbols-outlined text-outline" data-icon="chevron_right">chevron_right</span>
+</button>
+<button class="w-full bg-surface-container-lowest rounded-xl border border-outline-variant p-md flex items-center justify-between hover:bg-surface-container-low transition-all active:scale-95">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-primary mr-md" data-icon="download">download</span>
+<span class="font-label-md text-label-md">Download Itinerary PDF</span>
+</div>
+<span class="material-symbols-outlined text-outline" data-icon="chevron_right">chevron_right</span>
+</button>
+<button class="w-full bg-surface-container-lowest rounded-xl border border-outline-variant p-md flex items-center justify-between hover:bg-surface-container-low transition-all active:scale-95">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-primary mr-md" data-icon="receipt_long">receipt_long</span>
+<span class="font-label-md text-label-md">View Full Booking Details</span>
+</div>
+<span class="material-symbols-outlined text-outline" data-icon="chevron_right">chevron_right</span>
+</button>
+</section>
+<!-- Email Status -->
+<section class="px-gutter mt-lg">
+<div class="bg-surface-container-low rounded-lg py-2 px-md flex items-center justify-between">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-secondary mr-2 text-[18px]" data-icon="mark_email_read">mark_email_read</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Confirmation sent to john@email.com</span>
+</div>
+<button class="font-label-sm text-label-sm text-primary font-bold">Resend</button>
+</div>
+</section>
+<!-- Primary Actions -->
+<section class="px-gutter mt-xl space-y-md">
+<div class="flex flex-col gap-xs">
+<button class="w-full bg-primary-container text-on-primary-container py-4 rounded-xl font-label-md shadow-sm hover:brightness-110 active:scale-95 transition-all">
+                    Go to Online Check-in
+                </button>
+<p class="font-label-sm text-label-sm text-center text-outline">Note: Check-in opens 24h before departure</p>
+</div>
+<button class="w-full border border-primary text-primary py-4 rounded-xl font-label-md hover:bg-surface-container-low active:scale-95 transition-all">
+                Back to Home
+            </button>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 bg-surface-container border-t border-outline-variant rounded-t-xl shadow-lg">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-variant transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span class="font-label-sm text-label-sm">Search</span>
+</a>
+<!-- ACTIVE: Bookings -->
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-4 py-1 active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="airplane_ticket" style="font-variation-settings: 'FILL' 1;">airplane_ticket</span>
+<span class="font-label-sm text-label-sm">Bookings</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-variant transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="how_to_reg">how_to_reg</span>
+<span class="font-label-sm text-label-sm">Check-in</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-variant transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="confirmation_number">confirmation_number</span>
+<span class="font-label-sm text-label-sm">Passes</span>
+</a>
+</nav>
+<!-- Interaction Script -->
+<script>
+        // Micro-interactions
+        document.querySelectorAll('button, a').forEach(el => {
+            el.addEventListener('click', (e) => {
+                // Haptic feedback simulation or simple console log for tracking
+                console.log('Action triggered:', el.innerText || el.querySelector('span')?.innerText);
+            });
+        });
+    </script>
+</body></html>

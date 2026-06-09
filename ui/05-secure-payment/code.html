@@ -1,0 +1,362 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Qoomlee - Secure Payment</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error-container": "#93000a",
+                        "surface": "#f8f9ff",
+                        "outline": "#717783",
+                        "on-secondary": "#ffffff",
+                        "on-surface": "#0b1c30",
+                        "on-tertiary-fixed-variant": "#624000",
+                        "tertiary": "#784f00",
+                        "on-primary-fixed": "#001c3a",
+                        "outline-variant": "#c1c6d4",
+                        "secondary-fixed-dim": "#aec8f2",
+                        "surface-tint": "#005faf",
+                        "primary-fixed-dim": "#a5c8ff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "background": "#f8f9ff",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#986500",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb94c",
+                        "surface-container-highest": "#d3e4fe",
+                        "primary-fixed": "#d4e3ff",
+                        "surface-container-low": "#eff4ff",
+                        "primary-container": "#0e70ca",
+                        "on-tertiary-container": "#fff2e5",
+                        "on-secondary-fixed-variant": "#2e486b",
+                        "inverse-surface": "#213145",
+                        "secondary-container": "#b9d3fd",
+                        "on-surface-variant": "#414752",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#425b7f",
+                        "secondary-fixed": "#d4e3ff",
+                        "inverse-primary": "#a5c8ff",
+                        "tertiary-fixed": "#ffddb2",
+                        "on-secondary-fixed": "#001c3a",
+                        "primary": "#0057a2",
+                        "surface-container-high": "#dce9ff",
+                        "on-primary-fixed-variant": "#004786",
+                        "on-background": "#0b1c30",
+                        "surface-variant": "#d3e4fe",
+                        "surface-bright": "#f8f9ff",
+                        "secondary": "#465f84",
+                        "surface-container": "#e5eeff",
+                        "on-tertiary-fixed": "#291800",
+                        "surface-dim": "#cbdbf5",
+                        "on-primary-container": "#f0f4ff",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "lg": "24px",
+                        "gutter": "16px",
+                        "base": "8px",
+                        "md": "16px",
+                        "xxl": "48px",
+                        "container-margin-desktop": "32px",
+                        "sm": "8px",
+                        "container-margin-mobile": "16px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "mono-data": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "mono-data": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .glass-effect {
+            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.8);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body-md selection:bg-secondary-container">
+<!-- Top App Bar -->
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-gutter h-16 bg-surface border-b border-outline-variant shadow-sm glass-effect">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors active:scale-95 duration-150 ease-in-out">
+<span class="material-symbols-outlined text-primary" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md-mobile text-primary font-bold">Secure Payment</h1>
+<div class="w-10 h-10 flex items-center justify-center">
+<span class="material-symbols-outlined text-outline-variant" data-icon="lock">lock</span>
+</div>
+</header>
+<main class="pt-20 pb-32 px-4 max-w-xl mx-auto space-y-6">
+<!-- Progress Stepper -->
+<div class="flex items-center justify-between px-2 py-4">
+<div class="flex flex-col items-center gap-1">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center text-label-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="check" data-weight="fill">check</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface">Flights</span>
+</div>
+<div class="flex-1 h-[2px] bg-primary mx-2 -mt-5"></div>
+<div class="flex flex-col items-center gap-1">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center text-label-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="check" data-weight="fill">check</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface">Seats</span>
+</div>
+<div class="flex-1 h-[2px] bg-primary mx-2 -mt-5"></div>
+<div class="flex flex-col items-center gap-1">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center text-label-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="check" data-weight="fill">check</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface">Extras</span>
+</div>
+<div class="flex-1 h-[2px] bg-outline-variant mx-2 -mt-5"></div>
+<div class="flex flex-col items-center gap-1">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container border-2 border-primary flex items-center justify-center text-label-sm font-bold">4</div>
+<span class="font-label-sm text-label-sm text-primary font-bold">Payment</span>
+</div>
+</div>
+<!-- Order Summary Card -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h2 class="font-label-md text-label-md text-outline">Booking Summary</h2>
+<p class="font-headline-md text-headline-md-mobile mt-1">QQ101 · BKK → SYD</p>
+<p class="font-body-md text-on-surface-variant">Thu 24 Oct · 1 Adult</p>
+</div>
+<div class="bg-surface-container-high px-3 py-1 rounded-full flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary" data-icon="schedule">schedule</span>
+<span class="font-mono-data text-mono-data text-primary" id="countdown">14:32</span>
+</div>
+</div>
+<div class="space-y-2 py-4 border-y border-outline-variant border-dashed">
+<div class="flex justify-between text-body-md">
+<span class="text-on-surface-variant">Base fare</span>
+<span class="text-on-surface">฿7,200</span>
+</div>
+<div class="flex justify-between text-body-md">
+<span class="text-on-surface-variant">Taxes &amp; Fees</span>
+<span class="text-on-surface">฿1,250</span>
+</div>
+<div class="flex justify-between text-body-md">
+<span class="text-on-surface-variant">Seat 14A</span>
+<span class="text-tertiary font-medium">Free</span>
+</div>
+<div class="flex justify-between text-body-md">
+<span class="text-on-surface-variant">Travel Insurance</span>
+<span class="text-on-surface">฿590</span>
+</div>
+<div class="flex justify-between text-body-md text-primary font-bold pt-1">
+<span class="text-on-surface-variant">Promo Discount</span>
+<span>- ฿500</span>
+</div>
+</div>
+<div class="flex justify-between items-center mt-4">
+<span class="font-label-md text-label-md">Total Amount</span>
+<span class="font-headline-lg text-headline-lg-mobile text-primary">฿9,040</span>
+</div>
+</section>
+<!-- Promo Code -->
+<section class="space-y-3">
+<div class="flex gap-2">
+<div class="relative flex-1">
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-container transition-all" placeholder="Promo code" type="text">
+</div>
+<button class="bg-primary text-on-primary font-label-md text-label-md px-6 py-3 rounded-xl hover:bg-on-primary-fixed-variant transition-colors active:scale-95">Apply</button>
+</div>
+<div class="bg-primary-container/10 border border-primary-container/20 rounded-lg p-3 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-container" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-label-md text-label-md text-primary-container">QOOMFIRST applied — ฿500 off!</span>
+</div>
+</section>
+<!-- Payment Method Tabs -->
+<section class="space-y-4">
+<h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider px-1">Payment Method</h3>
+<div class="flex bg-surface-container rounded-xl p-1 gap-1">
+<button class="flex-1 py-2 rounded-lg font-label-md text-label-md transition-all bg-surface-container-lowest shadow-sm text-primary" id="tab-card" onclick="switchTab('card')">Card</button>
+<button class="flex-1 py-2 rounded-lg font-label-md text-label-md transition-all text-on-surface-variant hover:bg-surface-variant" id="tab-promptpay" onclick="switchTab('promptpay')">PromptPay</button>
+<button class="flex-1 py-2 rounded-lg font-label-md text-label-md transition-all text-on-surface-variant hover:bg-surface-variant" id="tab-bank" onclick="switchTab('bank')">Bank</button>
+<button class="flex-1 py-2 rounded-lg font-label-md text-label-md transition-all text-on-surface-variant hover:bg-surface-variant" id="tab-other" onclick="switchTab('other')">Other</button>
+</div>
+<!-- Card Form Content -->
+<div class="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300" id="content-card">
+<div class="space-y-2">
+<label class="font-label-sm text-label-sm text-on-surface-variant px-1">Cardholder Name</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-container transition-all" placeholder="e.g. Johnathan Doe" type="text">
+</div>
+<div class="space-y-2">
+<label class="font-label-sm text-label-sm text-on-surface-variant px-1">Card Number</label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline" data-icon="credit_card">credit_card</span>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-xl pl-12 pr-4 py-3 font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-primary-container transition-all" placeholder="0000 0000 0000 0000" type="text">
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-2">
+<label class="font-label-sm text-label-sm text-on-surface-variant px-1">Expiry Date</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-primary-container transition-all" placeholder="MM/YY" type="text">
+</div>
+<div class="space-y-2">
+<label class="font-label-sm text-label-sm text-on-surface-variant px-1">CVV</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-primary-container transition-all" placeholder="•••" type="password">
+</div>
+</div>
+<div class="flex items-center gap-2 px-1">
+<input checked="" class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" id="save-card" type="checkbox">
+<label class="text-body-md text-on-surface" for="save-card">Save card for future bookings</label>
+</div>
+<div class="flex items-center justify-center gap-6 pt-2 grayscale opacity-60">
+<img alt="Visa" class="h-4 object-contain" data-alt="A small, greyscale Visa credit card logo, rendered in a minimalist style to match a corporate UI. The logo is clean and placed alongside other payment network icons on a white background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRO8SWP7KQbMHVGh9ebTQjrfZrx0rqeKvojrmA0fP4zNs2sdmYvSev8RgsJqFaolTUSWd643Gs-dDHkZO8YV0mg3Jthjj3N9G8BQj3sk9CMFEgbUS3yKPWplf_HRaRHIvs3tDPNQ38_e-1jm0tzIfuCzRyVQCAjVanKoZRBzSCLrYAq81j6p77HA-ZnIq_dTq0Fh9qeyMygskQTeMDIHqW2HBB4Yi-KWP1UN-Ji1Ek1T7kbmu9xHwTOA2wLRiojjL5LMWm0XymoNM">
+<img alt="Mastercard" class="h-6 object-contain" data-alt="A professional greyscale Mastercard logo featuring the two overlapping circles. The aesthetic is clean, subtle, and designed for a secure payment checkout screen with a high-end, corporate travel feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmevjfBQLDXU-TbjxCQb0bGWUKNL8zcuajUXt883H0Ln5HHiw7FeEOIAxBFboyAVvBqvrOW3T4bHXoNGt2IDSGOrzu53i6zEEr5rKtqvPRou0O-9AABQRr4YIliuIYb9JSQOc1s75TJ-oTHchzx-6nWqCS69sB_Qys2Kq6nKQTZH2bHkmDIQvb-zSyYbdVWrUdpdQDM_nEHdWRtWhkL4Q98ug_x2c6AZATP34Nt-Z4M_cJYxxPKIzDhbo8dHNlM4nEBpnSEsWgD5Y">
+<img alt="JCB" class="h-5 object-contain" data-alt="A minimalist greyscale JCB logo icon for a payment interface. The design is simplified and professional, fitting into a clean aero-modernist airline mobile application UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8CHZVn7aT0IKqrbEc8-uJsA0LflMzej-_R870KpD4bu8lNuPfpIfGXK_vvqdUETs2NydDgX8KKxeZN1GtScjLr9rnkDmJWih8xR2Jt1yeixGI1dUzWYLkbEfFqhrhd0R9M4f0Y4hkbBfyjGO3BmymAFRU4btF3G-dU35JL_UVLF2svTzIlxz3r83-c9SkU-hQsYsnib5qeDVf5Jz64TSrSf0dmPZmEiGoSFyD7xKzhaGGd-CYOzxhh_MotTpvVjf8Y9X8sSsGWIQ">
+</div>
+</div>
+<!-- PromptPay Content (Hidden) -->
+<div class="hidden space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300" id="content-promptpay">
+<div class="bg-surface-container rounded-xl p-8 flex flex-col items-center justify-center border-2 border-dashed border-outline-variant">
+<span class="material-symbols-outlined text-6xl text-outline-variant mb-4" data-icon="qr_code_2">qr_code_2</span>
+<p class="font-label-md text-label-md text-on-surface-variant">QR Code will be generated after clicking 'Pay'</p>
+<p class="font-label-sm text-label-sm text-outline mt-2">Expires in 15 minutes</p>
+</div>
+</div>
+</section>
+<!-- Billing Address -->
+<section class="flex items-center justify-between p-4 bg-surface-container-low rounded-xl border border-outline-variant/30">
+<div>
+<h4 class="font-label-md text-label-md">Billing Address</h4>
+<p class="text-label-sm text-on-surface-variant">Same as account profile</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox">
+<div class="w-11 h-6 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</section>
+<!-- Footer Actions -->
+<footer class="space-y-6 pt-4">
+<div class="space-y-3">
+<div class="flex items-start gap-3">
+<input class="mt-1 w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" id="terms" type="checkbox">
+<label class="text-label-sm text-on-surface-variant leading-relaxed" for="terms">
+                        I agree to the <a class="text-primary font-bold hover:underline" href="#">Terms &amp; Conditions</a>, privacy policy, and booking rules of Qoomlee Airline.
+                    </label>
+</div>
+<div class="flex items-start gap-3 p-3 bg-surface-container-highest/50 rounded-lg">
+<span class="material-symbols-outlined text-secondary text-[20px] mt-0.5" data-icon="info">info</span>
+<p class="text-label-sm text-on-secondary-fixed-variant leading-tight">
+                        Cancellation policy: Full refund if cancelled within 24 hours of booking. Standard fees apply thereafter.
+                    </p>
+</div>
+</div>
+<button class="w-full bg-primary text-on-primary rounded-xl py-4 flex items-center justify-center gap-3 shadow-lg shadow-primary/20 hover:bg-on-primary-fixed-variant transition-all active:scale-[0.98] duration-150">
+<span class="material-symbols-outlined" data-icon="lock" data-weight="fill">lock</span>
+<span class="font-headline-md">Pay ฿9,040 Securely</span>
+</button>
+<div class="flex items-center justify-center gap-4 text-outline text-label-sm">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="verified_user">verified_user</span>
+<span>256-bit SSL</span>
+</div>
+<span class="h-3 w-px bg-outline-variant"></span>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="security">security</span>
+<span>PCI DSS compliant</span>
+</div>
+</div>
+</footer>
+</main>
+<!-- Bottom Nav (Hidden on Transactional Screen as per mandates) -->
+<!-- The BottomNavBar is suppressed for transactional screens to focus user journey -->
+<script>
+        // Tab switching logic
+        function switchTab(tabId) {
+            const tabs = ['card', 'promptpay', 'bank', 'other'];
+            const contentCard = document.getElementById('content-card');
+            const contentPromptPay = document.getElementById('content-promptpay');
+            
+            tabs.forEach(t => {
+                const btn = document.getElementById('tab-' + t);
+                btn.classList.remove('bg-surface-container-lowest', 'shadow-sm', 'text-primary');
+                btn.classList.add('text-on-surface-variant', 'hover:bg-surface-variant');
+            });
+
+            const activeBtn = document.getElementById('tab-' + tabId);
+            activeBtn.classList.add('bg-surface-container-lowest', 'shadow-sm', 'text-primary');
+            activeBtn.classList.remove('text-on-surface-variant', 'hover:bg-surface-variant');
+
+            // Toggle content visibility (Card vs others simplified)
+            if (tabId === 'card') {
+                contentCard.classList.remove('hidden');
+                contentPromptPay.classList.add('hidden');
+            } else if (tabId === 'promptpay') {
+                contentCard.classList.add('hidden');
+                contentPromptPay.classList.remove('hidden');
+            } else {
+                contentCard.classList.add('hidden');
+                contentPromptPay.classList.add('hidden');
+            }
+        }
+
+        // Timer countdown simulation
+        let time = 14 * 60 + 32;
+        const countdownEl = document.getElementById('countdown');
+        setInterval(() => {
+            if (time > 0) {
+                time--;
+                const minutes = Math.floor(time / 60);
+                const seconds = time % 60;
+                countdownEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }, 1000);
+    </script>
+</body></html>

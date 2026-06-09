@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Qoomlee - Flight Search</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-variant": "#d3e4fe",
+                      "tertiary-fixed-dim": "#ffb94c",
+                      "tertiary-container": "#986500",
+                      "on-secondary-fixed-variant": "#2e486b",
+                      "secondary-container": "#b9d3fd",
+                      "inverse-on-surface": "#eaf1ff",
+                      "surface-container-high": "#dce9ff",
+                      "inverse-surface": "#213145",
+                      "surface-bright": "#f8f9ff",
+                      "on-secondary": "#ffffff",
+                      "primary": "#0057a2",
+                      "on-primary-fixed": "#001c3a",
+                      "primary-fixed": "#d4e3ff",
+                      "outline": "#717783",
+                      "error": "#ba1a1a",
+                      "error-container": "#ffdad6",
+                      "secondary-fixed": "#d4e3ff",
+                      "on-tertiary-container": "#fff2e5",
+                      "on-error": "#ffffff",
+                      "surface-container-highest": "#d3e4fe",
+                      "on-tertiary-fixed": "#291800",
+                      "primary-fixed-dim": "#a5c8ff",
+                      "secondary": "#465f84",
+                      "on-background": "#0b1c30",
+                      "on-surface": "#0b1c30",
+                      "outline-variant": "#c1c6d4",
+                      "on-tertiary-fixed-variant": "#624000",
+                      "tertiary": "#784f00",
+                      "primary-container": "#0e70ca",
+                      "on-primary": "#ffffff",
+                      "background": "#f8f9ff",
+                      "surface-tint": "#005faf",
+                      "surface-dim": "#cbdbf5",
+                      "on-primary-container": "#f0f4ff",
+                      "surface-container": "#e5eeff",
+                      "on-surface-variant": "#414752",
+                      "surface-container-low": "#eff4ff",
+                      "surface": "#f8f9ff",
+                      "tertiary-fixed": "#ffddb2",
+                      "inverse-primary": "#a5c8ff",
+                      "on-primary-fixed-variant": "#004786",
+                      "on-tertiary": "#ffffff",
+                      "secondary-fixed-dim": "#aec8f2",
+                      "on-secondary-container": "#425b7f",
+                      "on-error-container": "#93000a",
+                      "surface-container-lowest": "#ffffff",
+                      "on-secondary-fixed": "#001c3a"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "container-margin-desktop": "32px",
+                      "xl": "32px",
+                      "sm": "8px",
+                      "md": "16px",
+                      "lg": "24px",
+                      "base": "8px",
+                      "xxl": "48px",
+                      "container-margin-mobile": "16px",
+                      "xs": "4px",
+                      "gutter": "16px"
+              },
+              "fontFamily": {
+                      "body-md": ["Inter"],
+                      "label-sm": ["Inter"],
+                      "headline-lg-mobile": ["Inter"],
+                      "headline-lg": ["Inter"],
+                      "label-md": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "mono-data": ["Inter"]
+              },
+              "fontSize": {
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "mono-data": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hero-gradient {
+            background: linear-gradient(180deg, #0E70CA 0%, #1D4ED8 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md selection:bg-primary-container/30">
+<!-- TopAppBar -->
+<header class="bg-surface-bright dark:bg-inverse-surface border-b border-outline-variant dark:border-outline shadow-sm dark:shadow-none flex justify-between items-center w-full px-container-margin-mobile py-md h-16 sticky top-0 z-[60]">
+<div class="flex items-center gap-md">
+<button class="hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors p-2 rounded-full active:opacity-80 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed-dim">menu</span>
+</button>
+<span class="font-headline-lg-mobile text-headline-lg-mobile tracking-tight text-primary dark:text-primary-fixed">Qoomlee</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container overflow-hidden border border-outline-variant">
+<img alt="User profile photo" class="w-full h-full object-cover" data-alt="Professional studio portrait of a smiling user with soft, warm overhead lighting. The subject has a friendly expression against a clean, neutral background, reflecting a high-end corporate and modern travel aesthetic. The image is crisp with a shallow depth of field, highlighting the person's face while maintaining the bright, sky-themed clarity of the Qoomlee brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbQ_XwjmT3nQVZtKrch7NWDiSTPUL-q44fRlURVa5KfhNZaH0dxy82ic4hUenos1ZZY_aEQ2IPRhThcMK3zMIzMuiEdtEGe4Iiz_TfPSM3F5dlkLdyuwIA6JJjmtM6lpikcIj-N4vDa6kyQprjMGh3Lul2reod_bHp6WgonwIR8HDKCdJq60mS_bOIeGn-ivSUui-9mIxbX37XgGkBGfde0naGFq4mtaIozJRUXY1lr80mbHdjI5xvTTZ2JvJn93nxZcbyJYvWfCA"/>
+</div>
+</header>
+<main class="pb-24">
+<!-- Hero Banner -->
+<section class="hero-gradient px-container-margin-mobile pt-xl pb-xxl relative overflow-hidden">
+<!-- Decorative Cloud/Mist effect -->
+<div class="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-background to-transparent opacity-40"></div>
+<div class="relative z-10">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-white mb-xs">Flight Search</h1>
+<p class="font-body-md text-white/90">Find your perfect flight</p>
+</div>
+<!-- Float Illustration Aspect -->
+<div class="absolute -right-10 -bottom-4 opacity-20 transform rotate-12">
+<span class="material-symbols-outlined text-[120px] text-white">flight_takeoff</span>
+</div>
+</section>
+<!-- Search Form Container -->
+<section class="px-container-margin-mobile -mt-10 relative z-20">
+<div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant p-md">
+<!-- Trip Type Toggle -->
+<div class="flex bg-surface-container-low p-1 rounded-lg mb-lg">
+<button class="flex-1 py-2 font-label-md text-label-md bg-primary-container text-on-primary-container rounded-md shadow-sm">Round trip</button>
+<button class="flex-1 py-2 font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-md">One way</button>
+</div>
+<!-- Search Fields -->
+<div class="space-y-md">
+<!-- From/To Grid -->
+<div class="relative">
+<div class="space-y-sm">
+<label class="block font-label-sm text-label-sm text-on-surface-variant px-1">From</label>
+<div class="flex items-center gap-md border border-outline-variant rounded-xl p-md bg-surface-bright focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 transition-all">
+<span class="material-symbols-outlined text-primary">flight_takeoff</span>
+<input class="bg-transparent border-none p-0 w-full focus:ring-0 text-body-md font-body-md placeholder:text-outline" placeholder="Departure City" type="text"/>
+</div>
+</div>
+<!-- Swap Button -->
+<button class="absolute right-md top-[60px] z-10 bg-surface-container-lowest border border-outline-variant p-2 rounded-full shadow-sm hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-primary">swap_vert</span>
+</button>
+<div class="space-y-sm mt-md">
+<label class="block font-label-sm text-label-sm text-on-surface-variant px-1">To</label>
+<div class="flex items-center gap-md border border-outline-variant rounded-xl p-md bg-surface-bright focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 transition-all">
+<span class="material-symbols-outlined text-primary">flight_land</span>
+<input class="bg-transparent border-none p-0 w-full focus:ring-0 text-body-md font-body-md placeholder:text-outline" placeholder="Arrival City" type="text"/>
+</div>
+</div>
+</div>
+<!-- Dates Grid -->
+<div class="grid grid-cols-2 gap-md">
+<div class="space-y-sm">
+<label class="block font-label-sm text-label-sm text-on-surface-variant px-1">Departure</label>
+<div class="flex items-center gap-sm border border-outline-variant rounded-xl p-md bg-surface-bright">
+<span class="material-symbols-outlined text-outline text-[20px]">calendar_today</span>
+<span class="text-body-md font-body-md text-on-surface">Oct 24</span>
+</div>
+</div>
+<div class="space-y-sm">
+<label class="block font-label-sm text-label-sm text-on-surface-variant px-1">Return</label>
+<div class="flex items-center gap-sm border border-outline-variant rounded-xl p-md bg-surface-bright">
+<span class="material-symbols-outlined text-outline text-[20px]">calendar_today</span>
+<span class="text-body-md font-body-md text-on-surface">Oct 31</span>
+</div>
+</div>
+</div>
+<!-- Travelers -->
+<div class="space-y-sm">
+<label class="block font-label-sm text-label-sm text-on-surface-variant px-1">Travelers &amp; Class</label>
+<div class="flex items-center justify-between border border-outline-variant rounded-xl p-md bg-surface-bright">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-outline">person</span>
+<span class="text-body-md font-body-md text-on-surface">1 Traveler, Economy</span>
+</div>
+<span class="material-symbols-outlined text-outline">expand_more</span>
+</div>
+</div>
+<!-- CTA -->
+<button class="w-full bg-primary-container text-on-primary-container py-4 rounded-xl font-headline-md text-headline-md shadow-sm active:scale-95 transition-transform mt-lg">
+                        Search Flights
+                    </button>
+</div>
+</div>
+</section>
+<!-- Popular Destinations -->
+<section class="mt-xxl px-container-margin-mobile">
+<div class="flex justify-between items-center mb-md">
+<h2 class="font-headline-md text-headline-md text-on-surface">Popular Destinations</h2>
+<button class="text-primary font-label-md text-label-md">See All</button>
+</div>
+<!-- Bento-ish Grid Layout -->
+<div class="grid grid-cols-2 gap-md">
+<!-- Large Card -->
+<div class="col-span-2 relative h-48 rounded-xl overflow-hidden shadow-sm border border-outline-variant group">
+<img alt="Bangkok" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A panoramic view of the Bangkok skyline at dusk, featuring the majestic Wat Arun temple illuminated against a deep indigo sky. The lighting transition from golden hour to twilight creates a serene, premium feel. Vibrant city lights reflect in the Chao Phraya River, emphasizing the modern yet traditional Southeast Asian travel experience within the Qoomlee brand's sky-blue and dark-blue color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeBQSOowknfpO6ItEYBAmrfYZCb-irn01UofyYtQ3LDyex6ayOfF1ljvB-ENIyLAJfHoBqsUSw8c67YWTT7A6ZtZ9MbJKVn9xkyz2oT8kdCJrjZpjETfPGN38VxMsmhEp4Xq6AbsKNfJNh31IPWM5wgsPNL5HpWv_aITv1LGPsqPp7htbioMRxFMLw3ixiRhglWn7-iOILf6qXgTOipUJUtz-S-Ts_ceGdU9yRyC20I4d4XJZIqMz5V3usEnyGc-ghYhid73HxmIQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-md">
+<span class="text-white font-headline-md text-headline-md">Bangkok</span>
+<span class="text-white/80 font-label-sm text-label-sm">From $299</span>
+</div>
+<div class="absolute top-md right-md bg-white/20 backdrop-blur-md rounded-full px-3 py-1 border border-white/30">
+<span class="text-white font-label-md text-label-md">Trending</span>
+</div>
+</div>
+<!-- Small Card 1 -->
+<div class="relative h-40 rounded-xl overflow-hidden shadow-sm border border-outline-variant group">
+<img alt="Sydney" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="High-angle shot of the Sydney Opera House and Harbour Bridge under a brilliant midday sun and clear blue skies. The sparkling turquoise water and white sails of the architecture create a crisp, high-contrast visual. The scene embodies clarity and efficiency, aligning perfectly with the corporate modern aesthetic of the travel platform, using bright airy tones and a sense of vast horizon." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPBGpO0p88Y9onlEEEFImrykGPnuOoUIt2ZEkX1TlZYE8lJnSmgKNw1D2q9BBIR6X-tEBcMxt4DXr9bLG5TizAX6zpnDV4J7Rm294FQYPAl60L8PLBij05F-7F4KjTO0s4IoXHDhP8VkdmeoaGcVQvmhUMwQdjKJ2GHI6frbJNjkocSB4QFZWxgzOSbAX45VUhy9VuPHid_CIph0mIsfzp3pOgXHgHmHNsIBXuSwP-Ryk1jPKwhxrPsGjOVtRx-UQFZhZSkOE1Nq0"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-md">
+<span class="text-white font-label-md text-label-md">Sydney</span>
+<span class="text-white/80 font-label-sm text-label-sm">From $450</span>
+</div>
+</div>
+<!-- Small Card 2 -->
+<div class="relative h-40 rounded-xl overflow-hidden shadow-sm border border-outline-variant group">
+<img alt="Singapore" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Night view of the Singapore skyline featuring the Marina Bay Sands and Garden by the Bay supertrees glowing in neon purples and blues. The lighting is sophisticated and technological, highlighting the reliability and premium nature of the travel destination. Deep blues of the stratospheric sky blend seamlessly into the city lights, maintaining a cohesive sky-themed brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvTgcQUx95t-j8JUJwwx-2yCzGGsZFW773VNfQxarpnquQCU2FROuBNidY_svydcNEL-k6o8KtcIdpJ-HwwHk2cdL89gq_nILmOkT8kAz3FRLlJU6mgpZsJA7ZKBw9d6-cLl-gYBDsnZ1PFh9Np6oh4h0iC0_NIVQeMRfgb16xBL7QDyRbWB-dA9RCcneTanmkT5YoeaxOjGRszyb_MdqZOxbJj9xE3uoV1ausvBBftI-ZHjbJhPU6BLPydv2xg3mjrNqt3s3DOb0"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-md">
+<span class="text-white font-label-md text-label-md">Singapore</span>
+<span class="text-white/80 font-label-sm text-label-sm">From $199</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Travel Inspiration Tip -->
+<section class="mt-xl px-container-margin-mobile">
+<div class="bg-tertiary-fixed text-on-tertiary-fixed rounded-xl p-lg flex items-center gap-md border border-tertiary/10">
+<div class="bg-tertiary-container text-on-tertiary-container w-12 h-12 rounded-full flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">lightbulb</span>
+</div>
+<div>
+<h3 class="font-label-md text-label-md text-on-tertiary-fixed-variant">Travel Tip</h3>
+<p class="font-body-md text-label-sm">Book at least 3 weeks in advance for the best rates to Southeast Asia.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="bg-surface-container-lowest dark:bg-inverse-surface border-t border-outline-variant dark:border-outline shadow-[0px_-2px_10px_rgba(0,0,0,0.05)] fixed bottom-0 left-0 w-full flex justify-around items-center h-20 pb-safe px-sm z-50 rounded-t-xl">
+<!-- Search (Active) -->
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim bg-primary-container/20 dark:bg-primary-container/40 rounded-full px-4 py-1 active:scale-90 duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">flight_takeoff</span>
+<span class="font-label-sm text-label-sm-mobile">Search</span>
+</a>
+<!-- Bookings -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined">confirmation_number</span>
+<span class="font-label-sm text-label-sm-mobile">Bookings</span>
+</a>
+<!-- Check-in -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined">how_to_reg</span>
+<span class="font-label-sm text-label-sm-mobile">Check-in</span>
+</a>
+<!-- Passes -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-4 py-1 hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined">qr_code_2</span>
+<span class="font-label-sm text-label-sm-mobile">Passes</span>
+</a>
+</nav>
+</body></html>

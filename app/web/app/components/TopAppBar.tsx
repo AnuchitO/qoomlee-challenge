@@ -1,7 +1,7 @@
 export default function TopAppBar() {
   return (
     <header className="bg-surface-bright border-b border-outline-variant shadow-sm w-full sticky top-0 z-[60]">
-      <div className="max-w-5xl mx-auto px-container-margin-mobile md:px-container-margin-desktop flex justify-between items-center h-16">
+      <div className="max-w-6xl mx-auto px-container-margin-mobile md:px-container-margin-desktop flex justify-between items-center h-16">
         <div className="flex items-center gap-md">
           <button className="hover:bg-surface-container-high transition-colors p-2 rounded-full active:opacity-80">
             <span className="material-symbols-outlined text-primary">menu</span>

@@ -1,6 +1,6 @@
 export default function TravelTip() {
   return (
-    <section className="mt-xl px-container-margin-mobile">
+    <section className="mt-xl px-container-margin-mobile md:px-container-margin-desktop">
       <div className="bg-tertiary-fixed text-on-tertiary-fixed rounded-xl p-lg flex items-center gap-md border border-tertiary/10">
         <div className="bg-tertiary-container text-on-tertiary-container w-12 h-12 rounded-full flex items-center justify-center shrink-0">
           <span

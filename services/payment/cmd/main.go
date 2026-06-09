@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
+	"golang.org/x/time/rate"
 
 	"github.com/AnuchitO/qoomlee-payment/middleware"
 	"github.com/AnuchitO/qoomlee-payment/payment"
@@ -112,7 +113,8 @@ func main() {
 
 	api := r.Group("/api")
 	api.Use(middleware.JWTAuth(jwtPublicKey))
-	api.POST("/payments/charge", h.Charge)
+	// Rate limit charge endpoint: 10 req/s sustained, burst 20 per IP
+	api.POST("/payments/charge", middleware.RateLimit(rate.Limit(10), 20), h.Charge)
 	api.GET("/payments/:bookingRef", h.GetByBookingRef)
 
 	slog.Info("payment-service starting", "port", port)

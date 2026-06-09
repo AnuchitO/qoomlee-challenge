@@ -75,7 +75,8 @@ func main() {
 	bookingSvc := booking.NewService(bookingRepo)
 	bookingHandler := booking.NewHandler(bookingSvc)
 
-	r := gin.Default()
+	r := gin.New()
+	r.Use(gin.Recovery(), middleware.CorrelationID())
 
 	// Health probes — no auth
 	r.GET("/health/live", func(c *gin.Context) {

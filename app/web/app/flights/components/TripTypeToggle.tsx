@@ -8,8 +8,8 @@ interface Props {
 }
 
 const TABS: { type: TripType; label: string }[] = [
-  { type: "oneway", label: "One-way" },
-  { type: "round", label: "Round-trip" },
+  { type: "round", label: "Round trip" },
+  { type: "oneway", label: "One way" },
 ];
 
 export default function TripTypeToggle({ value, onChange }: Props) {

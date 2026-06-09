@@ -7,9 +7,7 @@ import ProgressStepper from "./components/ProgressStepper";
 // ── helpers ───────────────────────────────────────────────────────────────────
 
 function formatPrice(minor: number, currency: string): string {
-  const major = minor / 100;
-  if (currency === "THB") return `฿${major.toLocaleString()}`;
-  return `$${major.toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
+  return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(minor / 100);
 }
 
 function formatDeparture(iso: string): string {

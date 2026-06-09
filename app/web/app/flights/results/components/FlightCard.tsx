@@ -40,47 +40,48 @@ export default function FlightCard({
   const perPerson = formatPrice(flight.basePriceMinor, flight.currency);
 
   return (
-    <section className="relative bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-md transition-all hover:shadow-md hover:border-primary/30 group">
-      {isBestValue && (
-        <div className="absolute top-0 right-0 mt-4 mr-4 bg-tertiary-fixed text-on-tertiary-fixed-variant px-3 py-1 rounded-full text-label-md flex items-center gap-1 shadow-sm">
-          <span
-            className="material-symbols-outlined text-[16px]"
-            style={{ fontVariationSettings: "'FILL' 1" }}
-          >
-            star
-          </span>
-          Best Value
-        </div>
-      )}
-
+    <section className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-md transition-all hover:shadow-md hover:border-primary/30 group">
       <div className="flex flex-col gap-lg">
         {/* Airline & Price */}
-        <div className="flex justify-between items-start">
-          <div className="flex items-center gap-md">
-            <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center">
+        <div className="flex justify-between items-start gap-sm">
+          <div className="flex items-center gap-md min-w-0">
+            <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center shrink-0">
               <span className="material-symbols-outlined text-secondary text-3xl">
                 flight_takeoff
               </span>
             </div>
-            <div>
+            <div className="min-w-0">
               <h3 className="text-headline-md">Qoomlee</h3>
               <p className="text-label-sm text-on-surface-variant">
                 {flight.flightNumber}
               </p>
             </div>
           </div>
-          <div className="text-right pt-2">
-            <p className="text-headline-md text-primary">
-              {perPerson}{" "}
-              <span className="text-label-sm text-on-surface-variant">
-                /person
-              </span>
-            </p>
-            {passengers > 1 && (
-              <p className="text-label-sm text-on-surface-variant">
-                {totalPrice} total
-              </p>
+          <div className="flex flex-col items-end gap-xs shrink-0">
+            {isBestValue && (
+              <div className="bg-tertiary-fixed text-on-tertiary-fixed-variant px-3 py-1 rounded-full text-label-md flex items-center gap-1 shadow-sm">
+                <span
+                  className="material-symbols-outlined text-[16px]"
+                  style={{ fontVariationSettings: "'FILL' 1" }}
+                >
+                  star
+                </span>
+                Best Value
+              </div>
             )}
+            <div className="text-right">
+              <p className="text-headline-md text-primary">
+                {perPerson}{" "}
+                <span className="text-label-sm text-on-surface-variant">
+                  /person
+                </span>
+              </p>
+              {passengers > 1 && (
+                <p className="text-label-sm text-on-surface-variant">
+                  {totalPrice} total
+                </p>
+              )}
+            </div>
           </div>
         </div>
 

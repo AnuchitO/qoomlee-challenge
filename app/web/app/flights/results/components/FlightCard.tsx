@@ -9,24 +9,24 @@ interface Props {
 }
 
 function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString("en-US", {
+  return new Date(iso).toLocaleTimeString(undefined, {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-    timeZone: "UTC",
   });
 }
 
+function localDateKey(iso: string): string {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
 function isNextDay(departure: string, arrival: string): boolean {
-  const dep = new Date(departure).toISOString().slice(0, 10);
-  const arr = new Date(arrival).toISOString().slice(0, 10);
-  return arr > dep;
+  return localDateKey(arrival) > localDateKey(departure);
 }
 
 function formatPrice(minor: number, currency: string): string {
-  const major = minor / 100;
-  if (currency === "THB") return `฿${major.toLocaleString()}`;
-  return `${currency} ${(major).toLocaleString()}`;
+  return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(minor / 100);
 }
 
 export default function FlightCard({

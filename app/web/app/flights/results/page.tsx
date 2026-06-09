@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import BottomNav from "../../components/BottomNav";
 import ResultsHeader from "./components/ResultsHeader";
 import FlightList from "./components/FlightList";
-import { buildApiUrl } from "./lib/buildApiUrl";
+import { fetchFlights } from "./lib/fetchFlights";
 import { formatSearchSummary } from "./lib/formatSearchSummary";
-import type { Flight } from "./lib/types";
 
 interface SearchParams {
   origin?: string;
@@ -26,29 +25,6 @@ export async function generateMetadata({
   };
 }
 
-async function fetchFlights(params: SearchParams): Promise<Flight[]> {
-  if (!params.origin || !params.destination || !params.departure) {
-    return [];
-  }
-
-  const url = buildApiUrl({
-    origin: params.origin,
-    destination: params.destination,
-    departure: params.departure,
-    passengers: params.passengers ?? "1",
-  });
-
-  try {
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) return [];
-    const data = await res.json();
-    // API returns { flights: [...] } or a direct array
-    return Array.isArray(data) ? data : (data.flights ?? []);
-  } catch {
-    return [];
-  }
-}
-
 export default async function ResultsPage({
   searchParams,
 }: {
@@ -56,7 +32,12 @@ export default async function ResultsPage({
 }) {
   const params = await searchParams;
 
-  const [flights] = await Promise.all([fetchFlights(params)]);
+  const flights = await fetchFlights({
+    origin: params.origin ?? "",
+    destination: params.destination ?? "",
+    departure: params.departure ?? "",
+    passengers: params.passengers ?? "1",
+  });
 
   const summary =
     params.origin && params.destination && params.departure

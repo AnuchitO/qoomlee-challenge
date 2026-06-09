@@ -25,13 +25,13 @@ test.describe("Flight search form", () => {
 
   // ── Trip type toggle ─────────────────────────────────────────────────────────
 
-  test("shows One-way and Round-trip tabs", async ({ page }) => {
-    await expect(visibleText(page, "One-way")).toBeVisible();
-    await expect(visibleText(page, "Round-trip")).toBeVisible();
+  test("shows 'Round trip' and 'One way' tabs", async ({ page }) => {
+    await expect(visibleText(page, "Round trip")).toBeVisible();
+    await expect(visibleText(page, "One way")).toBeVisible();
   });
 
-  test("switches to Round-trip and shows a return date input", async ({ page }) => {
-    await visibleText(page, "Round-trip").click();
+  test("switches to Round trip and shows a return date input", async ({ page }) => {
+    await visibleText(page, "Round trip").click();
     // After switching, at least one return date input should appear
     await expect(
       page.locator('input[type="date"]').filter({ visible: true }).last()
@@ -143,7 +143,7 @@ test.describe("Flight search form", () => {
   // ── Date picker ───────────────────────────────────────────────────────────────
 
   test("auto-opens return date picker after clicking Add return", async ({ page }) => {
-    await visibleText(page, "One-way").click();
+    await visibleText(page, "One way").click();
     await expect(visibleRole(page, "button", { name: "Add return" })).toBeVisible();
 
     await visibleRole(page, "button", { name: "Add return" }).click();

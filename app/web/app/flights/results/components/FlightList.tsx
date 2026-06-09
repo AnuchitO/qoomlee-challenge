@@ -24,9 +24,17 @@ export default function FlightList({ flights, passengers }: Props) {
   const hasMore = visible < sorted.length;
 
   const handleSelect = (flight: Flight) => {
-    router.push(
-      `/bookings/new?flightId=${flight.id}&passengers=${passengers}`
-    );
+    const params = new URLSearchParams({
+      flightId: String(flight.id),
+      flightNumber: flight.flightNumber,
+      origin: flight.origin,
+      destination: flight.destination,
+      departureTime: flight.departureTime,
+      price: String(flight.basePriceMinor),
+      currency: flight.currency,
+      passengers: String(passengers),
+    });
+    router.push(`/bookings/new?${params.toString()}`);
   };
 
   return (

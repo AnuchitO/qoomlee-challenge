@@ -92,8 +92,15 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "qoomlee-service"})
 	})
 
-	// Internal route — no JWT, internal-token guard (added in future story)
-	r.PUT("/api/bookings/:bookingRef/status", bookingHandler.UpdateStatus)
+	// Internal route — X-Internal-Token guard (no JWT)
+	internalToken := os.Getenv("INTERNAL_TOKEN")
+	if internalToken == "" {
+		slog.Error("INTERNAL_TOKEN is required")
+		os.Exit(1)
+	}
+	internal := r.Group("/api/bookings")
+	internal.Use(middleware.InternalToken(internalToken))
+	internal.PUT("/:bookingRef/status", bookingHandler.UpdateStatus)
 
 	// Public API routes — JWT required
 	api := r.Group("/api")

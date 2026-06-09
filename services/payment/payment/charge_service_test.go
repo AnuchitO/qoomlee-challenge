@@ -43,8 +43,10 @@ func (m *mockOmiser) CreateCharge(_ context.Context, _ string, _ int64, _ string
 // --- mock Repository ---
 
 type mockRepository struct {
-	inserted *Payment
-	err      error
+	inserted   *Payment
+	err        error
+	getPayment *Payment
+	getErr     error
 }
 
 func (m *mockRepository) Insert(_ context.Context, p *Payment) (*Payment, error) {
@@ -54,6 +56,10 @@ func (m *mockRepository) Insert(_ context.Context, p *Payment) (*Payment, error)
 	p.ID = 1
 	m.inserted = p
 	return p, nil
+}
+
+func (m *mockRepository) GetByBookingRef(_ context.Context, _ string) (*Payment, error) {
+	return m.getPayment, m.getErr
 }
 
 // --- fixtures ---

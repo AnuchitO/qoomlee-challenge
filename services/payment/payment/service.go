@@ -19,11 +19,13 @@ type Omiser interface {
 // Repository persists payment records.
 type Repository interface {
 	Insert(ctx context.Context, p *Payment) (*Payment, error)
+	GetByBookingRef(ctx context.Context, ref string) (*Payment, error)
 }
 
 // Service is the business-logic interface for the payment domain.
 type Service interface {
 	Charge(ctx context.Context, req ChargeRequest) (*Payment, error)
+	GetByBookingRef(ctx context.Context, ref string) (*Payment, error)
 }
 
 type service struct {
@@ -35,6 +37,10 @@ type service struct {
 // NewService creates a payment Service backed by the given dependencies.
 func NewService(bookingClient BookingClient, omise Omiser, repo Repository) Service {
 	return &service{bookingClient: bookingClient, omise: omise, repo: repo}
+}
+
+func (s *service) GetByBookingRef(ctx context.Context, ref string) (*Payment, error) {
+	return s.repo.GetByBookingRef(ctx, ref)
 }
 
 func (s *service) Charge(ctx context.Context, req ChargeRequest) (*Payment, error) {

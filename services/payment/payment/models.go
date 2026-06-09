@@ -10,7 +10,22 @@ const statusConfirmed = "CONFIRMED"
 var (
 	ErrAlreadyPaid    = errors.New("booking already paid")
 	ErrAmountMismatch = errors.New("amount does not match booking total")
+	ErrNotFound       = errors.New("payment not found")
 )
+
+// PaymentReceiptResponse is the response body for GET /api/payments/:bookingRef.
+type PaymentReceiptResponse struct {
+	BookingRef       string  `json:"bookingRef"`
+	PaymentProvider  string  `json:"paymentProvider"`
+	ProviderChargeID string  `json:"providerChargeId"`
+	Status           string  `json:"status"`
+	AmountMinor      int64   `json:"amountMinor"`
+	Currency         string  `json:"currency"`
+	Amount           string  `json:"amount"`
+	PaidAt           *string `json:"paidAt"`
+	FailureCode      string  `json:"failureCode,omitempty"`
+	FailureMessage   string  `json:"failureMessage,omitempty"`
+}
 
 // ConfirmRequest carries the data needed to call PUT /api/bookings/:ref/status.
 type ConfirmRequest struct {

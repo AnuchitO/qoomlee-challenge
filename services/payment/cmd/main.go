@@ -80,6 +80,7 @@ func main() {
 
 	api := r.Group("/api")
 	api.POST("/payments/charge", h.Charge)
+	api.GET("/payments/:bookingRef", h.GetByBookingRef)
 
 	slog.Info("payment-service starting", "port", port)
 	if err := r.Run(":" + port); err != nil {

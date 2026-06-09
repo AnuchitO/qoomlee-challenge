@@ -24,6 +24,40 @@ func apiErr(code, message string) gin.H {
 	return gin.H{"error": code, "message": message}
 }
 
+// GetByBookingRef handles GET /api/payments/:bookingRef
+func (h *Handler) GetByBookingRef(c *gin.Context) {
+	ref := c.Param("bookingRef")
+
+	p, err := h.svc.GetByBookingRef(c.Request.Context(), ref)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			c.JSON(http.StatusNotFound, apiErr("NOT_FOUND", "payment not found for booking "+ref))
+			return
+		}
+		slog.Error("get payment failed", "err", err)
+		c.JSON(http.StatusInternalServerError, apiErr("INTERNAL_ERROR", "An unexpected error occurred."))
+		return
+	}
+
+	resp := PaymentReceiptResponse{
+		BookingRef:       p.BookingRef,
+		PaymentProvider:  p.PaymentProvider,
+		ProviderChargeID: p.ProviderChargeID,
+		Status:           p.Status,
+		AmountMinor:      p.AmountMinor,
+		Currency:         p.Currency,
+		Amount:           fmt.Sprintf("%.2f", float64(p.AmountMinor)/100),
+		FailureCode:      p.FailureCode,
+		FailureMessage:   p.FailureMessage,
+	}
+	if !p.PaidAt.IsZero() {
+		paidAt := p.PaidAt.UTC().Format(time.RFC3339)
+		resp.PaidAt = &paidAt
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
 // Charge handles POST /api/payments/charge
 func (h *Handler) Charge(c *gin.Context) {
 	var req ChargeRequest

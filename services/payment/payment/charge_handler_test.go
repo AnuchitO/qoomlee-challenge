@@ -18,12 +18,18 @@ import (
 // --- mock Service ---
 
 type mockService struct {
-	payment *Payment
-	err     error
+	payment    *Payment
+	err        error
+	getPayment *Payment
+	getErr     error
 }
 
 func (m *mockService) Charge(_ context.Context, _ ChargeRequest) (*Payment, error) {
 	return m.payment, m.err
+}
+
+func (m *mockService) GetByBookingRef(_ context.Context, _ string) (*Payment, error) {
+	return m.getPayment, m.getErr
 }
 
 // --- helpers ---

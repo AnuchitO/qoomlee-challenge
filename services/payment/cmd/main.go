@@ -95,8 +95,10 @@ func main() {
 	svc := payment.NewService(bookingClient, omiseClient, repo)
 	h := payment.NewHandler(svc)
 
+	logger := slog.Default()
+
 	r := gin.New()
-	r.Use(gin.Recovery(), middleware.CorrelationID())
+	r.Use(gin.Recovery(), middleware.CorrelationID(), middleware.RequestLogger(logger))
 
 	r.GET("/health/live", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "payment-service"})

@@ -1,7 +1,11 @@
 package main
 
 import (
+	"crypto/rsa"
+	"crypto/x509"
 	"database/sql"
+	"encoding/pem"
+	"errors"
 	"log/slog"
 	"net/http"
 	"os"
@@ -9,8 +13,25 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 
+	"github.com/AnuchitO/qoomlee-payment/middleware"
 	"github.com/AnuchitO/qoomlee-payment/payment"
 )
+
+func parseRSAPublicKey(pemStr string) (*rsa.PublicKey, error) {
+	block, _ := pem.Decode([]byte(pemStr))
+	if block == nil {
+		return nil, errors.New("failed to decode PEM block")
+	}
+	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+	rsaPub, ok := pub.(*rsa.PublicKey)
+	if !ok {
+		return nil, errors.New("key is not RSA")
+	}
+	return rsaPub, nil
+}
 
 func main() {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, nil)))
@@ -41,6 +62,17 @@ func main() {
 	internalToken := os.Getenv("INTERNAL_TOKEN")
 	if internalToken == "" {
 		slog.Error("INTERNAL_TOKEN is required")
+		os.Exit(1)
+	}
+
+	jwtPEM := os.Getenv("JWT_PUBLIC_KEY")
+	if jwtPEM == "" {
+		slog.Error("JWT_PUBLIC_KEY is required")
+		os.Exit(1)
+	}
+	jwtPublicKey, err := parseRSAPublicKey(jwtPEM)
+	if err != nil {
+		slog.Error("failed to parse JWT_PUBLIC_KEY", "err", err)
 		os.Exit(1)
 	}
 
@@ -79,6 +111,7 @@ func main() {
 	})
 
 	api := r.Group("/api")
+	api.Use(middleware.JWTAuth(jwtPublicKey))
 	api.POST("/payments/charge", h.Charge)
 	api.GET("/payments/:bookingRef", h.GetByBookingRef)
 

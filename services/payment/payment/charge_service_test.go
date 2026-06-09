@@ -214,4 +214,35 @@ func TestServiceCharge(t *testing.T) {
 		assert.EqualError(t, err, "qoomlee unreachable")
 		assert.Nil(t, p)
 	})
+
+	// QML-008: duplicate payment prevention via repo check
+	t.Run("repo has SUCCEEDED payment → ErrAlreadyPaid without calling Omise", func(t *testing.T) {
+		repo := &mockRepository{getPayment: &Payment{Status: "SUCCEEDED", BookingRef: "QM7X2K"}}
+		svc := NewService(&mockBookingClient{booking: pendingBooking}, &mockOmiser{}, repo)
+
+		p, err := svc.Charge(context.Background(), validReq)
+
+		assert.ErrorIs(t, err, ErrAlreadyPaid)
+		assert.Nil(t, p)
+	})
+
+	t.Run("repo has FAILED payment → charge retry is permitted", func(t *testing.T) {
+		repo := &mockRepository{getPayment: &Payment{Status: "FAILED", BookingRef: "QM7X2K"}}
+		svc := NewService(&mockBookingClient{booking: pendingBooking}, &mockOmiser{result: successCharge}, repo)
+
+		p, err := svc.Charge(context.Background(), validReq)
+
+		require.NoError(t, err)
+		assert.Equal(t, "SUCCEEDED", p.Status)
+	})
+
+	t.Run("repo.GetByBookingRef unknown error propagates", func(t *testing.T) {
+		repo := &mockRepository{getErr: errors.New("db timeout")}
+		svc := NewService(&mockBookingClient{booking: pendingBooking}, &mockOmiser{}, repo)
+
+		p, err := svc.Charge(context.Background(), validReq)
+
+		assert.EqualError(t, err, "db timeout")
+		assert.Nil(t, p)
+	})
 }

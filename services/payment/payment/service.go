@@ -2,8 +2,11 @@ package payment
 
 import (
 	"context"
+	"errors"
 	"time"
 )
+
+const statusSucceeded = "SUCCEEDED"
 
 // BookingClient fetches and updates bookings on qoomlee-service.
 type BookingClient interface {
@@ -44,6 +47,15 @@ func (s *service) GetByBookingRef(ctx context.Context, ref string) (*Payment, er
 }
 
 func (s *service) Charge(ctx context.Context, req ChargeRequest) (*Payment, error) {
+	// QML-008: reject if a SUCCEEDED payment already exists for this booking
+	existing, err := s.repo.GetByBookingRef(ctx, req.BookingRef)
+	if err != nil && !errors.Is(err, ErrNotFound) {
+		return nil, err
+	}
+	if existing != nil && existing.Status == statusSucceeded {
+		return nil, ErrAlreadyPaid
+	}
+
 	booking, err := s.bookingClient.GetBooking(ctx, req.BookingRef)
 	if err != nil {
 		return nil, err

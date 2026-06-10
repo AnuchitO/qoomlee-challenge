@@ -205,16 +205,24 @@ done
 section "Docker containers"
 if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
   for port in 3000 8082 8084 5433 5434; do
+    case $port in
+      3000) svc_name="frontend        (Next.js)" ;;
+      8082) svc_name="qoomlee-service  (Go API)" ;;
+      8084) svc_name="payment-service  (Go API)" ;;
+      5433) svc_name="postgres-qoomlee (DB)" ;;
+      5434) svc_name="postgres-payment (DB)" ;;
+      *)    svc_name="unknown" ;;
+    esac
     cid=$(docker ps --filter "publish=$port" -q | head -1)
     if [ -n "$cid" ]; then
       status=$(docker inspect -f '{{.State.Health.Status}}' "$cid" 2>/dev/null || echo "running")
       if [ "$status" = "healthy" ] || [ "$status" = "running" ] || [ -z "$status" ]; then
-        ok "port $port: container up ($status)"
+        ok "port $port  $svc_name  ($status)"
       else
-        warn "port $port: container status=$status"
+        warn "port $port  $svc_name  status=$status"
       fi
     else
-      warn "port $port: no container listening"
+      warn "port $port  $svc_name  no container listening"
       hint "Run: make up-d"
     fi
   done

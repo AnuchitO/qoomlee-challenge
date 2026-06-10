@@ -1,0 +1,7 @@
+.next/
+out/
+build/
+coverage/
+test-results/
+node_modules/
+next-env.d.ts

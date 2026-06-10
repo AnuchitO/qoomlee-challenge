@@ -1,0 +1,48 @@
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/golangci/golangci-lint
+    rev: v2.12.2
+    hooks:
+      - id: golangci-lint
+        name: golangci-lint (qoomlee)
+        args: ["run", "--config=../../.golangci.yml"]
+        files: ^services/qoomlee/
+        entry: bash -c 'cd services/qoomlee && golangci-lint run --config=../../.golangci.yml ./...'
+        pass_filenames: false
+      - id: golangci-lint
+        name: golangci-lint (payment)
+        files: ^services/payment/
+        entry: bash -c 'cd services/payment && golangci-lint run --config=../../.golangci.yml ./...'
+        pass_filenames: false
+
+  - repo: local
+    hooks:
+      - id: gofmt
+        name: gofmt
+        entry: bash -c 'gofmt -l services | grep . && exit 1 || exit 0'
+        language: system
+        pass_filenames: false
+
+      - id: eslint
+        name: eslint (app/web)
+        entry: bash -c 'cd app/web && npm run lint --silent'
+        language: system
+        files: ^app/web/
+        pass_filenames: false
+
+      - id: prettier
+        name: prettier (app/web)
+        entry: bash -c 'cd app/web && npx prettier --check .'
+        language: system
+        files: ^app/web/
+        pass_filenames: false
+
+      - id: hadolint
+        name: hadolint
+        entry: hadolint
+        language: system
+        files: Dockerfile.*

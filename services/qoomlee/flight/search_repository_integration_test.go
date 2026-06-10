@@ -13,7 +13,7 @@ import (
 func TestRepositorySearch(t *testing.T) {
 	t.Run("BKK to SIN returns 3 flights", func(t *testing.T) {
 		repo := NewRepository(sharedDB)
-		dateFrom, dateTo := bkkDateToUTCRange(bkkDate(2026, 6, 15))
+		dateFrom, dateTo := bkkDateToUTCRange(seedDate(14))
 
 		flights, err := repo.Search(context.Background(), SearchParams{
 			Origin: "BKK", Destination: "SIN",
@@ -32,7 +32,7 @@ func TestRepositorySearch(t *testing.T) {
 
 	t.Run("ordered by departure time", func(t *testing.T) {
 		repo := NewRepository(sharedDB)
-		dateFrom, dateTo := bkkDateToUTCRange(bkkDate(2026, 6, 15))
+		dateFrom, dateTo := bkkDateToUTCRange(seedDate(14))
 
 		flights, err := repo.Search(context.Background(), SearchParams{
 			Origin: "BKK", Destination: "SIN",
@@ -49,7 +49,7 @@ func TestRepositorySearch(t *testing.T) {
 
 	t.Run("all fields populated", func(t *testing.T) {
 		repo := NewRepository(sharedDB)
-		dateFrom, dateTo := bkkDateToUTCRange(bkkDate(2026, 6, 15))
+		dateFrom, dateTo := bkkDateToUTCRange(seedDate(14))
 
 		flights, err := repo.Search(context.Background(), SearchParams{
 			Origin: "BKK", Destination: "SIN",
@@ -60,7 +60,7 @@ func TestRepositorySearch(t *testing.T) {
 		require.NotEmpty(t, flights)
 
 		f := flights[0] // QM101
-		assert.Equal(t, int64(1), f.ID)
+		assert.Equal(t, int64(11), f.ID)
 		assert.Equal(t, "QM101", f.FlightNumber)
 		assert.Equal(t, "BKK", f.Origin)
 		assert.Equal(t, "SIN", f.Destination)
@@ -74,7 +74,7 @@ func TestRepositorySearch(t *testing.T) {
 
 	t.Run("excludes sold out flights", func(t *testing.T) {
 		repo := NewRepository(sharedDB)
-		dateFrom, dateTo := bkkDateToUTCRange(bkkDate(2026, 6, 15))
+		dateFrom, dateTo := bkkDateToUTCRange(seedDate(14))
 
 		flights, err := repo.Search(context.Background(), SearchParams{
 			Origin: "BKK", Destination: "SIN",
@@ -90,7 +90,7 @@ func TestRepositorySearch(t *testing.T) {
 
 	t.Run("next day flight not in today search", func(t *testing.T) {
 		repo := NewRepository(sharedDB)
-		dateFrom, dateTo := bkkDateToUTCRange(bkkDate(2026, 6, 15))
+		dateFrom, dateTo := bkkDateToUTCRange(seedDate(14))
 
 		flights, err := repo.Search(context.Background(), SearchParams{
 			Origin: "BKK", Destination: "SIN",
@@ -104,7 +104,7 @@ func TestRepositorySearch(t *testing.T) {
 
 	t.Run("next day date returns QM103", func(t *testing.T) {
 		repo := NewRepository(sharedDB)
-		dateFrom, dateTo := bkkDateToUTCRange(bkkDate(2026, 6, 16))
+		dateFrom, dateTo := bkkDateToUTCRange(seedDate(15))
 
 		flights, err := repo.Search(context.Background(), SearchParams{
 			Origin: "BKK", Destination: "SIN",
@@ -118,7 +118,7 @@ func TestRepositorySearch(t *testing.T) {
 
 	t.Run("unknown route returns empty", func(t *testing.T) {
 		repo := NewRepository(sharedDB)
-		dateFrom, dateTo := bkkDateToUTCRange(bkkDate(2026, 6, 15))
+		dateFrom, dateTo := bkkDateToUTCRange(seedDate(14))
 
 		flights, err := repo.Search(context.Background(), SearchParams{
 			Origin: "XYZ", Destination: "ABC",

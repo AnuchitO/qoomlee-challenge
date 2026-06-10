@@ -14,11 +14,11 @@ func TestRepositoryGetByID(t *testing.T) {
 	t.Run("returns QM101 with all fields", func(t *testing.T) {
 		repo := NewRepository(sharedDB)
 
-		f, err := repo.GetByID(context.Background(), 1)
+		f, err := repo.GetByID(context.Background(), 11)
 
 		require.NoError(t, err)
 		require.NotNil(t, f)
-		assert.Equal(t, int64(1), f.ID)
+		assert.Equal(t, int64(11), f.ID)
 		assert.Equal(t, "QM101", f.FlightNumber)
 		assert.Equal(t, "BKK", f.Origin)
 		assert.Equal(t, "SIN", f.Destination)

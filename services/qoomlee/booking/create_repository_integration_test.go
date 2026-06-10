@@ -62,9 +62,9 @@ func TestRepositoryCreateBooking(t *testing.T) {
 	t.Run("sold out flight returns no seats available error", func(t *testing.T) {
 		repo := NewRepository(sharedDB)
 
-		// flight ID 6 = QM999, available_seats = 0
+		// flight ID 16 = QM999, available_seats = 0
 		pnr := fmt.Sprintf("T3%04d", time.Now().UnixNano()%9999)
-		b, err := repo.Create(context.Background(), 6, Passenger{
+		b, err := repo.Create(context.Background(), 16, Passenger{
 			FirstName: "Over", LastName: "Book", Email: "overbook@example.com",
 		}, pnr)
 

@@ -133,6 +133,29 @@ else
   hint "Install: brew install hadolint"
 fi
 
+# ── Pre-commit hooks ─────────────────────────────────────────────────────
+section "Pre-commit hooks"
+if command -v pre-commit >/dev/null 2>&1; then
+  ok "pre-commit $(pre-commit --version 2>/dev/null | awk '{print $2}')"
+
+  if [ -f .pre-commit-config.yaml ]; then
+    ok ".pre-commit-config.yaml present"
+  else
+    err ".pre-commit-config.yaml missing"
+    hint "Create it or restore from git"
+  fi
+
+  if [ -f .git/hooks/pre-commit ] && grep -q "pre-commit" .git/hooks/pre-commit 2>/dev/null; then
+    ok "pre-commit hooks installed in .git/hooks/"
+  else
+    err "pre-commit hooks not installed"
+    hint "Run: pre-commit install"
+  fi
+else
+  err "pre-commit not found"
+  hint "Install: brew install pre-commit  then  pre-commit install"
+fi
+
 # ── Playwright browsers ──────────────────────────────────────────────────
 section "Playwright"
 if [ -d "$HOME/.cache/ms-playwright" ] && [ -n "$(ls -A "$HOME/.cache/ms-playwright" 2>/dev/null)" ]; then

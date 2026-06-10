@@ -76,6 +76,13 @@ setup: _check-compose deps
 	@[ -d app/web/node_modules ] && echo -e "  $(GREEN)✓$(RESET)  app/web/node_modules already installed" || \
 	  (echo -e "  $(CYAN)→$(RESET)  running npm install (app/web)" && \
 	   cd app/web && npm install && echo -e "  $(GREEN)✓$(RESET)  app/web dependencies installed")
+	@command -v pre-commit >/dev/null 2>&1 && echo -e "  $(GREEN)✓$(RESET)  pre-commit already installed" || \
+	  (echo -e "  $(CYAN)→$(RESET)  installing pre-commit" && \
+	   brew install pre-commit 2>/dev/null && echo -e "  $(GREEN)✓$(RESET)  pre-commit installed" || \
+	   echo -e "  $(YELLOW)⚠  install pre-commit manually: brew install pre-commit$(RESET)")
+	@pre-commit install --install-hooks && \
+	  echo -e "  $(GREEN)✓$(RESET)  pre-commit hooks installed" || \
+	  echo -e "  $(YELLOW)⚠  pre-commit install failed — run: pre-commit install$(RESET)"
 	@echo -e "  $(GREEN)✓$(RESET)  Setup complete — run $(BOLD)make up$(RESET) to start, or $(BOLD)make doctor$(RESET) to verify"
 
 .PHONY: doctor # Check development environment readiness (Flutter-doctor style)

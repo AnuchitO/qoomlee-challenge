@@ -102,7 +102,7 @@ func main() {
 	logger := slog.Default()
 
 	r := gin.New()
-	r.Use(gin.Recovery(), middleware.CorrelationID(), middleware.RequestLogger(logger))
+	r.Use(gin.Recovery(), middleware.SecurityHeaders(), middleware.CorrelationID(), middleware.RequestLogger(logger))
 
 	r.GET("/health/live", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "payment-service"})

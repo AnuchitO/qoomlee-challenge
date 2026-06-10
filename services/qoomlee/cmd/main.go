@@ -82,7 +82,7 @@ func main() {
 	logger := slog.Default()
 
 	r := gin.New()
-	r.Use(gin.Recovery(), middleware.CorrelationID(), middleware.RequestLogger(logger))
+	r.Use(gin.Recovery(), middleware.SecurityHeaders(), middleware.CorrelationID(), middleware.RequestLogger(logger))
 
 	// Health probes — no auth
 	r.GET("/health/live", func(c *gin.Context) {

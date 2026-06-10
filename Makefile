@@ -52,14 +52,34 @@ help:
 # ====================================================================================
 # SETUP
 # ====================================================================================
-.PHONY: setup # First-time setup — copy .env, download Go deps, check tools
+.PHONY: setup # First-time setup — copy .env, download Go deps, install tools, npm install
 setup: _check-compose deps
 	@echo -e "$(BOLD)Setting up Qoomlee Airline...$(RESET)"
 	@[ -f .env ] || (cp .env.example .env && \
 	  echo -e "  $(YELLOW)⚠  .env created from .env.example$(RESET)" && \
 	  echo -e "  $(YELLOW)   Edit .env and add your Omise test keys before running 'make up'$(RESET)")
 	@[ -f .env ] && echo -e "  $(GREEN)✓$(RESET)  .env exists"
-	@echo -e "  $(GREEN)✓$(RESET)  Setup complete — run $(BOLD)make up$(RESET) to start"
+	@echo -e "$(BOLD)Checking optional tooling...$(RESET)"
+	@command -v govulncheck >/dev/null 2>&1 && echo -e "  $(GREEN)✓$(RESET)  govulncheck already installed" || \
+	  (echo -e "  $(CYAN)→$(RESET)  installing govulncheck" && \
+	   go install golang.org/x/vuln/cmd/govulncheck@latest && \
+	   echo -e "  $(GREEN)✓$(RESET)  govulncheck installed")
+	@command -v golangci-lint >/dev/null 2>&1 && echo -e "  $(GREEN)✓$(RESET)  golangci-lint already installed" || \
+	  (echo -e "  $(CYAN)→$(RESET)  installing golangci-lint" && \
+	   brew install golangci-lint 2>/dev/null && echo -e "  $(GREEN)✓$(RESET)  golangci-lint installed" || \
+	   echo -e "  $(YELLOW)⚠  install golangci-lint manually: https://golangci-lint.run/welcome/install/$(RESET)")
+	@command -v gitleaks >/dev/null 2>&1 && echo -e "  $(GREEN)✓$(RESET)  gitleaks already installed" || \
+	  (echo -e "  $(CYAN)→$(RESET)  installing gitleaks" && \
+	   brew install gitleaks 2>/dev/null && echo -e "  $(GREEN)✓$(RESET)  gitleaks installed" || \
+	   echo -e "  $(YELLOW)⚠  install gitleaks manually: brew install gitleaks$(RESET)")
+	@[ -d app/web/node_modules ] && echo -e "  $(GREEN)✓$(RESET)  app/web/node_modules already installed" || \
+	  (echo -e "  $(CYAN)→$(RESET)  running npm install (app/web)" && \
+	   cd app/web && npm install && echo -e "  $(GREEN)✓$(RESET)  app/web dependencies installed")
+	@echo -e "  $(GREEN)✓$(RESET)  Setup complete — run $(BOLD)make up$(RESET) to start, or $(BOLD)make doctor$(RESET) to verify"
+
+.PHONY: doctor # Check development environment readiness (Flutter-doctor style)
+doctor:
+	@bash scripts/doctor.sh
 
 .PHONY: deps # Download Go module dependencies for all services
 deps:
@@ -177,7 +197,7 @@ test-integration:
 	@echo -e "  $(DIM)Note: Docker must be running — pulls postgres:16-alpine on first run$(RESET)"
 	@for svc in $(SERVICES); do \
 	  echo -e "  $(CYAN)→$(RESET)  $$svc"; \
-	  (cd $(SVC_DIR)/$$svc && go test ./... -tags=integration -run Integration -v -count=1) || exit 1; \
+	  (cd $(SVC_DIR)/$$svc && go test ./... -tags=integration -v -count=1) || exit 1; \
 	done
 	@echo -e "\n  $(GREEN)✓$(RESET)  Integration tests complete"
 
@@ -189,7 +209,7 @@ test-qoomlee:
 .PHONY: test-qoomlee-integration # Run qoomlee-service integration tests (requires Docker)
 test-qoomlee-integration:
 	@echo -e "$(BOLD)qoomlee-service integration tests$(RESET)"
-	cd $(SVC_DIR)/qoomlee && go test ./... -tags=integration -run Integration -v -count=1
+	cd $(SVC_DIR)/qoomlee && go test ./... -tags=integration -v -count=1
 
 .PHONY: test-payment # Run payment-service unit tests only
 test-payment:
@@ -199,7 +219,37 @@ test-payment:
 .PHONY: test-payment-integration # Run payment-service integration tests (requires Docker)
 test-payment-integration:
 	@echo -e "$(BOLD)payment-service integration tests$(RESET)"
-	cd $(SVC_DIR)/payment && go test ./... -tags=integration -run Integration -v -count=1
+	cd $(SVC_DIR)/payment && go test ./... -tags=integration -v -count=1
+
+.PHONY: test-cover # Run unit tests with coverage report for all services
+test-cover:
+	@echo -e "$(BOLD)Running tests with coverage...$(RESET)"
+	@for svc in $(SERVICES); do \
+	  echo -e "  $(CYAN)→$(RESET)  $$svc"; \
+	  (cd $(SVC_DIR)/$$svc && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out | tail -1) || exit 1; \
+	done
+	@echo -e "  $(GREEN)✓$(RESET)  Coverage reports generated"
+
+.PHONY: test-visual # Run Playwright visual regression screenshot tests
+test-visual:
+	@echo -e "$(BOLD)Running visual regression tests...$(RESET)"
+	cd app/web && npx playwright test e2e/visual
+
+.PHONY: test-mutation # Run go-mutesting on the payment package
+test-mutation:
+	@command -v go-mutesting >/dev/null 2>&1 || \
+	  (echo -e "$(RED)go-mutesting not installed — run: go install github.com/avito-tech/go-mutesting/cmd/go-mutesting@latest$(RESET)" && exit 1)
+	cd $(SVC_DIR)/payment && go-mutesting ./payment/...
+
+.PHONY: test-security # OWASP ZAP baseline scan against the running stack + dependency audits
+test-security: _require-stack lint-security
+	@echo -e "$(BOLD)Running ZAP baseline scans...$(RESET)"
+	@command -v docker >/dev/null 2>&1 || (echo -e "$(RED)Docker required for ZAP$(RESET)" && exit 1)
+	docker run --rm -t --network=host ghcr.io/zaproxy/zaproxy:stable \
+	  zap-baseline.py -t $(QOOMLEE_SERVICE_URL) -r zap-report-qoomlee.html || true
+	docker run --rm -t --network=host ghcr.io/zaproxy/zaproxy:stable \
+	  zap-baseline.py -t $(PAYMENT_SERVICE_URL) -r zap-report-payment.html || true
+	@echo -e "  $(GREEN)✓$(RESET)  ZAP baseline scans complete — see zap-report-*.html"
 
 # ====================================================================================
 # SCORE AND QUALITY CHECKS
@@ -256,6 +306,59 @@ fmt:
 	  gofmt -w $(SVC_DIR)/$$svc/; \
 	done
 	@echo -e "  $(GREEN)✓$(RESET)  Go code formatted"
+
+.PHONY: fmt-check # Check formatting (gofmt + prettier) without modifying files — for CI
+fmt-check:
+	@echo -e "$(BOLD)Checking formatting...$(RESET)"
+	@for svc in $(SERVICES); do \
+	  unformatted=$$(gofmt -l $(SVC_DIR)/$$svc); \
+	  if [ -n "$$unformatted" ]; then \
+	    echo -e "$(RED)gofmt: files not formatted:$(RESET)"; echo "$$unformatted"; exit 1; \
+	  fi; \
+	done
+	@echo -e "  $(GREEN)✓$(RESET)  gofmt clean"
+	@(cd app/web && npx prettier --check .) || \
+	  (echo -e "$(RED)prettier: formatting issues found — run: cd app/web && npx prettier --write .$(RESET)" && exit 1)
+	@echo -e "  $(GREEN)✓$(RESET)  prettier clean"
+
+.PHONY: lint-security # Run gosec, govulncheck, gitleaks, and npm audit
+lint-security:
+	@echo -e "$(BOLD)Security scans...$(RESET)"
+	@for svc in $(SERVICES); do \
+	  echo -e "  $(CYAN)→$(RESET)  gosec $$svc"; \
+	  (cd $(SVC_DIR)/$$svc && golangci-lint run --enable-only=gosec ./...) || exit 1; \
+	done
+	@if command -v govulncheck >/dev/null 2>&1; then \
+	  for svc in $(SERVICES); do \
+	    echo -e "  $(CYAN)→$(RESET)  govulncheck $$svc"; \
+	    (cd $(SVC_DIR)/$$svc && govulncheck ./...) || exit 1; \
+	  done; \
+	else \
+	  echo -e "  $(YELLOW)⚠  govulncheck not installed — run: make setup$(RESET)"; \
+	fi
+	@if command -v gitleaks >/dev/null 2>&1; then \
+	  echo -e "  $(CYAN)→$(RESET)  gitleaks"; \
+	  gitleaks detect --source . --redact -v || exit 1; \
+	else \
+	  echo -e "  $(YELLOW)⚠  gitleaks not installed — run: make setup$(RESET)"; \
+	fi
+	@echo -e "  $(CYAN)→$(RESET)  npm audit (app/web)"
+	@(cd app/web && npm audit --omit=dev) || true
+	@echo -e "  $(GREEN)✓$(RESET)  Security scans complete"
+
+.PHONY: lint-docker # Run hadolint on all Dockerfiles
+lint-docker:
+	@command -v hadolint >/dev/null 2>&1 || \
+	  (echo -e "$(RED)hadolint not installed — brew install hadolint$(RESET)" && exit 1)
+	@for f in $(SVC_DIR)/*/Dockerfile; do \
+	  echo -e "  $(CYAN)→$(RESET)  $$f"; \
+	  hadolint $$f || exit 1; \
+	done
+	@echo -e "  $(GREEN)✓$(RESET)  Dockerfiles pass hadolint"
+
+.PHONY: ci # Full CI pipeline — fmt-check, lint, security, unit + integration tests, coverage
+ci: fmt-check lint lint-security test-unit test-integration test-cover
+	@echo -e "  $(GREEN)✓$(RESET)  CI pipeline passed"
 
 # ====================================================================================
 # DATABASE

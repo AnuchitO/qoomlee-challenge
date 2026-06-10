@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useSearchForm } from "./useSearchForm";
 
 export default function SearchForm() {
-  const [tripType, setTripType] = useState<"round" | "oneway">("round");
+  const { tripType, setTripType } = useSearchForm();
 
   return (
     <section className="px-container-margin-mobile -mt-10 relative z-20">

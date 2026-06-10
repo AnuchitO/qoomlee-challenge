@@ -1,6 +1,6 @@
 module github.com/AnuchitO/qoomlee-payment
 
-go 1.26.1
+go 1.26.4
 
 require (
 	github.com/gin-gonic/gin v1.12.0

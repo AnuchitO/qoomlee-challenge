@@ -17,14 +17,20 @@ export default async function BookingPage({
   const str = (v: string | string[] | undefined, fallback = ""): string =>
     Array.isArray(v) ? (v[0] ?? fallback) : (v ?? fallback);
 
+  const departureTime = str(p.departureTime, new Date().toISOString());
+
   const flight = {
     id: Number(str(p.flightId, "0")),
     flightNumber: str(p.flightNumber, "—"),
     origin: str(p.origin, "—"),
     destination: str(p.destination, "—"),
-    departureTime: str(p.departureTime, new Date().toISOString()),
+    departureTime,
+    arrivalTime: departureTime,
     basePriceMinor: Number(str(p.price, "0")),
     currency: str(p.currency, "USD"),
+    availableSeats: 0,
+    status: "SCHEDULED",
+    durationMinutes: 0,
   };
 
   const passengers = Math.max(1, Number(str(p.passengers, "1")));

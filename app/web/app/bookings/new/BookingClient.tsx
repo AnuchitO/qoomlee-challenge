@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { FlightData } from "./components/FlightSummaryCard";
+import type { Flight } from "@/lib/types/flight";
 
 function formatPrice(minor: number, currency: string): string {
   const major = minor / 100;
@@ -13,7 +13,7 @@ function formatPrice(minor: number, currency: string): string {
 const UPGRADE_PRICE_MINOR = 29900;
 
 interface Props {
-  flight: FlightData;
+  flight: Flight;
   passengers: number;
 }
 

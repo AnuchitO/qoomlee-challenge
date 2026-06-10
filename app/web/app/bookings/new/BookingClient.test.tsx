@@ -17,8 +17,12 @@ const flight = {
   origin: "BKK",
   destination: "SIN",
   departureTime: "2026-10-24T08:00:00Z",
+  arrivalTime: "2026-10-24T11:30:00Z",
   basePriceMinor: 10000,
   currency: "USD",
+  availableSeats: 50,
+  status: "SCHEDULED",
+  durationMinutes: 210,
 };
 
 const fillValidForm = () => {

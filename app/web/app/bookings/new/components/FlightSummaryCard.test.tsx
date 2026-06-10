@@ -8,8 +8,12 @@ const base = {
   origin: "BKK",
   destination: "SIN",
   departureTime: "2026-10-24T08:00:00Z",
+  arrivalTime: "2026-10-24T11:30:00Z",
   basePriceMinor: 810000,
   currency: "THB",
+  availableSeats: 50,
+  status: "SCHEDULED",
+  durationMinutes: 210,
 };
 
 describe("FlightSummaryCard", () => {

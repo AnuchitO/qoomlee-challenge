@@ -1,15 +1,6 @@
 import { findAirport } from "../../../flights/data/airports";
 import FlightRoute from "../../../components/FlightRoute";
-
-export interface FlightData {
-  id: number;
-  flightNumber: string;
-  origin: string;
-  destination: string;
-  departureTime: string;
-  basePriceMinor: number;
-  currency: string;
-}
+import type { Flight } from "@/lib/types/flight";
 
 function formatDepartureDateTime(iso: string): string {
   const date = new Date(iso);
@@ -28,7 +19,7 @@ function formatDepartureDateTime(iso: string): string {
   return `${datePart} · ${timePart}`;
 }
 
-export default function FlightSummaryCard({ flight }: { flight: FlightData }) {
+export default function FlightSummaryCard({ flight }: { flight: Flight }) {
   const originAirport = findAirport(flight.origin);
   const destAirport = findAirport(flight.destination);
 

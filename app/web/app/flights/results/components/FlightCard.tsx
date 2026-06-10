@@ -83,12 +83,16 @@ export default function FlightCard({ flight, passengers, isBestValue = false, on
             <p className="text-label-sm text-on-surface-variant mb-1">
               {formatDuration(flight.durationMinutes)}
             </p>
-            <div className="w-full h-px bg-outline-variant relative flex items-center justify-center">
-              <span className="material-symbols-outlined text-primary text-xl bg-surface-container-lowest px-1">
+            <div className="w-full flex items-center">
+              <div className="flex-1 border-t-2 border-dashed border-outline-variant"></div>
+              <span className="material-symbols-outlined text-primary text-[20px] rotate-90 mx-1">
                 flight
               </span>
+              <div className="flex-1 border-t-2 border-dashed border-outline-variant"></div>
             </div>
-            <p className="text-label-sm text-[#008544] mt-1 font-bold">Non-stop</p>
+            <span className="bg-surface-container-high text-on-surface-variant text-[10px] px-2 py-0.5 rounded font-medium mt-1">
+              Non-stop
+            </span>
           </div>
           <div className="flex-1 text-right">
             <p className="text-headline-md">

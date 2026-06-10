@@ -50,14 +50,13 @@ export default function FlightSummaryCard({ flight }: { flight: FlightData }) {
             </p>
           </div>
 
-          <div className="flex flex-col items-center px-sm flex-shrink-0">
-            <span className="material-symbols-outlined text-on-surface-variant text-[20px]">
-              flight
-            </span>
-            <div className="flex items-center w-16 gap-1 mt-1">
-              <div className="flex-1 h-px bg-outline-variant" />
-              <div className="w-1.5 h-1.5 rounded-full bg-outline-variant" />
-              <div className="flex-1 h-px bg-outline-variant" />
+          <div className="flex flex-col items-center px-sm flex-shrink-0 w-16">
+            <div className="w-full flex items-center">
+              <div className="flex-1 border-t-2 border-dashed border-outline-variant"></div>
+              <span className="material-symbols-outlined text-primary text-[20px] rotate-90 mx-1">
+                flight
+              </span>
+              <div className="flex-1 border-t-2 border-dashed border-outline-variant"></div>
             </div>
           </div>
 

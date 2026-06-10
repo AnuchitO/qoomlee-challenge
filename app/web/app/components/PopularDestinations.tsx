@@ -28,11 +28,11 @@ export default function PopularDestinations() {
         <button className="text-primary text-label-md">See All</button>
       </div>
 
-      <div className="grid grid-cols-2 gap-md">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-md">
         {destinations.map((dest) => (
           <div
             key={dest.name}
-            className={`relative ${dest.large ? "col-span-2 h-48" : "h-40"} rounded-xl overflow-hidden shadow-sm border border-outline-variant group`}
+            className={`relative ${dest.large ? "col-span-2 md:col-span-1" : ""} ${dest.large ? "h-48" : "h-40"} md:h-56 rounded-xl overflow-hidden shadow-sm border border-outline-variant group`}
           >
             <img
               alt={dest.name}
@@ -40,9 +40,7 @@ export default function PopularDestinations() {
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-md">
-              <span className={`text-white ${dest.large ? "text-headline-md" : "text-label-md"}`}>
-                {dest.name}
-              </span>
+              <span className="text-white text-label-md md:text-headline-md">{dest.name}</span>
               <span className="text-white/80 text-label-sm">{dest.price}</span>
             </div>
             {dest.badge && (

@@ -1,5 +1,6 @@
 import type { Flight } from "../lib/types";
 import { formatDuration } from "../lib/formatSearchSummary";
+import FlightRoute from "../../../components/FlightRoute";
 
 interface Props {
   flight: Flight;
@@ -74,34 +75,15 @@ export default function FlightCard({ flight, passengers, isBestValue = false, on
         </div>
 
         {/* Journey */}
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <p className="text-headline-md">{formatTime(flight.departureTime)}</p>
-            <p className="text-label-md text-on-surface-variant">{flight.origin}</p>
-          </div>
-          <div className="flex-[2] flex flex-col items-center px-md">
-            <p className="text-label-sm text-on-surface-variant mb-1">
-              {formatDuration(flight.durationMinutes)}
-            </p>
-            <div className="w-full flex items-center">
-              <div className="flex-1 border-t-2 border-dashed border-outline-variant"></div>
-              <span className="material-symbols-outlined text-primary text-[20px] rotate-90 mx-1">
-                flight
-              </span>
-              <div className="flex-1 border-t-2 border-dashed border-outline-variant"></div>
-            </div>
-            <span className="bg-surface-container-high text-on-surface-variant text-[10px] px-2 py-0.5 rounded font-medium mt-1">
-              Non-stop
-            </span>
-          </div>
-          <div className="flex-1 text-right">
-            <p className="text-headline-md">
-              {formatTime(flight.arrivalTime)}
-              {nextDay && <span className="text-sm align-top text-error ml-0.5">+1</span>}
-            </p>
-            <p className="text-label-md text-on-surface-variant">{flight.destination}</p>
-          </div>
-        </div>
+        <FlightRoute
+          origin={flight.origin}
+          destination={flight.destination}
+          departureTime={formatTime(flight.departureTime)}
+          arrivalTime={formatTime(flight.arrivalTime)}
+          arrivalSuffix={nextDay && <span className="text-sm align-top text-error ml-0.5">+1</span>}
+          duration={formatDuration(flight.durationMinutes)}
+          stopLabel="Non-stop"
+        />
 
         {/* Footer */}
         <div className="flex items-center justify-between pt-md border-t border-outline-variant/30">

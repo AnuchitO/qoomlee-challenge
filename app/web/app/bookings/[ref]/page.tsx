@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import TopAppBar from "../../components/TopAppBar";
 import BottomNav from "../../components/BottomNav";
+import FlightRoute from "../../components/FlightRoute";
 
 export const metadata: Metadata = {
   title: "Manage Booking · Qoomlee",
@@ -64,33 +65,18 @@ export default async function ManageBookingPage({ params }: Props) {
 
               {/* Route */}
               <div className="p-md">
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col items-center gap-xs">
-                    <p className="text-[32px] font-bold text-on-surface leading-none">09:15</p>
-                    <div className="w-3 h-3 rounded-full border-4 border-primary ring-4 ring-primary-fixed mb-xs" />
-                    <span className="text-label-md text-on-surface font-bold">BKK</span>
-                    <span className="text-label-sm text-on-surface-variant">Suvarnabhumi</span>
-                  </div>
-                  <div className="flex flex-col items-center text-on-surface-variant gap-xs">
-                    <span className="text-label-sm">8h 30m</span>
-                    <div className="w-16 flex items-center">
-                      <div className="flex-1 border-t-2 border-dashed border-outline-variant"></div>
-                      <span className="material-symbols-outlined text-primary text-[16px] rotate-90 mx-1">
-                        flight
-                      </span>
-                      <div className="flex-1 border-t-2 border-dashed border-outline-variant"></div>
-                    </div>
-                    <span className="bg-surface-container-high text-on-surface-variant text-[10px] px-2 py-0.5 rounded font-medium">
-                      Non-stop
-                    </span>
-                  </div>
-                  <div className="flex flex-col items-center gap-xs">
-                    <p className="text-[32px] font-bold text-on-surface leading-none">20:45</p>
-                    <div className="w-3 h-3 rounded-full border-4 border-primary ring-4 ring-primary-fixed mb-xs" />
-                    <span className="text-label-md text-on-surface font-bold">SYD</span>
-                    <span className="text-label-sm text-on-surface-variant">Kingsford Smith</span>
-                  </div>
-                </div>
+                <FlightRoute
+                  size="xl"
+                  origin="BKK"
+                  destination="SYD"
+                  originLabel="Suvarnabhumi"
+                  destinationLabel="Kingsford Smith"
+                  departureTime="09:15"
+                  arrivalTime="20:45"
+                  duration="8h 30m"
+                  stopLabel="Non-stop"
+                  showDots
+                />
 
                 {/* Passenger info */}
                 <div className="border-t border-outline-variant pt-md grid grid-cols-2 gap-md mt-md">

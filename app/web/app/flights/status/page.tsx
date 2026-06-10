@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import TopAppBar from "../../components/TopAppBar";
 import BottomNav from "../../components/BottomNav";
+import FlightRoute from "../../components/FlightRoute";
 
 type FlightStatus = "on-time" | "delayed" | "cancelled" | "landed";
 
@@ -177,28 +178,14 @@ export default function FlightStatusPage() {
                   </div>
 
                   {/* Route row */}
-                  <div className="flex items-center justify-between">
-                    <div className="text-center">
-                      <p className="text-headline-lg-mobile text-on-surface">{flight.departure}</p>
-                      <p className="text-label-sm text-on-surface-variant">{flight.origin}</p>
-                    </div>
-                    <div className="flex-1 flex flex-col items-center gap-1 px-4">
-                      <div className="w-full flex items-center">
-                        <div className="flex-1 border-t-2 border-dashed border-outline-variant"></div>
-                        <span className="material-symbols-outlined text-primary text-[20px] rotate-90 mx-1">
-                          flight
-                        </span>
-                        <div className="flex-1 border-t-2 border-dashed border-outline-variant"></div>
-                      </div>
-                      <span className="bg-surface-container-high text-on-surface-variant text-[10px] px-2 py-0.5 rounded font-medium">
-                        Non-stop
-                      </span>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-headline-lg-mobile text-on-surface">{flight.arrival}</p>
-                      <p className="text-label-sm text-on-surface-variant">{flight.destination}</p>
-                    </div>
-                  </div>
+                  <FlightRoute
+                    size="lg"
+                    origin={flight.origin}
+                    destination={flight.destination}
+                    departureTime={flight.departure}
+                    arrivalTime={flight.arrival}
+                    stopLabel="Non-stop"
+                  />
 
                   {/* Details grid */}
                   <div className="grid grid-cols-2 gap-md">

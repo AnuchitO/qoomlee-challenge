@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import FlightRoute from "../../../components/FlightRoute";
 
 const ALTERNATIVES = [
   {
@@ -124,28 +125,15 @@ export default function ChangeFlightPage() {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-md">
-                    <div className="text-center">
-                      <p className="text-label-md text-on-surface">{flight.departure}</p>
-                      <p className="text-label-sm text-on-surface-variant">BKK</p>
-                    </div>
-                    <div className="flex flex-col items-center flex-1 min-w-[60px]">
-                      <p className="text-label-sm text-on-surface-variant mb-1">
-                        {flight.duration}
-                      </p>
-                      <div className="w-full flex items-center">
-                        <div className="flex-1 border-t-2 border-dashed border-outline-variant"></div>
-                        <span className="material-symbols-outlined text-primary text-[18px] rotate-90 mx-1">
-                          flight
-                        </span>
-                        <div className="flex-1 border-t-2 border-dashed border-outline-variant"></div>
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-label-md text-on-surface">{flight.arrival}</p>
-                      <p className="text-label-sm text-on-surface-variant">SYD</p>
-                    </div>
-                  </div>
+                  <FlightRoute
+                    size="sm"
+                    className="gap-md"
+                    origin="BKK"
+                    destination="SYD"
+                    departureTime={flight.departure}
+                    arrivalTime={flight.arrival}
+                    duration={flight.duration}
+                  />
                   <button
                     onClick={() => handleSelect(flight.id)}
                     disabled={!!confirming}

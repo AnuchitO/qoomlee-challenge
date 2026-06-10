@@ -1,4 +1,5 @@
 import { findAirport } from "../../../flights/data/airports";
+import FlightRoute from "../../../components/FlightRoute";
 
 export interface FlightData {
   id: number;
@@ -42,31 +43,13 @@ export default function FlightSummaryCard({ flight }: { flight: FlightData }) {
 
       <div className="px-md pt-sm pb-md">
         {/* Route */}
-        <div className="flex items-center gap-xs mt-sm mb-sm">
-          <div className="flex-1 min-w-0">
-            <p className="text-headline-md">{flight.origin}</p>
-            <p className="text-label-sm text-on-surface-variant truncate">
-              {originAirport?.city ?? flight.origin}
-            </p>
-          </div>
-
-          <div className="flex flex-col items-center px-sm flex-shrink-0 w-16">
-            <div className="w-full flex items-center">
-              <div className="flex-1 border-t-2 border-dashed border-outline-variant"></div>
-              <span className="material-symbols-outlined text-primary text-[20px] rotate-90 mx-1">
-                flight
-              </span>
-              <div className="flex-1 border-t-2 border-dashed border-outline-variant"></div>
-            </div>
-          </div>
-
-          <div className="flex-1 min-w-0 text-right">
-            <p className="text-headline-md">{flight.destination}</p>
-            <p className="text-label-sm text-on-surface-variant truncate">
-              {destAirport?.city ?? flight.destination}
-            </p>
-          </div>
-        </div>
+        <FlightRoute
+          className="mt-sm mb-sm"
+          origin={flight.origin}
+          destination={flight.destination}
+          originLabel={originAirport?.city ?? flight.origin}
+          destinationLabel={destAirport?.city ?? flight.destination}
+        />
 
         {/* Date / time */}
         <div className="flex items-center gap-sm pt-sm border-t border-outline-variant/40">

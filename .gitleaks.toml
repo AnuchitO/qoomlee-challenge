@@ -11,9 +11,14 @@ paths = [
   '''node_modules/''',
   '''(^|/)tests/''',
   '''(^|/)test-results/''',
+  # k8s Secret template — contains only TODO placeholder base64 values, not real secrets
+  '''infra/k8s/''',
+  # Diagram and doc files — contain only illustrative example values
+  '''diagrams/''',
 ]
 regexes = [
-  # Omise test-mode keys (publicly documented sandbox keys, safe to commit)
+  # Omise test-mode keys and tokens (publicly documented sandbox values, safe to commit)
   '''pkey_test_[a-zA-Z0-9]+''',
   '''skey_test_[a-zA-Z0-9]+''',
+  '''tokn_test_[a-zA-Z0-9]+''',
 ]

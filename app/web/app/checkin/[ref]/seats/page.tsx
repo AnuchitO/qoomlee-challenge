@@ -3,29 +3,18 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import {
+  SEAT_ROWS_BUSINESS,
+  SEAT_ROWS_ECONOMY,
+  SEAT_COLUMNS,
+  mockTakenSeats,
+} from "@/lib/mock/seats";
 
-const ROWS_BUSINESS = 4;
-const ROWS_ECONOMY = 20;
-const COLS = ["A", "B", "C", "", "D", "E", "F"];
+const ROWS_BUSINESS = SEAT_ROWS_BUSINESS;
+const ROWS_ECONOMY = SEAT_ROWS_ECONOMY;
+const COLS = SEAT_COLUMNS;
 
-const TAKEN = new Set([
-  "1A",
-  "1C",
-  "2B",
-  "3D",
-  "3F",
-  "4E",
-  "7A",
-  "7B",
-  "8C",
-  "9D",
-  "10F",
-  "12E",
-  "15A",
-  "16B",
-  "18C",
-  "20F",
-]);
+const TAKEN = new Set(mockTakenSeats);
 
 type SeatStatus = "available" | "selected" | "taken" | "aisle";
 

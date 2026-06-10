@@ -5,20 +5,7 @@ import Link from "next/link";
 import TopAppBar from "../../components/TopAppBar";
 import BottomNav from "../../components/BottomNav";
 import FlightRoute from "../../components/FlightRoute";
-
-type FlightStatus = "on-time" | "delayed" | "cancelled" | "landed";
-
-interface FlightStatusCard {
-  flightNumber: string;
-  origin: string;
-  destination: string;
-  departure: string;
-  arrival: string;
-  status: FlightStatus;
-  delay?: string;
-  gate?: string;
-  terminal?: string;
-}
+import { mockDepartures as DEPARTURES, type FlightStatus } from "@/lib/mock/flights";
 
 const statusConfig: Record<
   FlightStatus,
@@ -49,50 +36,6 @@ const statusConfig: Record<
     icon: "flight_land",
   },
 };
-
-const DEPARTURES: FlightStatusCard[] = [
-  {
-    flightNumber: "QQ101",
-    origin: "BKK",
-    destination: "SYD",
-    departure: "08:00",
-    arrival: "16:30",
-    status: "on-time",
-    gate: "F12",
-    terminal: "1",
-  },
-  {
-    flightNumber: "QQ203",
-    origin: "BKK",
-    destination: "CNX",
-    departure: "09:45",
-    arrival: "10:55",
-    status: "delayed",
-    delay: "Delayed 45 min — New departure: 10:30",
-    gate: "G7",
-    terminal: "2",
-  },
-  {
-    flightNumber: "QQ305",
-    origin: "BKK",
-    destination: "HKT",
-    departure: "11:20",
-    arrival: "12:25",
-    status: "on-time",
-    gate: "B3",
-    terminal: "1",
-  },
-  {
-    flightNumber: "QQ407",
-    origin: "BKK",
-    destination: "NRT",
-    departure: "13:00",
-    arrival: "21:30",
-    status: "on-time",
-    gate: "A9",
-    terminal: "1",
-  },
-];
 
 function StatusBadge({ status }: { status: FlightStatus }) {
   const cfg = statusConfig[status];

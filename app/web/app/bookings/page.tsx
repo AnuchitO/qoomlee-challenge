@@ -2,31 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import TopAppBar from "../components/TopAppBar";
 import BottomNav from "../components/BottomNav";
+import { mockBookings as BOOKINGS } from "@/lib/mock/bookings";
 
 export const metadata: Metadata = {
   title: "My Bookings · Qoomlee",
 };
-
-const BOOKINGS = [
-  {
-    ref: "QL-88291",
-    route: "BKK — SYD",
-    date: "Mon, 20 May 2024",
-    flightNumber: "QQ101",
-    status: "confirmed" as const,
-    passengers: 2,
-    totalPaid: "฿18,900",
-  },
-  {
-    ref: "QL-77150",
-    route: "SYD — BKK",
-    date: "Fri, 24 May 2024",
-    flightNumber: "QQ102",
-    status: "confirmed" as const,
-    passengers: 2,
-    totalPaid: "฿17,650",
-  },
-];
 
 const statusConfig = {
   confirmed: { label: "Confirmed", color: "bg-green-100 text-green-700" },

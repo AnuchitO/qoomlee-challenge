@@ -3,11 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-
-const MOCK_PASSENGERS = [
-  { id: "1", name: "Jonathan Doe", type: "Adult", seat: "14A", cabin: "Economy", eligible: true },
-  { id: "2", name: "Sarah Doe", type: "Adult", seat: "14B", cabin: "Economy", eligible: true },
-];
+import { mockCheckinPassengers as MOCK_PASSENGERS } from "@/lib/mock/passenger";
 
 export default function SelectPassengersPage() {
   const { ref } = useParams<{ ref: string }>();

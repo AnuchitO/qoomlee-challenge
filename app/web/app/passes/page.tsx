@@ -3,41 +3,11 @@ import Link from "next/link";
 import TopAppBar from "../components/TopAppBar";
 import BottomNav from "../components/BottomNav";
 import FlightRoute from "../components/FlightRoute";
+import { mockBoardingPasses as PASSES } from "@/lib/mock/bookings";
 
 export const metadata: Metadata = {
   title: "Boarding Passes · Qoomlee",
 };
-
-const PASSES = [
-  {
-    ref: "QM92Z4",
-    passenger: "Jonathan S. Doe",
-    flightNumber: "QQ101",
-    origin: "BKK",
-    destination: "SYD",
-    departure: "09:15",
-    arrival: "20:45",
-    date: "Mon, 20 May 2024",
-    seat: "14A",
-    gate: "F12",
-    boarding: "08:10",
-    cabin: "ECO",
-  },
-  {
-    ref: "QM92Z5",
-    passenger: "Sarah M. Doe",
-    flightNumber: "QQ101",
-    origin: "BKK",
-    destination: "SYD",
-    departure: "09:15",
-    arrival: "20:45",
-    date: "Mon, 20 May 2024",
-    seat: "14B",
-    gate: "F12",
-    boarding: "08:10",
-    cabin: "ECO",
-  },
-];
 
 export default function PassesPage() {
   return (

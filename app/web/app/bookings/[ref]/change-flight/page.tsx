@@ -4,39 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import FlightRoute from "../../../components/FlightRoute";
-
-const ALTERNATIVES = [
-  {
-    id: "QQ105",
-    flightNumber: "QQ105",
-    departure: "10:30",
-    arrival: "19:00",
-    duration: "8h 30m",
-    stops: "Non-stop",
-    price: 0,
-    diff: "Same price",
-  },
-  {
-    id: "QQ107",
-    flightNumber: "QQ107",
-    departure: "14:00",
-    arrival: "22:30",
-    duration: "8h 30m",
-    stops: "Non-stop",
-    price: -1200,
-    diff: "฿1,200 cheaper",
-  },
-  {
-    id: "QQ109",
-    flightNumber: "QQ109",
-    departure: "20:00",
-    arrival: "07:30+1",
-    duration: "11h 30m",
-    stops: "1 stop (SIN)",
-    price: -2500,
-    diff: "฿2,500 cheaper",
-  },
-];
+import { mockFlightAlternatives as ALTERNATIVES } from "@/lib/mock/flights";
 
 export default function ChangeFlightPage() {
   const { ref } = useParams<{ ref: string }>();

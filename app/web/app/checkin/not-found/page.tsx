@@ -27,8 +27,8 @@ export default function BookingNotFoundPage() {
         <div className="space-y-md">
           <h1 className="text-headline-lg-mobile text-on-surface">Booking Not Found</h1>
           <p className="text-body-md text-on-surface-variant px-md">
-            We couldn&apos;t find a booking with the details provided. Please check your reference number
-            and try again.
+            We couldn&apos;t find a booking with the details provided. Please check your reference
+            number and try again.
           </p>
         </div>
 

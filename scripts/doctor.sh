@@ -41,7 +41,7 @@ else
   hint "Install: brew install go"
 fi
 
-# ── Node / npm ───────────────────────────────────────────────────────────
+# ── Node / bun ───────────────────────────────────────────────────────────
 section "Node.js"
 if command -v node >/dev/null 2>&1; then
   NODE_VER=$(node -v | sed 's/v//')
@@ -56,11 +56,11 @@ else
   hint "Install: brew install node"
 fi
 
-if command -v npm >/dev/null 2>&1; then
-  ok "npm $(npm -v)"
+if command -v bun >/dev/null 2>&1; then
+  ok "bun $(bun --version)"
 else
-  err "npm not found"
-  hint "npm ships with Node — reinstall Node"
+  err "bun not found"
+  hint "Install: curl -fsSL https://bun.sh/install | bash"
 fi
 
 # ── Docker ───────────────────────────────────────────────────────────────
@@ -162,7 +162,7 @@ if [ -d "$HOME/.cache/ms-playwright" ] && [ -n "$(ls -A "$HOME/.cache/ms-playwri
   ok "Playwright browsers installed"
 else
   warn "Playwright browsers not installed"
-  hint "Install: cd app/web && npx playwright install"
+  hint "Install: cd app/web && bunx playwright install"
 fi
 
 # ── Env files ─────────────────────────────────────────────────────────────
@@ -186,7 +186,7 @@ if [ -d app/web/node_modules ]; then
   ok "app/web/node_modules installed"
 else
   err "app/web/node_modules missing"
-  hint "Run: cd app/web && npm install"
+  hint "Run: cd app/web && bun install"
 fi
 
 for svc in qoomlee payment; do

@@ -124,7 +124,9 @@ export default function PreFlightChecklistPage() {
               >
                 check_circle
               </span>
-              <p className="text-label-md text-green-700">All items checked — you&apos;re good to go!</p>
+              <p className="text-label-md text-green-700">
+                All items checked — you&apos;re good to go!
+              </p>
             </div>
           )}
         </div>

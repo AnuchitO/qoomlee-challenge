@@ -53,7 +53,7 @@ help:
 # ====================================================================================
 # SETUP
 # ====================================================================================
-.PHONY: setup # First-time setup — copy .env, download Go deps, install tools, npm install
+.PHONY: setup # First-time setup — copy .env, download Go deps, install tools, bun install
 setup: _check-compose deps
 	@echo -e "$(BOLD)Setting up Qoomlee Airline...$(RESET)"
 	@[ -f .env ] || (cp .env.example .env && \
@@ -74,8 +74,8 @@ setup: _check-compose deps
 	   brew install gitleaks 2>/dev/null && echo -e "  $(GREEN)✓$(RESET)  gitleaks installed" || \
 	   echo -e "  $(YELLOW)⚠  install gitleaks manually: brew install gitleaks$(RESET)")
 	@[ -d app/web/node_modules ] && echo -e "  $(GREEN)✓$(RESET)  app/web/node_modules already installed" || \
-	  (echo -e "  $(CYAN)→$(RESET)  running npm install (app/web)" && \
-	   cd app/web && npm install && echo -e "  $(GREEN)✓$(RESET)  app/web dependencies installed")
+	  (echo -e "  $(CYAN)→$(RESET)  running bun install (app/web)" && \
+	   cd app/web && bun install && echo -e "  $(GREEN)✓$(RESET)  app/web dependencies installed")
 	@command -v pre-commit >/dev/null 2>&1 && echo -e "  $(GREEN)✓$(RESET)  pre-commit already installed" || \
 	  (echo -e "  $(CYAN)→$(RESET)  installing pre-commit" && \
 	   brew install pre-commit 2>/dev/null && echo -e "  $(GREEN)✓$(RESET)  pre-commit installed" || \
@@ -242,7 +242,7 @@ test-cover:
 .PHONY: test-visual # Run Playwright visual regression screenshot tests
 test-visual:
 	@echo -e "$(BOLD)Running visual regression tests...$(RESET)"
-	cd app/web && npx playwright test e2e/visual
+	cd app/web && bunx playwright test e2e/visual
 
 .PHONY: test-mutation # Run go-mutesting on the payment package
 test-mutation:
@@ -328,11 +328,11 @@ fmt-check:
 	  fi; \
 	done
 	@echo -e "  $(GREEN)✓$(RESET)  gofmt clean"
-	@(cd app/web && npx prettier --check .) || \
-	  (echo -e "$(RED)prettier: formatting issues found — run: cd app/web && npx prettier --write .$(RESET)" && exit 1)
+	@(cd app/web && bunx prettier --check .) || \
+	  (echo -e "$(RED)prettier: formatting issues found — run: cd app/web && bunx prettier --write .$(RESET)" && exit 1)
 	@echo -e "  $(GREEN)✓$(RESET)  prettier clean"
 
-.PHONY: lint-security # Run gosec, govulncheck, gitleaks, and npm audit
+.PHONY: lint-security # Run gosec, govulncheck, gitleaks, and bun audit
 lint-security:
 	@echo -e "$(BOLD)Security scans...$(RESET)"
 	@for svc in $(SERVICES); do \
@@ -353,8 +353,8 @@ lint-security:
 	else \
 	  echo -e "  $(YELLOW)⚠  gitleaks not installed — run: make setup$(RESET)"; \
 	fi
-	@echo -e "  $(CYAN)→$(RESET)  npm audit (app/web)"
-	@(cd app/web && npm audit --omit=dev) || true
+	@echo -e "  $(CYAN)→$(RESET)  bun audit (app/web)"
+	@(cd app/web && bun audit) || true
 	@echo -e "  $(GREEN)✓$(RESET)  Security scans complete"
 
 .PHONY: lint-docker # Run hadolint on all Dockerfiles

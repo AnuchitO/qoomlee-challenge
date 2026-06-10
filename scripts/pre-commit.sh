@@ -43,14 +43,14 @@ fi
 
 # eslint
 if [ -d app/web/node_modules ]; then
-  run_check "eslint" bash -c 'cd app/web && npm run lint --silent'
+  run_check "eslint" bash -c 'cd app/web && bun run lint'
 else
   echo -e "${YELLOW}⚠${NC} app/web/node_modules missing, skipping eslint"
 fi
 
 # prettier
 if [ -d app/web/node_modules ] && [ -f app/web/node_modules/.bin/prettier ]; then
-  run_check "prettier" bash -c 'cd app/web && npx prettier --check .'
+  run_check "prettier" bash -c 'cd app/web && bunx prettier --check .'
 else
   echo -e "${YELLOW}⚠${NC} prettier not installed, skipping"
 fi

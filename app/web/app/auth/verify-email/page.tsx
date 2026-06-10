@@ -99,7 +99,9 @@ export default function VerifyEmailPage() {
 
         {/* Resend */}
         <div className="mt-xl flex items-center gap-xs justify-center">
-          <span className="text-label-sm text-on-surface-variant">Didn&apos;t receive the code?</span>
+          <span className="text-label-sm text-on-surface-variant">
+            Didn&apos;t receive the code?
+          </span>
           {canResend ? (
             <button
               onClick={handleResend}

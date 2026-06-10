@@ -30,14 +30,14 @@ repos:
 
       - id: eslint
         name: eslint (app/web)
-        entry: bash -c 'cd app/web && npm run lint --silent'
+        entry: bash -c 'cd app/web && bun run lint'
         language: system
         files: ^app/web/
         pass_filenames: false
 
       - id: prettier
         name: prettier (app/web)
-        entry: bash -c 'cd app/web && npx prettier --check .'
+        entry: bash -c 'cd app/web && bunx prettier --check .'
         language: system
         files: ^app/web/
         pass_filenames: false

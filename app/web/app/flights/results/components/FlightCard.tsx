@@ -1,3 +1,5 @@
+"use client";
+
 import type { Flight } from "../lib/types";
 import { formatDuration } from "../lib/formatSearchSummary";
 import FlightRoute from "../../../components/FlightRoute";

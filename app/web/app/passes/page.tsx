@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import TopAppBar from "../components/TopAppBar";
 import BottomNav from "../components/BottomNav";
+import FlightRoute from "../components/FlightRoute";
 
 export const metadata: Metadata = {
   title: "Boarding Passes · Qoomlee",
@@ -74,33 +75,16 @@ export default function PassesPage() {
 
             {/* Route */}
             <div className="px-md pt-md pb-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[32px] font-bold text-on-surface leading-none">
-                    {pass.origin}
-                  </p>
-                  <p className="text-label-md text-on-surface font-bold mt-xs">{pass.departure}</p>
-                </div>
-                <div className="flex flex-col items-center text-on-surface-variant flex-1 px-sm">
-                  <p className="text-label-sm">{pass.flightNumber}</p>
-                  <div className="w-full flex items-center my-xs">
-                    <div className="flex-1 border-t-2 border-dashed border-outline-variant"></div>
-                    <span className="material-symbols-outlined text-primary text-[20px] rotate-90 mx-1">
-                      flight
-                    </span>
-                    <div className="flex-1 border-t-2 border-dashed border-outline-variant"></div>
-                  </div>
-                  <span className="bg-surface-container-high text-on-surface-variant text-[10px] px-2 py-0.5 rounded font-medium">
-                    Non-stop
-                  </span>
-                </div>
-                <div className="text-right">
-                  <p className="text-[32px] font-bold text-on-surface leading-none">
-                    {pass.destination}
-                  </p>
-                  <p className="text-label-md text-on-surface font-bold mt-xs">{pass.arrival}</p>
-                </div>
-              </div>
+              <FlightRoute
+                variant="boarding-pass"
+                codeSize="lg"
+                origin={pass.origin}
+                destination={pass.destination}
+                departureTime={pass.departure}
+                arrivalTime={pass.arrival}
+                duration={pass.flightNumber}
+                stopLabel="Non-stop"
+              />
               <p className="text-label-sm text-on-surface-variant mt-sm">{pass.passenger}</p>
             </div>
 

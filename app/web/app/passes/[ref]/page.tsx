@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import BottomNav from "../../components/BottomNav";
+import FlightRoute from "../../components/FlightRoute";
 
 export default function BoardingPassPage() {
   const { ref } = useParams<{ ref: string }>();
@@ -50,35 +51,18 @@ export default function BoardingPassPage() {
 
           {/* Route */}
           <div className="p-md bg-gradient-to-br from-primary/5 to-transparent">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[40px] font-bold text-on-surface tracking-tighter leading-none">
-                  BKK
-                </p>
-                <p className="text-label-sm text-on-surface-variant mt-xs">Bangkok</p>
-                <p className="text-label-md text-on-surface font-bold">09:15</p>
-              </div>
-              <div className="flex flex-col items-center text-on-surface-variant flex-1 px-md">
-                <p className="text-label-sm">8h 30m</p>
-                <div className="w-full flex items-center my-xs">
-                  <div className="flex-1 border-t-2 border-dashed border-outline-variant"></div>
-                  <span className="material-symbols-outlined text-primary text-[20px] rotate-90 mx-1">
-                    flight
-                  </span>
-                  <div className="flex-1 border-t-2 border-dashed border-outline-variant"></div>
-                </div>
-                <span className="bg-surface-container-high text-on-surface-variant text-[10px] px-2 py-0.5 rounded font-medium">
-                  Non-stop
-                </span>
-              </div>
-              <div className="text-right">
-                <p className="text-[40px] font-bold text-on-surface tracking-tighter leading-none">
-                  SYD
-                </p>
-                <p className="text-label-sm text-on-surface-variant mt-xs">Sydney</p>
-                <p className="text-label-md text-on-surface font-bold">20:45 +1</p>
-              </div>
-            </div>
+            <FlightRoute
+              variant="boarding-pass"
+              codeSize="xl"
+              origin="BKK"
+              destination="SYD"
+              originLabel="Bangkok"
+              destinationLabel="Sydney"
+              departureTime="09:15"
+              arrivalTime="20:45 +1"
+              duration="8h 30m"
+              stopLabel="Non-stop"
+            />
             <p className="text-label-sm text-on-surface-variant mt-sm">
               Mon, 20 May 2024 · Flight QQ101
             </p>

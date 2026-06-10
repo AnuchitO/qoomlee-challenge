@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import BottomNav from "../components/BottomNav";
 import TopAppBar from "../components/TopAppBar";
+import FlightRoute from "../components/FlightRoute";
 
 export default function CheckInPage() {
   const [bookingRef, setBookingRef] = useState("");
@@ -109,28 +110,18 @@ export default function CheckInPage() {
                 </p>
               </div>
             </div>
-            <div className="flex justify-between items-center pt-sm border-t border-outline-variant">
-              <div>
-                <p className="text-label-sm text-on-surface-variant">Bangkok (BKK)</p>
-                <p className="text-headline-md text-on-surface">09:15</p>
-              </div>
-              <div className="flex flex-col items-center text-on-surface-variant flex-1 px-md">
-                <p className="text-label-sm">8h 30m</p>
-                <div className="w-full flex items-center my-xs">
-                  <div className="flex-1 border-t-2 border-dashed border-outline-variant"></div>
-                  <span className="material-symbols-outlined text-primary text-[20px] rotate-90 mx-1">
-                    flight
-                  </span>
-                  <div className="flex-1 border-t-2 border-dashed border-outline-variant"></div>
-                </div>
-                <span className="bg-surface-container-high text-on-surface-variant text-[10px] px-2 py-0.5 rounded font-medium">
-                  Non-stop
-                </span>
-              </div>
-              <div className="text-right">
-                <p className="text-label-sm text-on-surface-variant">Sydney (SYD)</p>
-                <p className="text-headline-md text-on-surface">20:45</p>
-              </div>
+            <div className="pt-sm border-t border-outline-variant">
+              <FlightRoute
+                variant="boarding-pass"
+                origin="BKK"
+                destination="SYD"
+                originLabel="Bangkok (BKK)"
+                destinationLabel="Sydney (SYD)"
+                departureTime="09:15"
+                arrivalTime="20:45"
+                duration="8h 30m"
+                stopLabel="Non-stop"
+              />
             </div>
           </div>
 

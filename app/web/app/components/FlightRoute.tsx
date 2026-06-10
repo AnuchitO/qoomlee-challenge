@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 
 export type FlightRouteSize = "sm" | "md" | "lg" | "xl";
+export type FlightRouteVariant = "default" | "boarding-pass";
+/** Size of the big origin/destination code in the boarding-pass variant. Omit for a compact "City (CODE)" label + time layout. */
+export type BoardingPassCodeSize = "lg" | "xl";
 
 export interface FlightRouteProps {
   /** IATA code, e.g. "BKK" */
@@ -22,6 +25,9 @@ export interface FlightRouteProps {
   /** Show the boarding-pass style dot marker between the time and the code */
   showDots?: boolean;
   size?: FlightRouteSize;
+  variant?: FlightRouteVariant;
+  /** boarding-pass variant only: size of the big origin/destination code */
+  codeSize?: BoardingPassCodeSize;
   className?: string;
 }
 
@@ -67,14 +73,22 @@ const ENDPOINT_ALIGN: Record<FlightRouteSize, { left: string; right: string }> =
   xl: { left: "", right: "" },
 };
 
-function DashedLine({ size }: { size: FlightRouteSize }) {
+function LineContent({ iconSize }: { iconSize: string }) {
   return (
-    <div className={`${LINE_WIDTH[size]} flex items-center`}>
+    <>
       <div className="flex-1 border-t-2 border-dashed border-outline-variant"></div>
-      <span className={`material-symbols-outlined text-primary ${ICON_SIZE[size]} rotate-90 mx-1`}>
+      <span className={`material-symbols-outlined text-primary ${iconSize} rotate-90 mx-1`}>
         flight
       </span>
       <div className="flex-1 border-t-2 border-dashed border-outline-variant"></div>
+    </>
+  );
+}
+
+function DashedLine({ size }: { size: FlightRouteSize }) {
+  return (
+    <div className={`${LINE_WIDTH[size]} flex items-center`}>
+      <LineContent iconSize={ICON_SIZE[size]} />
     </div>
   );
 }
@@ -136,6 +150,43 @@ function Endpoint({
   );
 }
 
+function BoardingPassEndpoint({
+  code,
+  time,
+  label,
+  codeSize,
+  side,
+}: {
+  code: string;
+  time: string;
+  label?: string;
+  codeSize?: BoardingPassCodeSize;
+  side: "left" | "right";
+}) {
+  const align = side === "right" ? "text-right" : "";
+
+  if (codeSize) {
+    const codeClass =
+      codeSize === "xl"
+        ? "text-[40px] font-bold text-on-surface tracking-tighter leading-none"
+        : "text-[32px] font-bold text-on-surface leading-none";
+    return (
+      <div className={align}>
+        <p className={codeClass}>{code}</p>
+        {label && <p className="text-label-sm text-on-surface-variant mt-xs">{label}</p>}
+        <p className={`text-label-md text-on-surface font-bold ${label ? "" : "mt-xs"}`}>{time}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={align}>
+      <p className="text-label-sm text-on-surface-variant">{label ?? code}</p>
+      <p className="text-headline-md text-on-surface">{time}</p>
+    </div>
+  );
+}
+
 export default function FlightRoute({
   origin,
   destination,
@@ -148,8 +199,45 @@ export default function FlightRoute({
   stopLabel,
   showDots = false,
   size = "md",
+  variant = "default",
+  codeSize,
   className = "",
 }: FlightRouteProps) {
+  if (variant === "boarding-pass") {
+    const middlePx = codeSize === "lg" ? "px-sm" : "px-md";
+    return (
+      <div className={`flex items-center justify-between ${className}`}>
+        <BoardingPassEndpoint
+          code={origin}
+          time={departureTime ?? ""}
+          label={originLabel}
+          codeSize={codeSize}
+          side="left"
+        />
+
+        <div className={`flex flex-col items-center text-on-surface-variant flex-1 ${middlePx}`}>
+          {duration && <p className="text-label-sm">{duration}</p>}
+          <div className="w-full flex items-center my-xs">
+            <LineContent iconSize="text-[20px]" />
+          </div>
+          {stopLabel && (
+            <span className="bg-surface-container-high text-on-surface-variant text-[10px] px-2 py-0.5 rounded font-medium">
+              {stopLabel}
+            </span>
+          )}
+        </div>
+
+        <BoardingPassEndpoint
+          code={destination}
+          time={arrivalTime ?? ""}
+          label={destinationLabel}
+          codeSize={codeSize}
+          side="right"
+        />
+      </div>
+    );
+  }
+
   if (departureTime === undefined || arrivalTime === undefined) {
     return (
       <div className={`flex items-center gap-xs ${className}`}>

@@ -1,3 +1,5 @@
+"use client";
+
 const STEPS = ["Flights", "Seats", "Extras", "Payment"] as const;
 
 export default function ProgressStepper() {

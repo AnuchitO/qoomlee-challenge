@@ -64,19 +64,19 @@ export default function AirportSelect({
     return () => document.removeEventListener("mousedown", onDown);
   }, []);
 
-  // Focus search inputs and trigger bottom sheet slide-up when opening
+  // Focus search inputs and trigger bottom sheet slide-up when opening.
+  // The cleanup runs when `open` flips back to false, resetting the
+  // search query and sheet visibility for the next time it opens.
   useEffect(() => {
-    if (!open) {
-      setQuery("");
-      setSheetVisible(false);
-      return;
-    }
+    if (!open) return;
     const dt = setTimeout(() => desktopSearchRef.current?.focus(), 30);
     requestAnimationFrame(() => setSheetVisible(true));
     const mt = setTimeout(() => mobileSearchRef.current?.focus(), 350);
     return () => {
       clearTimeout(dt);
       clearTimeout(mt);
+      setQuery("");
+      setSheetVisible(false);
     };
   }, [open]);
 

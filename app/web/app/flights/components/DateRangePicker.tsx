@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { showDatePicker } from "../utils/datePicker";
 
 interface Props {
@@ -30,17 +30,17 @@ export default function DateRangePicker({
   const today = new Date().toISOString().split("T")[0];
   const departureRef = useRef<HTMLInputElement>(null);
   const returnRef = useRef<HTMLInputElement>(null);
-  const [shouldAutoOpen, setShouldAutoOpen] = useState(false);
+  const shouldAutoOpen = useRef(false);
 
   useLayoutEffect(() => {
-    if (isReturnEnabled && shouldAutoOpen) {
-      setShouldAutoOpen(false);
+    if (isReturnEnabled && shouldAutoOpen.current) {
+      shouldAutoOpen.current = false;
       if (returnRef.current) {
         returnRef.current.getBoundingClientRect();
         showDatePicker(returnRef);
       }
     }
-  }, [isReturnEnabled, shouldAutoOpen]);
+  }, [isReturnEnabled]);
 
   return (
     <div className="grid grid-cols-2 gap-md">
@@ -99,7 +99,7 @@ export default function DateRangePicker({
           <button
             type="button"
             onClick={() => {
-              setShouldAutoOpen(true);
+              shouldAutoOpen.current = true;
               onAddReturn?.();
             }}
             style={boxStyle}

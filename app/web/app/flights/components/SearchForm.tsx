@@ -40,7 +40,7 @@ const addReturnSvg = (
 export default function SearchForm() {
   const router = useRouter();
   const [rotated, setRotated] = useState(false);
-  const [autoOpenReturn, setAutoOpenReturn] = useState(false);
+  const autoOpenReturn = useRef(false);
   const departureRef = useRef<HTMLInputElement>(null);
   const returnRef = useRef<HTMLInputElement>(null);
   const today = new Date().toISOString().split("T")[0];
@@ -68,14 +68,14 @@ export default function SearchForm() {
   // useLayoutEffect fires synchronously after DOM mutations while the browser's
   // user-gesture window (transient activation) is still valid for showPicker().
   useLayoutEffect(() => {
-    if (state.tripType === "round" && autoOpenReturn) {
-      setAutoOpenReturn(false);
+    if (state.tripType === "round" && autoOpenReturn.current) {
+      autoOpenReturn.current = false;
       if (returnRef.current) {
         returnRef.current.getBoundingClientRect();
         showDatePicker(returnRef);
       }
     }
-  }, [state.tripType, autoOpenReturn]);
+  }, [state.tripType]);
 
   const handleSwap = () => {
     swapAirports();
@@ -210,7 +210,7 @@ export default function SearchForm() {
               <button
                 type="button"
                 onClick={() => {
-                  setAutoOpenReturn(true);
+                  autoOpenReturn.current = true;
                   setTripType("round");
                 }}
                 className={`${dateBoxClass(false)} border-dashed hover:bg-surface-container-high active:scale-95 transition-all`}

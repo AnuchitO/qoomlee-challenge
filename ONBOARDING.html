@@ -1,0 +1,3112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qoomlee — Developer Onboarding</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+<style>
+:root {
+  --bg:          #0a0f1e;
+  --bg2:         #0f1629;
+  --surface:     rgba(255,255,255,0.04);
+  --surface-h:   rgba(255,255,255,0.07);
+  --border:      rgba(255,255,255,0.08);
+  --border-h:    rgba(255,255,255,0.16);
+  --text:        #e2e8f0;
+  --text-dim:    #94a3b8;
+  --text-muted:  #64748b;
+  --blue:        #3b82f6;
+  --blue-dim:    rgba(59,130,246,0.15);
+  --purple:      #a855f7;
+  --purple-dim:  rgba(168,85,247,0.15);
+  --orange:      #f97316;
+  --orange-dim:  rgba(249,115,22,0.15);
+  --green:       #22c55e;
+  --green-dim:   rgba(34,197,94,0.15);
+  --yellow:      #eab308;
+  --yellow-dim:  rgba(234,179,8,0.12);
+  --red:         #ef4444;
+  --sidebar-w:   240px;
+  --radius:      12px;
+  --radius-sm:   8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── SIDEBAR ─────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  min-height: 100vh;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  overflow-y: auto;
+}
+.sidebar-logo {
+  padding: 20px 16px 12px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--blue);
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-logo .tagline {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-muted);
+  display: block;
+  letter-spacing: 0;
+}
+.search-wrap {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.search-box {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  transition: border-color .2s;
+}
+.search-box::placeholder { color: var(--text-muted); }
+.search-box:focus { border-color: var(--blue); }
+.search-shortcut {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 5px;
+  pointer-events: none;
+}
+.search-wrap { position: relative; }
+.nav-section {
+  padding: 8px 12px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 14px;
+  border-radius: var(--radius-sm);
+  margin: 1px 8px;
+  transition: background .15s, color .15s;
+}
+.nav-item:hover, .nav-item.active {
+  background: var(--surface);
+  color: var(--text);
+}
+.nav-item .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot-blue   { background: var(--blue); }
+.dot-purple { background: var(--purple); }
+.dot-orange { background: var(--orange); }
+.dot-green  { background: var(--green); }
+.dot-yellow { background: var(--yellow); }
+
+/* ── MAIN ─────────────────────────────────────────────── */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  min-width: 0;
+}
+
+section {
+  padding: 48px 40px;
+  border-bottom: 1px solid var(--border);
+}
+section:last-of-type { border-bottom: none; }
+
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+h2 {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.section-desc {
+  color: var(--text-dim);
+  font-size: 17px;
+  margin-bottom: 32px;
+  max-width: 680px;
+  line-height: 1.65;
+}
+
+/* ── GLASS CARD ───────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  backdrop-filter: blur(12px);
+  transition: border-color .2s, background .2s;
+}
+.card:hover { border-color: var(--border-h); background: var(--surface-h); }
+
+/* ── HERO ─────────────────────────────────────────────── */
+#hero {
+  background: linear-gradient(135deg, #0a0f1e 0%, #0d1a3a 40%, #0f1629 100%);
+  padding: 64px 40px 48px;
+  position: relative;
+  overflow: hidden;
+}
+#hero::before {
+  content: '';
+  position: absolute;
+  top: -100px; right: -100px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+#hero::after {
+  content: '';
+  position: absolute;
+  bottom: -80px; left: 200px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(168,85,247,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--blue-dim);
+  border: 1px solid rgba(59,130,246,0.3);
+  border-radius: 100px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: var(--blue);
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+.hero-title {
+  font-size: 52px;
+  font-weight: 800;
+  letter-spacing: -2px;
+  margin-bottom: 8px;
+  line-height: 1.1;
+}
+.hero-title .accent { color: var(--blue); }
+.hero-tagline {
+  font-size: 21px;
+  color: var(--text-dim);
+  margin-bottom: 32px;
+  line-height: 1.5;
+}
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 32px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+}
+.stat-num {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+.stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  font-weight: 500;
+}
+.stack-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+.pill {
+  padding: 5px 12px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid;
+}
+.pill-blue   { background: var(--blue-dim);   color: var(--blue);   border-color: rgba(59,130,246,0.3); }
+.pill-purple { background: var(--purple-dim); color: var(--purple); border-color: rgba(168,85,247,0.3); }
+.pill-orange { background: var(--orange-dim); color: var(--orange); border-color: rgba(249,115,22,0.3); }
+.pill-green  { background: var(--green-dim);  color: var(--green);  border-color: rgba(34,197,94,0.3); }
+.pill-yellow { background: var(--yellow-dim); color: var(--yellow); border-color: rgba(234,179,8,0.3); }
+
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--blue);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: opacity .15s, transform .1s;
+}
+.cta-btn:hover { opacity: .9; transform: translateY(-1px); }
+
+/* ── ACCORDION ────────────────────────────────────────── */
+.accordion {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--surface);
+  cursor: pointer;
+  user-select: none;
+  transition: background .15s;
+}
+.accordion-header:hover { background: var(--surface-h); }
+.accordion-title {
+  font-weight: 600;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.acc-step {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--blue-dim);
+  border: 1px solid rgba(59,130,246,0.3);
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.accordion-chevron {
+  color: var(--text-muted);
+  transition: transform .2s;
+  font-size: 18px;
+}
+.accordion.open .accordion-chevron { transform: rotate(180deg); }
+.accordion-body {
+  display: none;
+  padding: 20px;
+  border-top: 1px solid var(--border);
+  background: rgba(0,0,0,0.2);
+}
+.accordion.open .accordion-body { display: block; }
+
+/* ── CODE BLOCK ───────────────────────────────────────── */
+.code-wrap {
+  position: relative;
+  margin: 8px 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.code-wrap pre {
+  margin: 0 !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: 14px !important;
+}
+.copy-btn {
+  position: absolute;
+  top: 8px; right: 8px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+  font-size: 11px;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: background .15s;
+  font-family: inherit;
+}
+.copy-btn:hover { background: rgba(255,255,255,0.14); }
+.copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+.ready-check ul {
+  list-style: none;
+  margin-top: 12px;
+}
+.ready-check li {
+  padding: 6px 0;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ready-check li::before {
+  content: '✓';
+  color: var(--green);
+  font-weight: 700;
+}
+.expected-out {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(0,0,0,0.3);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+/* ── KANBAN ───────────────────────────────────────────── */
+.kanban {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.kanban-col {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.kanban-col-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.kanban-count {
+  margin-left: auto;
+  background: var(--surface-h);
+  border-radius: 100px;
+  padding: 2px 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.story-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 8px;
+  cursor: default;
+  transition: border-color .15s, transform .1s;
+}
+.story-card:hover { border-color: var(--border-h); transform: translateY(-1px); }
+.story-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  display: inline-block;
+}
+.badge-blue   { background: var(--blue-dim);   color: var(--blue);   }
+.badge-purple { background: var(--purple-dim); color: var(--purple); }
+.badge-orange { background: var(--orange-dim); color: var(--orange); }
+.badge-green  { background: var(--green-dim);  color: var(--green);  }
+.badge-yellow { background: var(--yellow-dim); color: var(--yellow); }
+.story-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 5px;
+}
+.story-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+.story-meta {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.story-tag {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--surface-h);
+  color: var(--text-muted);
+}
+
+/* ── ARCH SVG ─────────────────────────────────────────── */
+.arch-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  overflow-x: auto;
+}
+.arch-wrap svg { display: block; margin: 0 auto; }
+
+/* ── FILE TREE ────────────────────────────────────────── */
+.filetree {
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 13px;
+}
+.tree-node {
+  padding: 3px 0;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.tree-node:hover { color: var(--blue); }
+.tree-children { display: none; padding-left: 16px; }
+.tree-node.open + .tree-children { display: block; }
+.tree-folder { color: var(--yellow); }
+.tree-file { color: var(--text-dim); }
+.tree-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: inherit;
+  margin-left: 4px;
+}
+.tree-icon { font-size: 12px; transition: transform .15s; }
+.tree-node.open .tree-icon { transform: rotate(90deg); }
+
+/* ── CODE TABS ────────────────────────────────────────── */
+.tabs-header {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0;
+}
+.tab-btn {
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  transition: color .15s, border-color .15s;
+  margin-bottom: -1px;
+}
+.tab-btn.active {
+  color: var(--blue);
+  border-bottom-color: var(--blue);
+}
+.tab-btn:hover:not(.active) { color: var(--text-dim); }
+.tab-pane { display: none; padding-top: 0; }
+.tab-pane.active { display: block; }
+.pattern-why {
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: var(--blue-dim);
+  border-left: 3px solid var(--blue);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 15px;
+  color: var(--text-dim);
+  line-height: 1.65;
+}
+.pattern-why strong { color: var(--blue); }
+
+/* ── DEV FLOW ─────────────────────────────────────────── */
+.flow-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.flow-node {
+  position: relative;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  min-width: 90px;
+  text-align: center;
+}
+.flow-node:hover { border-color: var(--border-h); background: var(--surface-h); }
+.flow-node.active { border-color: var(--blue); background: var(--blue-dim); }
+.flow-label { font-size: 13px; font-weight: 600; white-space: nowrap; }
+.flow-sublabel { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+.flow-arrow {
+  color: var(--text-muted);
+  font-size: 18px;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+.flow-detail {
+  display: none;
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  animation: fadeIn .2s ease;
+}
+.flow-detail.show { display: block; }
+@keyframes fadeIn { from { opacity:0; transform: translateY(4px); } to { opacity:1; transform: translateY(0); } }
+
+/* ── TABLE ────────────────────────────────────────────── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.data-table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+.data-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+  vertical-align: top;
+  line-height: 1.6;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--surface); }
+.mono { font-family: 'SF Mono', 'Fira Code', monospace; color: var(--blue); }
+
+/* ── TWO-COL ──────────────────────────────────────────── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* ── CHECKLIST ────────────────────────────────────────── */
+.checklist { list-style: none; }
+.checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+  color: var(--text-dim);
+}
+.checklist li:last-child { border-bottom: none; }
+.checklist input[type=checkbox] {
+  width: 16px; height: 16px;
+  accent-color: var(--blue);
+  margin-top: 2px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+/* ── CONVENTION CARDS ─────────────────────────────────── */
+.conv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+.conv-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+.conv-card h4 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.conv-card p, .conv-card li {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+.conv-card ul { list-style: none; }
+.conv-card li { padding: 3px 0; }
+.conv-card li::before { content: '·  '; color: var(--text-muted); }
+.commit-example {
+  margin-top: 8px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 11px;
+  color: var(--green);
+  background: rgba(0,0,0,0.3);
+  padding: 8px;
+  border-radius: 6px;
+}
+
+/* ── ADR ──────────────────────────────────────────────── */
+.adr-list { display: flex; flex-direction: column; gap: 12px; }
+.adr-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.adr-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.adr-header:hover { background: var(--surface-h); }
+.adr-num {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  background: var(--purple-dim);
+  color: var(--purple);
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.adr-title { font-size: 16px; font-weight: 600; flex: 1; }
+.adr-status {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-weight: 600;
+}
+.status-accepted { background: var(--green-dim); color: var(--green); }
+.adr-body {
+  display: none;
+  padding: 20px 22px;
+  border-top: 1px solid var(--border);
+  font-size: 15px;
+  color: var(--text-dim);
+  line-height: 1.75;
+}
+.adr-body.open { display: block; animation: fadeIn .2s ease; }
+.adr-section { margin-bottom: 12px; }
+.adr-section strong { color: var(--text); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+
+/* ── FOOTER ───────────────────────────────────────────── */
+footer {
+  padding: 32px 40px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+/* ── SEARCH HIGHLIGHT ─────────────────────────────────── */
+.hl { background: rgba(234,179,8,0.25); border-radius: 2px; }
+
+/* ── MENTAL MODEL ─────────────────────────────────────── */
+.mental-model {
+  background: linear-gradient(135deg, rgba(59,130,246,0.08) 0%, rgba(168,85,247,0.06) 100%);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  margin-top: 24px;
+  position: relative;
+}
+.mental-model-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mental-model p {
+  font-size: 15px;
+  color: var(--text-dim);
+  line-height: 1.75;
+  margin-bottom: 12px;
+}
+.mental-model p:last-child { margin-bottom: 0; }
+.mental-model strong { color: var(--text); }
+
+/* ── CONCEPT GRID ─────────────────────────────────────── */
+.concept-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+.concept-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: border-color .2s, background .2s;
+}
+.concept-card:hover { border-color: var(--border-h); background: var(--surface-h); }
+.concept-term {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.concept-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+.concept-def {
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.65;
+  margin-bottom: 10px;
+}
+.concept-example {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 13px;
+  color: var(--green);
+  background: rgba(0,0,0,0.3);
+  padding: 8px 12px;
+  border-radius: 6px;
+  border-left: 2px solid rgba(34,197,94,0.4);
+}
+
+/* ── GOTCHA CARDS ─────────────────────────────────────── */
+.gotcha-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.gotcha-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.gotcha-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px 20px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.gotcha-header:hover { background: var(--surface-h); }
+.gotcha-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.gotcha-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.gotcha-symptom {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.gotcha-chevron {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 18px;
+  transition: transform .2s;
+  flex-shrink: 0;
+}
+.gotcha-card.open .gotcha-chevron { transform: rotate(180deg); }
+.gotcha-body {
+  display: none;
+  padding: 16px 20px 20px;
+  border-top: 1px solid var(--border);
+  background: rgba(0,0,0,0.15);
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+.gotcha-card.open .gotcha-body { display: block; }
+.gotcha-fix {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: var(--green-dim);
+  border-left: 3px solid var(--green);
+  border-radius: 0 6px 6px 0;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.gotcha-fix strong { color: var(--green); }
+
+/* ── WALKTHROUGH STEPS ────────────────────────────────── */
+.walk-steps {
+  counter-reset: step-counter;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.walk-step {
+  counter-increment: step-counter;
+  border-bottom: 1px solid var(--border);
+}
+.walk-step:last-child { border-bottom: none; }
+.walk-step-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px 20px;
+  cursor: pointer;
+  background: var(--surface);
+  transition: background .15s;
+}
+.walk-step-header:hover { background: var(--surface-h); }
+.walk-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--blue-dim);
+  border: 1px solid rgba(59,130,246,0.35);
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.walk-step-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+  padding-top: 2px;
+}
+.walk-step-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+.walk-step-body {
+  display: none;
+  padding: 16px 20px 20px 62px;
+  background: rgba(0,0,0,0.15);
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+.walk-step.open .walk-step-body { display: block; }
+.walk-step.open .walk-num { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+/* ── ENV VAR TABLE ────────────────────────────────────── */
+.env-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-top: 12px;
+}
+.env-table th {
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.env-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+  vertical-align: top;
+  line-height: 1.55;
+}
+.env-table tr:last-child td { border-bottom: none; }
+.env-table tr:hover td { background: var(--surface); }
+.env-required {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 700;
+  background: rgba(239,68,68,0.15);
+  color: var(--red);
+  border: 1px solid rgba(239,68,68,0.25);
+}
+.env-optional {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 700;
+  background: var(--surface);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.env-prefilled {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 700;
+  background: var(--green-dim);
+  color: var(--green);
+  border: 1px solid rgba(34,197,94,0.3);
+}
+
+/* ── PREREQ BADGES ────────────────────────────────────── */
+.prereq-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.prereq-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-dim);
+}
+.prereq-item .prereq-icon { font-size: 18px; }
+
+/* ── RESPONSIVE ───────────────────────────────────────── */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; }
+  section { padding: 32px 20px; }
+  .stat-grid { grid-template-columns: repeat(3, 1fr); }
+  .kanban { grid-template-columns: 1fr; }
+  .two-col { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════ SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    ✈ Qoomlee<span class="tagline">Developer Guide</span>
+  </div>
+  <div class="search-wrap">
+    <input class="search-box" id="search" type="search" placeholder="Search... (press /)" autocomplete="off">
+    <span class="search-shortcut">/</span>
+  </div>
+
+  <div class="nav-section">Overview</div>
+  <a class="nav-item" href="#hero"><span class="dot dot-blue"></span>Project Pulse</a>
+  <a class="nav-item" href="#business"><span class="dot dot-green"></span>Business Context</a>
+  <a class="nav-item" href="#quickstart"><span class="dot dot-green"></span>Quick Start</a>
+  <a class="nav-item" href="#features"><span class="dot dot-blue"></span>Feature Board</a>
+
+  <div class="nav-section">Technical</div>
+  <a class="nav-item" href="#architecture"><span class="dot dot-orange"></span>Architecture</a>
+  <a class="nav-item" href="#concepts"><span class="dot dot-blue"></span>Key Concepts</a>
+  <a class="nav-item" href="#codebase"><span class="dot dot-purple"></span>Codebase Map</a>
+  <a class="nav-item" href="#patterns"><span class="dot dot-purple"></span>Code Patterns</a>
+
+  <div class="nav-section">Process</div>
+  <a class="nav-item" href="#devflow"><span class="dot dot-green"></span>Dev Flow (TDG)</a>
+  <a class="nav-item" href="#howto"><span class="dot dot-blue"></span>Add a Feature</a>
+  <a class="nav-item" href="#environments"><span class="dot dot-orange"></span>Environments</a>
+  <a class="nav-item" href="#gotchas"><span class="dot dot-red" style="background:var(--red)"></span>Gotchas & FAQ</a>
+  <a class="nav-item" href="#quality"><span class="dot dot-green"></span>Quality Gates</a>
+  <a class="nav-item" href="#conventions"><span class="dot dot-yellow"></span>Conventions</a>
+  <a class="nav-item" href="#adrs"><span class="dot dot-purple"></span>ADR Log</a>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════ MAIN -->
+<div class="main" id="main">
+
+<!-- ─────────────────────────────────────────── §1 HERO -->
+<section id="hero">
+  <div class="hero-badge">✈ Agent Skills Challenge</div>
+  <div class="hero-title"><span class="accent">Qoomlee</span> Airline</div>
+  <div class="hero-tagline">Full-stack airline booking platform — Go · Next.js · PostgreSQL · Omise</div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--blue)">15</div>
+      <div class="stat-label">Total Stories</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--green)">8</div>
+      <div class="stat-label">Done</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--yellow)">0</div>
+      <div class="stat-label">In Progress</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--orange)">7</div>
+      <div class="stat-label">Next Up</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--purple)">84</div>
+      <div class="stat-label">Tests Written</div>
+    </div>
+  </div>
+
+  <div class="stack-pills">
+    <span class="pill pill-purple">Go 1.26</span>
+    <span class="pill pill-blue">Next.js 16</span>
+    <span class="pill pill-blue">React 19</span>
+    <span class="pill pill-orange">PostgreSQL 16</span>
+    <span class="pill pill-yellow">Omise Payments</span>
+    <span class="pill pill-orange">Docker Compose</span>
+    <span class="pill pill-green">Playwright E2E</span>
+    <span class="pill pill-green">Vitest · testify</span>
+    <span class="pill pill-purple">Gin HTTP</span>
+    <span class="pill pill-blue">Tailwind v4</span>
+  </div>
+
+  <a class="cta-btn" href="#quickstart">▶ Start in 5 min</a>
+
+  <div class="mental-model">
+    <div class="mental-model-label">💡 Read This First — Mental Model</div>
+    <p>Qoomlee is <strong>two Go microservices</strong> — <code>qoomlee-service</code> (flights &amp; bookings) and <code>payment-service</code> (charging cards) — each backed by its <strong>own PostgreSQL database</strong>. They communicate exclusively over HTTP: payment-service calls qoomlee-service to validate a booking before charging, and again after a successful charge to flip it to <code>CONFIRMED</code>. The two services <em>never share a database connection</em>.</p>
+    <p>The frontend (Next.js :3000) talks to both services. All <code>/api/*</code> routes require a <strong>JWT Bearer token</strong> except the internal status endpoint, which uses a shared secret (<code>X-Internal-Token</code>). Health probes (<code>/health/live</code>, <code>/health/ready</code>) are always open.</p>
+    <p>Keep this in mind and the whole codebase will make sense immediately. Everything else is detail.</p>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── §1.5 BUSINESS CONTEXT -->
+<section id="business">
+  <div class="section-label">Why We're Building This</div>
+  <h2>Business Context</h2>
+  <p class="section-desc">Qoomlee is an airline booking platform proving that AI agents with structured skills can deliver production-grade software faster and at higher quality than unassisted agents.</p>
+
+  <!-- Three pillars: product, challenge, impact -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:40px">
+    <div class="card" style="border-color:rgba(59,130,246,0.35);background:var(--blue-dim);padding:24px">
+      <div style="font-size:32px;margin-bottom:12px">✈️</div>
+      <div style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:8px">Product Vision</div>
+      <div style="font-size:22px;font-weight:700;margin-bottom:10px;letter-spacing:-0.5px">Seamless Airline Booking</div>
+      <p style="font-size:15px;color:var(--text-dim);line-height:1.65">Enable passengers to search flights, reserve seats, and pay securely — all in one digital journey. Zero phone calls. Zero queues. Instant booking confirmation.</p>
+    </div>
+    <div class="card" style="border-color:rgba(168,85,247,0.35);background:var(--purple-dim);padding:24px">
+      <div style="font-size:32px;margin-bottom:12px">🤖</div>
+      <div style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--purple);margin-bottom:8px">The Challenge</div>
+      <div style="font-size:22px;font-weight:700;margin-bottom:10px;letter-spacing:-0.5px">Agent Skills vs. Raw Agent</div>
+      <p style="font-size:15px;color:var(--text-dim);line-height:1.65">Can structured AI skills dramatically accelerate delivery quality? <strong style="color:var(--purple)">Team A</strong> (agent + skills) vs <strong style="color:var(--text-dim)">Team B</strong> (agent only). Same codebase skeleton. Same 2-hour window. Measured on 4 quality pillars.</p>
+    </div>
+    <div class="card" style="border-color:rgba(34,197,94,0.35);background:var(--green-dim);padding:24px">
+      <div style="font-size:32px;margin-bottom:12px">🎯</div>
+      <div style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin-bottom:8px">Impact Goal</div>
+      <div style="font-size:22px;font-weight:700;margin-bottom:10px;letter-spacing:-0.5px">Production-Grade in 2 Hours</div>
+      <p style="font-size:15px;color:var(--text-dim);line-height:1.65">Prove that an AI agent with the right skill set can ship a fully-tested, secure, production-ready system — complete with auth, rate limiting, structured logging, and end-to-end tests — within a 2-hour build window.</p>
+    </div>
+  </div>
+
+  <!-- Passenger Journey Diagram -->
+  <h3 style="margin-bottom:16px">Passenger Journey</h3>
+  <div class="arch-wrap" style="margin-bottom:36px">
+    <svg width="780" height="130" viewBox="0 0 780 130" xmlns="http://www.w3.org/2000/svg" style="font-family:-apple-system,sans-serif">
+      <defs>
+        <marker id="jarr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/>
+        </marker>
+      </defs>
+      <!-- Step 1: Search -->
+      <rect x="10" y="30" width="130" height="60" rx="10" fill="rgba(59,130,246,0.12)" stroke="rgba(59,130,246,0.45)" stroke-width="1.5"/>
+      <text x="75" y="56" text-anchor="middle" fill="#93c5fd" font-size="22">🔍</text>
+      <text x="75" y="76" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="600">Search</text>
+      <text x="75" y="92" text-anchor="middle" fill="#64748b" font-size="11">origin · date</text>
+      <!-- Arrow 1 -->
+      <line x1="142" y1="60" x2="158" y2="60" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#jarr)"/>
+      <!-- Step 2: Select Flight -->
+      <rect x="160" y="30" width="130" height="60" rx="10" fill="rgba(59,130,246,0.12)" stroke="rgba(59,130,246,0.45)" stroke-width="1.5"/>
+      <text x="225" y="56" text-anchor="middle" fill="#93c5fd" font-size="22">✈</text>
+      <text x="225" y="76" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="600">Select Flight</text>
+      <text x="225" y="92" text-anchor="middle" fill="#64748b" font-size="11">price · seats</text>
+      <!-- Arrow 2 -->
+      <line x1="292" y1="60" x2="308" y2="60" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#jarr)"/>
+      <!-- Step 3: Book -->
+      <rect x="310" y="30" width="130" height="60" rx="10" fill="rgba(168,85,247,0.12)" stroke="rgba(168,85,247,0.45)" stroke-width="1.5"/>
+      <text x="375" y="56" text-anchor="middle" fill="#c4b5fd" font-size="22">📋</text>
+      <text x="375" y="76" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="600">Book Seat</text>
+      <text x="375" y="92" text-anchor="middle" fill="#64748b" font-size="11">PNR · PENDING</text>
+      <!-- Arrow 3 -->
+      <line x1="442" y1="60" x2="458" y2="60" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#jarr)"/>
+      <!-- Step 4: Pay -->
+      <rect x="460" y="30" width="130" height="60" rx="10" fill="rgba(249,115,22,0.12)" stroke="rgba(249,115,22,0.45)" stroke-width="1.5"/>
+      <text x="525" y="56" text-anchor="middle" fill="#fdba74" font-size="22">💳</text>
+      <text x="525" y="76" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="600">Pay via Omise</text>
+      <text x="525" y="92" text-anchor="middle" fill="#64748b" font-size="11">card token · charge</text>
+      <!-- Arrow 4 -->
+      <line x1="592" y1="60" x2="608" y2="60" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#jarr)"/>
+      <!-- Step 5: Confirmed -->
+      <rect x="610" y="30" width="160" height="60" rx="10" fill="rgba(34,197,94,0.12)" stroke="rgba(34,197,94,0.45)" stroke-width="1.5"/>
+      <text x="690" y="56" text-anchor="middle" fill="#86efac" font-size="22">✅</text>
+      <text x="690" y="76" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="600">Confirmed!</text>
+      <text x="690" y="92" text-anchor="middle" fill="#64748b" font-size="11">CONFIRMED · receipt</text>
+      <!-- Step labels below -->
+      <text x="75" y="118" text-anchor="middle" fill="#3b82f6" font-size="10" font-weight="600">QML-001</text>
+      <text x="225" y="118" text-anchor="middle" fill="#3b82f6" font-size="10" font-weight="600">QML-002</text>
+      <text x="375" y="118" text-anchor="middle" fill="#a855f7" font-size="10" font-weight="600">QML-003</text>
+      <text x="525" y="118" text-anchor="middle" fill="#f97316" font-size="10" font-weight="600">QML-005</text>
+      <text x="690" y="118" text-anchor="middle" fill="#22c55e" font-size="10" font-weight="600">QML-004 + 006</text>
+    </svg>
+  </div>
+
+  <!-- Payment Sequence Diagram -->
+  <h3 style="margin-bottom:16px">Payment Flow — How a Charge Works</h3>
+  <div class="arch-wrap" style="margin-bottom:36px">
+    <svg width="780" height="260" viewBox="0 0 780 260" xmlns="http://www.w3.org/2000/svg" style="font-family:-apple-system,sans-serif">
+      <defs>
+        <marker id="sarr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#475569"/>
+        </marker>
+        <marker id="sarr-b" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/>
+        </marker>
+        <marker id="sarr-p" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#a855f7"/>
+        </marker>
+        <marker id="sarr-g" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#22c55e"/>
+        </marker>
+        <marker id="sarr-o" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#f97316"/>
+        </marker>
+      </defs>
+      <!-- Actors -->
+      <rect x="20" y="10" width="100" height="34" rx="8" fill="rgba(59,130,246,0.15)" stroke="rgba(59,130,246,0.4)" stroke-width="1.5"/>
+      <text x="70" y="32" text-anchor="middle" fill="#93c5fd" font-size="13" font-weight="700">Client</text>
+      <line x1="70" y1="44" x2="70" y2="250" stroke="rgba(59,130,246,0.25)" stroke-width="1" stroke-dasharray="4,3"/>
+
+      <rect x="180" y="10" width="140" height="34" rx="8" fill="rgba(168,85,247,0.15)" stroke="rgba(168,85,247,0.4)" stroke-width="1.5"/>
+      <text x="250" y="32" text-anchor="middle" fill="#c4b5fd" font-size="13" font-weight="700">payment-service</text>
+      <line x1="250" y1="44" x2="250" y2="250" stroke="rgba(168,85,247,0.25)" stroke-width="1" stroke-dasharray="4,3"/>
+
+      <rect x="380" y="10" width="140" height="34" rx="8" fill="rgba(34,197,94,0.15)" stroke="rgba(34,197,94,0.4)" stroke-width="1.5"/>
+      <text x="450" y="32" text-anchor="middle" fill="#86efac" font-size="13" font-weight="700">Omise API</text>
+      <line x1="450" y1="44" x2="450" y2="250" stroke="rgba(34,197,94,0.25)" stroke-width="1" stroke-dasharray="4,3"/>
+
+      <rect x="580" y="10" width="140" height="34" rx="8" fill="rgba(249,115,22,0.15)" stroke="rgba(249,115,22,0.4)" stroke-width="1.5"/>
+      <text x="650" y="32" text-anchor="middle" fill="#fdba74" font-size="13" font-weight="700">qoomlee-service</text>
+      <line x1="650" y1="44" x2="650" y2="250" stroke="rgba(249,115,22,0.25)" stroke-width="1" stroke-dasharray="4,3"/>
+
+      <!-- Step 1: POST /api/payments/charge -->
+      <line x1="72" y1="70" x2="246" y2="70" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#sarr-b)"/>
+      <rect x="90" y="55" width="148" height="14" rx="3" fill="rgba(15,22,41,0.8)"/>
+      <text x="164" y="66" text-anchor="middle" fill="#93c5fd" font-size="11">POST /api/payments/charge</text>
+
+      <!-- Step 2: GET /api/bookings/:ref -->
+      <line x1="252" y1="95" x2="646" y2="95" stroke="#f97316" stroke-width="1.5" marker-end="url(#sarr-o)"/>
+      <rect x="360" y="80" width="164" height="14" rx="3" fill="rgba(15,22,41,0.8)"/>
+      <text x="442" y="91" text-anchor="middle" fill="#fdba74" font-size="11">GET /api/bookings/:ref (validate)</text>
+
+      <!-- Step 3: booking returned -->
+      <line x1="648" y1="115" x2="254" y2="115" stroke="#f97316" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#sarr-o)"/>
+      <text x="450" y="111" text-anchor="middle" fill="#64748b" font-size="11">booking {status, amount}</text>
+
+      <!-- Step 4: CreateCharge -->
+      <line x1="252" y1="140" x2="446" y2="140" stroke="#22c55e" stroke-width="1.5" marker-end="url(#sarr-g)"/>
+      <rect x="270" y="126" width="158" height="14" rx="3" fill="rgba(15,22,41,0.8)"/>
+      <text x="349" y="137" text-anchor="middle" fill="#86efac" font-size="11">CreateCharge (satang amount)</text>
+
+      <!-- Step 5: charge result -->
+      <line x1="448" y1="160" x2="254" y2="160" stroke="#22c55e" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#sarr-g)"/>
+      <text x="349" y="156" text-anchor="middle" fill="#64748b" font-size="11">{status: successful | failed}</text>
+
+      <!-- Step 6: PUT /bookings/:ref/status -->
+      <line x1="252" y1="185" x2="646" y2="185" stroke="#f97316" stroke-width="1.5" marker-end="url(#sarr-o)"/>
+      <rect x="340" y="171" width="220" height="14" rx="3" fill="rgba(15,22,41,0.8)"/>
+      <text x="450" y="182" text-anchor="middle" fill="#fdba74" font-size="11">PUT /bookings/:ref/status + X-Internal-Token</text>
+
+      <!-- Step 7: 201 response -->
+      <line x1="248" y1="215" x2="74" y2="215" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#sarr-b)"/>
+      <rect x="80" y="201" width="160" height="14" rx="3" fill="rgba(15,22,41,0.8)"/>
+      <text x="160" y="212" text-anchor="middle" fill="#93c5fd" font-size="11">201 {SUCCEEDED, chargeId}</text>
+    </svg>
+  </div>
+
+  <!-- Scoring Pillars -->
+  <h3 style="margin-bottom:16px">How Success Is Measured — 100 Points Across 4 Pillars</h3>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px">
+    <div class="card" style="text-align:center;padding:24px 16px;border-color:rgba(59,130,246,0.3)">
+      <div style="font-size:42px;font-weight:800;color:var(--blue);letter-spacing:-2px;line-height:1">25</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;font-weight:600">POINTS</div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:8px">Working Software</div>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.55">All 7 endpoints return correct responses end-to-end. The complete passenger journey works.</p>
+    </div>
+    <div class="card" style="text-align:center;padding:24px 16px;border-color:rgba(168,85,247,0.3)">
+      <div style="font-size:42px;font-weight:800;color:var(--purple);letter-spacing:-2px;line-height:1">35</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;font-weight:600">POINTS</div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:8px">Testing</div>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.55">Unit + integration + contract + K6 load tests. Tests are specifications, not afterthoughts.</p>
+    </div>
+    <div class="card" style="text-align:center;padding:24px 16px;border-color:rgba(249,115,22,0.3)">
+      <div style="font-size:42px;font-weight:800;color:var(--orange);letter-spacing:-2px;line-height:1">20</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;font-weight:600">POINTS</div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:8px">Code Quality</div>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.55">Domain-oriented architecture, clean error handling, idiomatic Go. Readable, deletable, testable.</p>
+    </div>
+    <div class="card" style="text-align:center;padding:24px 16px;border-color:rgba(234,179,8,0.3)">
+      <div style="font-size:42px;font-weight:800;color:var(--yellow);letter-spacing:-2px;line-height:1">20</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;font-weight:600">POINTS</div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:8px">Infra &amp; Security</div>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.55">Health probes, rate limiting, graceful shutdown, structured logs, JWT RS256, internal token guard.</p>
+    </div>
+  </div>
+
+  <!-- Team Comparison -->
+  <h3 style="margin-bottom:16px;margin-top:32px">Challenge Setup — Team A vs Team B</h3>
+  <div class="arch-wrap" style="margin-bottom:0">
+    <svg width="760" height="180" viewBox="0 0 760 180" xmlns="http://www.w3.org/2000/svg" style="font-family:-apple-system,sans-serif">
+      <!-- Shared starting point -->
+      <rect x="280" y="10" width="200" height="50" rx="10" fill="rgba(100,116,139,0.15)" stroke="rgba(100,116,139,0.4)" stroke-width="1.5"/>
+      <text x="380" y="33" text-anchor="middle" fill="#94a3b8" font-size="13" font-weight="700">Same Skeleton Codebase</text>
+      <text x="380" y="51" text-anchor="middle" fill="#64748b" font-size="11">Schema + Seed + Docker Compose + API Specs</text>
+
+      <!-- Arrow to Team A -->
+      <path d="M310 60 L180 100" stroke="#a855f7" stroke-width="1.5" fill="none" marker-end="url(#sarr-p)"/>
+      <!-- Arrow to Team B -->
+      <path d="M450 60 L580 100" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#sarr)"/>
+
+      <!-- Team A box -->
+      <rect x="30" y="100" width="280" height="70" rx="10" fill="rgba(168,85,247,0.12)" stroke="rgba(168,85,247,0.5)" stroke-width="2"/>
+      <text x="170" y="122" text-anchor="middle" fill="#c4b5fd" font-size="14" font-weight="700">Team A — Agent + Skills</text>
+      <text x="170" y="142" text-anchor="middle" fill="#94a3b8" font-size="12">TDG · golang-expert · docker-best-practices</text>
+      <text x="170" y="158" text-anchor="middle" fill="#94a3b8" font-size="12">review · commit · verify · code-review</text>
+
+      <!-- Team B box -->
+      <rect x="450" y="100" width="280" height="70" rx="10" fill="rgba(100,116,139,0.10)" stroke="rgba(100,116,139,0.4)" stroke-width="1.5"/>
+      <text x="590" y="122" text-anchor="middle" fill="#94a3b8" font-size="14" font-weight="700">Team B — Agent Only</text>
+      <text x="590" y="142" text-anchor="middle" fill="#64748b" font-size="12">No skill files. Claude Code only.</text>
+      <text x="590" y="158" text-anchor="middle" fill="#64748b" font-size="12">Raw agent capability.</text>
+
+      <!-- Time limit label -->
+      <rect x="295" y="170" width="170" height="10" rx="4" fill="none"/>
+      <text x="380" y="179" text-anchor="middle" fill="#64748b" font-size="11">⏱ 2-hour build window · same 4 scoring pillars</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── §2 QUICK START -->
+<section id="quickstart">
+  <div class="section-label">Onboarding</div>
+  <h2>Quick Start</h2>
+  <p class="section-desc">Get the full stack running locally in under 5 minutes. The backend runs in Docker; the frontend runs natively with Bun or npm.</p>
+
+  <h3 style="margin-bottom:12px;font-size:16px;color:var(--text-muted)">Prerequisites</h3>
+  <div class="prereq-grid">
+    <div class="prereq-item"><span class="prereq-icon">🐳</span> Docker Desktop</div>
+    <div class="prereq-item"><span class="prereq-icon">🟢</span> Node.js 20+ or Bun</div>
+    <div class="prereq-item"><span class="prereq-icon">🐹</span> Go 1.23+</div>
+    <div class="prereq-item"><span class="prereq-icon">🔑</span> Free Omise test keys</div>
+    <div class="prereq-item"><span class="prereq-icon">🛠️</span> make</div>
+  </div>
+  <p style="font-size:13px;color:var(--text-muted);margin-bottom:24px">Get free Omise test keys at <strong style="color:var(--text-dim)">dashboard.omise.co</strong> → sign up → API Keys → Test keys. You'll need <code>pkey_test_…</code> and <code>skey_test_…</code>.</p>
+
+  <div class="accordion open">
+    <div class="accordion-header" onclick="toggleAcc(this)">
+      <span class="accordion-title"><span class="acc-step">1</span> Clone &amp; configure environment</span>
+      <span class="accordion-chevron">▾</span>
+    </div>
+    <div class="accordion-body">
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-bash">git clone https://github.com/anuchito/qoomlee-challenge.git
+cd qoomlee-challenge
+cp .env.example .env
+# Edit .env — set OMISE_PUBLIC_KEY and OMISE_SECRET_KEY
+# (JWT keys and INTERNAL_TOKEN are pre-filled for dev)</code></pre>
+      </div>
+      <div class="expected-out">Expected: .env file created</div>
+    </div>
+  </div>
+
+  <div class="accordion">
+    <div class="accordion-header" onclick="toggleAcc(this)">
+      <span class="accordion-title"><span class="acc-step">2</span> Start the full stack</span>
+      <span class="accordion-chevron">▾</span>
+    </div>
+    <div class="accordion-body">
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-bash">docker compose up --build</code></pre>
+      </div>
+      <div class="expected-out">4 containers: postgres-qoomlee (:5433), postgres-qoomlee-payment (:5434), qoomlee-service (:8082), payment-service (:8084)</div>
+    </div>
+  </div>
+
+  <div class="accordion">
+    <div class="accordion-header" onclick="toggleAcc(this)">
+      <span class="accordion-title"><span class="acc-step">3</span> Install frontend deps &amp; start dev server</span>
+      <span class="accordion-chevron">▾</span>
+    </div>
+    <div class="accordion-body">
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-bash">cd app/web
+bun install          # or: npm install
+bun run dev          # → http://localhost:3000</code></pre>
+      </div>
+      <div class="expected-out">Next.js dev server at http://localhost:3000</div>
+    </div>
+  </div>
+
+  <div class="accordion">
+    <div class="accordion-header" onclick="toggleAcc(this)">
+      <span class="accordion-title"><span class="acc-step">4</span> Run backend tests</span>
+      <span class="accordion-chevron">▾</span>
+    </div>
+    <div class="accordion-body">
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-bash">cd services/payment &amp;&amp; go test ./payment/... -v
+cd services/qoomlee &amp;&amp; go test ./... -v</code></pre>
+      </div>
+      <div class="expected-out">All unit tests pass. Integration tests require Docker.</div>
+    </div>
+  </div>
+
+  <div class="accordion">
+    <div class="accordion-header" onclick="toggleAcc(this)">
+      <span class="accordion-title"><span class="acc-step">5</span> Run frontend tests &amp; E2E</span>
+      <span class="accordion-chevron">▾</span>
+    </div>
+    <div class="accordion-body">
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-bash">cd app/web
+bun run test           # Vitest unit tests
+bun run test:e2e       # Playwright (requires dev server on :3000)</code></pre>
+      </div>
+      <div class="expected-out">All green. E2E uses baseURL: http://localhost:3000</div>
+    </div>
+  </div>
+
+  <div class="accordion">
+    <div class="accordion-header" onclick="toggleAcc(this)">
+      <span class="accordion-title"><span class="acc-step">6</span> Get a JWT for API testing</span>
+      <span class="accordion-chevron">▾</span>
+    </div>
+    <div class="accordion-body">
+      <div class="code-wrap">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-bash">make jwt-token          # prints a valid Bearer token
+TOKEN=$(make jwt-token -s)
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8082/api/flights/search?origin=BKK&amp;destination=SIN&amp;date=2026-06-15"</code></pre>
+      </div>
+      <div class="expected-out">HTTP 200 with flights array (JSON)</div>
+    </div>
+  </div>
+
+  <div class="ready-check card" style="margin-top:20px">
+    <strong style="font-size:14px;color:var(--green)">✓ You're ready when…</strong>
+    <ul>
+      <li>Docker shows 4 containers healthy</li>
+      <li>http://localhost:3000 shows the Qoomlee home page</li>
+      <li>http://localhost:8082/health/live returns <code>{"status":"ok"}</code></li>
+      <li>http://localhost:8084/health/live returns <code>{"status":"ok"}</code></li>
+      <li><code>go test ./payment/...</code> passes in services/payment</li>
+    </ul>
+  </div>
+
+  <div class="accordion" style="margin-top:12px">
+    <div class="accordion-header" onclick="toggleAcc(this)">
+      <span class="accordion-title"><span class="acc-step" style="background:var(--orange-dim);border-color:rgba(249,115,22,0.3);color:var(--orange)">?</span> Something not working? Common first-run issues</span>
+      <span class="accordion-chevron">▾</span>
+    </div>
+    <div class="accordion-body">
+      <table class="data-table">
+        <thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>port already in use</code></td>
+            <td>Something else is on :5433, :5434, :8082, or :8084</td>
+            <td>Run <code>lsof -i :8082</code> to find and kill the process, or update port mappings in docker-compose.yml</td>
+          </tr>
+          <tr>
+            <td>Services return <code>501 Not Implemented</code></td>
+            <td>The endpoint hasn't been built yet</td>
+            <td>Normal during development. See the Feature Board — find the story and implement it.</td>
+          </tr>
+          <tr>
+            <td><code>401 UNAUTHORIZED</code> on API calls</td>
+            <td>Missing JWT token</td>
+            <td>Run <code>make jwt-token</code> and include the result as <code>Authorization: Bearer &lt;token&gt;</code></td>
+          </tr>
+          <tr>
+            <td>Frontend shows blank page or errors</td>
+            <td>Missing <code>bun install</code> or wrong node version</td>
+            <td>Run <code>cd app/web &amp;&amp; bun install &amp;&amp; bun run dev</code></td>
+          </tr>
+          <tr>
+            <td>Docker containers keep restarting</td>
+            <td>Missing or invalid <code>.env</code> file</td>
+            <td>Copy <code>.env.example</code> to <code>.env</code> and fill in OMISE keys. JWT keys are pre-filled.</td>
+          </tr>
+          <tr>
+            <td>Integration tests fail</td>
+            <td>Docker not running when tests start</td>
+            <td>testcontainers-go starts its own container — just make sure Docker Desktop is running.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── §3 FEATURE BOARD -->
+<section id="features">
+  <div class="section-label">Product</div>
+  <h2>Feature Board</h2>
+  <p class="section-desc">All 15 QML stories. Each card = one shippable unit of work.</p>
+
+  <div class="kanban">
+    <!-- DONE -->
+    <div class="kanban-col">
+      <div class="kanban-col-header">
+        <span style="color:var(--green)">✅</span> Done
+        <span class="kanban-count">8</span>
+      </div>
+
+      <div class="story-card">
+        <div class="story-badge badge-purple">QML-001</div>
+        <div class="story-name">Search Flights</div>
+        <div class="story-desc">GET /api/flights/search with origin, destination, date, passengers filters.</div>
+        <div class="story-meta">
+          <span class="story-tag">qoomlee-service</span>
+          <span class="story-tag">backend</span>
+        </div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-badge badge-purple">QML-002</div>
+        <div class="story-name">View Flight Details</div>
+        <div class="story-desc">GET /api/flights/:id — single flight with full schedule info.</div>
+        <div class="story-meta">
+          <span class="story-tag">qoomlee-service</span>
+        </div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-badge badge-purple">QML-003</div>
+        <div class="story-name">Create a Booking</div>
+        <div class="story-desc">POST /api/bookings — seat reservation, 6-char PNR, SELECT FOR UPDATE.</div>
+        <div class="story-meta">
+          <span class="story-tag">qoomlee-service</span>
+          <span class="story-tag">frontend</span>
+        </div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-badge badge-purple">QML-004</div>
+        <div class="story-name">View Booking Details</div>
+        <div class="story-desc">GET /api/bookings/:ref — booking with passenger and flight info.</div>
+        <div class="story-meta">
+          <span class="story-tag">qoomlee-service</span>
+        </div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-badge badge-blue">QML-005</div>
+        <div class="story-name">Pay for Booking</div>
+        <div class="story-desc">POST /api/payments/charge — Omise SDK, amount guard, CONFIRMED flip.</div>
+        <div class="story-meta">
+          <span class="story-tag">payment-service</span>
+          <span class="story-tag">frontend</span>
+          <span class="story-tag">7 tests</span>
+        </div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-badge badge-blue">QML-006</div>
+        <div class="story-name">View Payment Receipt</div>
+        <div class="story-desc">GET /api/payments/:bookingRef — receipt with paidAt (null for FAILED).</div>
+        <div class="story-meta">
+          <span class="story-tag">payment-service</span>
+          <span class="story-tag">frontend</span>
+          <span class="story-tag">4 tests</span>
+        </div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-badge badge-orange">QML-007</div>
+        <div class="story-name">Prevent Overbooking</div>
+        <div class="story-desc">SELECT FOR UPDATE on seat count — concurrent bookings are serialized.</div>
+        <div class="story-meta">
+          <span class="story-tag">qoomlee-service</span>
+        </div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-badge badge-green">QML-006+</div>
+        <div class="story-name">Booking Confirmation Page</div>
+        <div class="story-desc">Next.js server component at /bookings/confirmation — displays PNR, flight summary, total paid. E2E: 14 Playwright tests.</div>
+        <div class="story-meta">
+          <span class="story-tag">frontend</span>
+          <span class="story-tag">14 e2e tests</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- IN PROGRESS -->
+    <div class="kanban-col">
+      <div class="kanban-col-header">
+        <span style="color:var(--yellow)">🔄</span> In Progress
+        <span class="kanban-count">0</span>
+      </div>
+    </div>
+
+    <!-- NEXT UP -->
+    <div class="kanban-col">
+      <div class="kanban-col-header">
+        <span style="color:var(--text-muted)">📋</span> Next Up
+        <span class="kanban-count">7</span>
+      </div>
+
+      <div class="story-card">
+        <div class="story-badge badge-blue">QML-008</div>
+        <div class="story-name">Prevent Duplicate Payments</div>
+        <div class="story-desc">Unique partial index on payments. Return 409 ALREADY_PAID on second charge attempt.</div>
+        <div class="story-meta"><span class="story-tag">payment-service</span></div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-badge badge-blue">QML-009</div>
+        <div class="story-name">Handle Payment Failures</div>
+        <div class="story-desc">Persist FAILED payment records. Surface failureCode + failureMessage in receipt.</div>
+        <div class="story-meta"><span class="story-tag">payment-service</span></div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-badge badge-orange">QML-010</div>
+        <div class="story-name">JWT RS256 Auth</div>
+        <div class="story-desc">Middleware on all /api/* endpoints. RS256 asymmetric — public key per service.</div>
+        <div class="story-meta"><span class="story-tag">both services</span></div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-badge badge-orange">QML-011</div>
+        <div class="story-name">Internal Token Guard</div>
+        <div class="story-desc">X-Internal-Token header on PUT /bookings/:ref/status — constant-time compare.</div>
+        <div class="story-meta"><span class="story-tag">qoomlee-service</span></div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-badge badge-orange">QML-012</div>
+        <div class="story-name">Rate Limiting</div>
+        <div class="story-desc">Per-IP limits on sensitive endpoints. 429 Too Many Requests when exceeded.</div>
+        <div class="story-meta"><span class="story-tag">both services</span></div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-badge badge-orange">QML-014</div>
+        <div class="story-name">Request Correlation ID</div>
+        <div class="story-desc">X-Request-ID propagated through all service calls and included in logs.</div>
+        <div class="story-meta"><span class="story-tag">both services</span></div>
+      </div>
+
+      <div class="story-card">
+        <div class="story-badge badge-orange">QML-015</div>
+        <div class="story-name">Structured Request Logging</div>
+        <div class="story-desc">JSON logs via slog — method, path, status, latency_ms, request_id per request.</div>
+        <div class="story-meta"><span class="story-tag">both services</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── §4 ARCHITECTURE -->
+<section id="architecture">
+  <div class="section-label">Infrastructure</div>
+  <h2>Architecture</h2>
+  <p class="section-desc">2 Go services, 2 PostgreSQL instances, 1 Next.js frontend, Omise as external payment gateway.</p>
+
+  <div class="arch-wrap">
+    <svg width="820" height="320" viewBox="0 0 820 320" xmlns="http://www.w3.org/2000/svg" style="font-family:-apple-system,sans-serif">
+      <defs>
+        <marker id="arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#475569"/>
+        </marker>
+        <marker id="arr-b" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/>
+        </marker>
+        <marker id="arr-p" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#a855f7"/>
+        </marker>
+        <marker id="arr-g" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#22c55e"/>
+        </marker>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- Browser -->
+      <rect x="20" y="120" width="110" height="60" rx="10" fill="rgba(59,130,246,0.12)" stroke="rgba(59,130,246,0.4)" stroke-width="1.5"/>
+      <text x="75" y="146" text-anchor="middle" fill="#93c5fd" font-size="12" font-weight="600">Browser</text>
+      <text x="75" y="163" text-anchor="middle" fill="#3b82f6" font-size="11">User</text>
+
+      <!-- Next.js -->
+      <rect x="185" y="100" width="130" height="100" rx="10" fill="rgba(59,130,246,0.12)" stroke="rgba(59,130,246,0.5)" stroke-width="1.5" filter="url(#glow)"/>
+      <text x="250" y="126" text-anchor="middle" fill="#93c5fd" font-size="12" font-weight="700">Next.js</text>
+      <text x="250" y="143" text-anchor="middle" fill="#64748b" font-size="10">App Router</text>
+      <rect x="200" y="152" width="100" height="20" rx="5" fill="rgba(59,130,246,0.2)"/>
+      <text x="250" y="166" text-anchor="middle" fill="#3b82f6" font-size="11" font-weight="600">:3000</text>
+      <text x="250" y="185" text-anchor="middle" fill="#64748b" font-size="10">TypeScript</text>
+
+      <!-- Browser → Next.js -->
+      <line x1="130" y1="150" x2="183" y2="150" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arr-b)"/>
+
+      <!-- qoomlee-service -->
+      <rect x="385" y="40" width="140" height="100" rx="10" fill="rgba(168,85,247,0.12)" stroke="rgba(168,85,247,0.5)" stroke-width="1.5" filter="url(#glow)"/>
+      <text x="455" y="66" text-anchor="middle" fill="#c4b5fd" font-size="12" font-weight="700">qoomlee-service</text>
+      <text x="455" y="83" text-anchor="middle" fill="#64748b" font-size="10">Go · Gin</text>
+      <rect x="400" y="92" width="110" height="20" rx="5" fill="rgba(168,85,247,0.2)"/>
+      <text x="455" y="106" text-anchor="middle" fill="#a855f7" font-size="11" font-weight="600">:8082</text>
+      <text x="455" y="125" text-anchor="middle" fill="#64748b" font-size="10">flights · bookings</text>
+
+      <!-- payment-service -->
+      <rect x="385" y="190" width="140" height="100" rx="10" fill="rgba(168,85,247,0.12)" stroke="rgba(168,85,247,0.5)" stroke-width="1.5" filter="url(#glow)"/>
+      <text x="455" y="216" text-anchor="middle" fill="#c4b5fd" font-size="12" font-weight="700">payment-service</text>
+      <text x="455" y="233" text-anchor="middle" fill="#64748b" font-size="10">Go · Gin</text>
+      <rect x="400" y="242" width="110" height="20" rx="5" fill="rgba(168,85,247,0.2)"/>
+      <text x="455" y="256" text-anchor="middle" fill="#a855f7" font-size="11" font-weight="600">:8084</text>
+      <text x="455" y="275" text-anchor="middle" fill="#64748b" font-size="10">payments · charges</text>
+
+      <!-- Next.js → qoomlee-service -->
+      <path d="M315 130 C350 130 360 90 383 90" stroke="#a855f7" stroke-width="1.5" fill="none" marker-end="url(#arr-p)"/>
+
+      <!-- Next.js → payment-service -->
+      <path d="M315 170 C350 170 360 240 383 240" stroke="#a855f7" stroke-width="1.5" fill="none" marker-end="url(#arr-p)"/>
+
+      <!-- payment-service → qoomlee-service (X-Internal-Token) -->
+      <path d="M455 190 L455 142" stroke="#f97316" stroke-width="1.5" stroke-dasharray="5,3" fill="none" marker-end="url(#arr)"/>
+      <rect x="462" y="160" width="90" height="16" rx="4" fill="rgba(249,115,22,0.12)"/>
+      <text x="467" y="172" fill="#f97316" font-size="9">X-Internal-Token</text>
+
+      <!-- postgres-qoomlee -->
+      <rect x="590" y="40" width="130" height="80" rx="10" fill="rgba(249,115,22,0.1)" stroke="rgba(249,115,22,0.4)" stroke-width="1.5"/>
+      <text x="655" y="66" text-anchor="middle" fill="#fdba74" font-size="11" font-weight="700">postgres-qoomlee</text>
+      <text x="655" y="83" text-anchor="middle" fill="#64748b" font-size="10">bookings · flights</text>
+      <text x="655" y="99" text-anchor="middle" fill="#f97316" font-size="11" font-weight="600">:5433</text>
+      <text x="655" y="112" text-anchor="middle" fill="#64748b" font-size="10">PostgreSQL 16</text>
+
+      <!-- postgres-payment -->
+      <rect x="590" y="180" width="130" height="80" rx="10" fill="rgba(249,115,22,0.1)" stroke="rgba(249,115,22,0.4)" stroke-width="1.5"/>
+      <text x="655" y="206" text-anchor="middle" fill="#fdba74" font-size="11" font-weight="700">postgres-payment</text>
+      <text x="655" y="223" text-anchor="middle" fill="#64748b" font-size="10">payments table</text>
+      <text x="655" y="239" text-anchor="middle" fill="#f97316" font-size="11" font-weight="600">:5434</text>
+      <text x="655" y="252" text-anchor="middle" fill="#64748b" font-size="10">PostgreSQL 16</text>
+
+      <!-- qoomlee → postgres-qoomlee -->
+      <line x1="525" y1="85" x2="588" y2="82" stroke="#f97316" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- payment → postgres-payment -->
+      <line x1="525" y1="235" x2="588" y2="228" stroke="#f97316" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- Omise -->
+      <rect x="590" y="270" width="130" height="40" rx="10" fill="rgba(34,197,94,0.1)" stroke="rgba(34,197,94,0.35)" stroke-width="1.5"/>
+      <text x="655" y="286" text-anchor="middle" fill="#86efac" font-size="11" font-weight="700">Omise API</text>
+      <text x="655" y="302" text-anchor="middle" fill="#64748b" font-size="10">vault.omise.co (external)</text>
+
+      <!-- payment → Omise -->
+      <path d="M525 270 C560 270 570 290 588 290" stroke="#22c55e" stroke-width="1.5" fill="none" marker-end="url(#arr-g)"/>
+
+      <!-- Legend -->
+      <text x="20" y="290" fill="#475569" font-size="10">Legend:</text>
+      <line x1="65" y1="286" x2="90" y2="286" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arr-p)"/>
+      <text x="93" y="290" fill="#64748b" font-size="10">HTTP/JSON</text>
+      <line x1="150" y1="286" x2="175" y2="286" stroke="#f97316" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr)"/>
+      <text x="178" y="290" fill="#64748b" font-size="10">Internal Token</text>
+      <line x1="250" y1="286" x2="275" y2="286" stroke="#22c55e" stroke-width="1.5" marker-end="url(#arr-g)"/>
+      <text x="278" y="290" fill="#64748b" font-size="10">External API</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── §4.5 KEY CONCEPTS -->
+<section id="concepts">
+  <div class="section-label">Reference</div>
+  <h2>Key Concepts</h2>
+  <p class="section-desc">Seven terms you'll encounter everywhere in this codebase. Understand these and the rest is straightforward.</p>
+
+  <div class="concept-grid">
+
+    <div class="concept-card" style="border-color:rgba(168,85,247,0.3)">
+      <div class="concept-term"><span class="concept-icon">🎫</span> PNR / Booking Reference</div>
+      <p class="concept-def">A <strong>6-character uppercase alphanumeric code</strong> that uniquely identifies a booking — like an airline ticket number. Generated in Go at booking time. Never sequential, never guessable.</p>
+      <div class="concept-example">SEED01 · QM7X2K · MNKP23</div>
+    </div>
+
+    <div class="concept-card" style="border-color:rgba(234,179,8,0.3)">
+      <div class="concept-term"><span class="concept-icon">💰</span> Satang (Minor Units)</div>
+      <p class="concept-def"><strong>All money is stored and transmitted as <code>int64</code> in satang</strong> — the smallest unit of Thai Baht (1 THB = 100 satang). No floats, ever. Omise's API works in satang too, so there's zero conversion on the critical payment path. Only divide by 100 in handlers when building display strings.</p>
+      <div class="concept-example">3,500 THB → 350000 satang&nbsp;&nbsp;·&nbsp;&nbsp;int64, never float64</div>
+    </div>
+
+    <div class="concept-card" style="border-color:rgba(239,68,68,0.3)">
+      <div class="concept-term"><span class="concept-icon">🚨</span> Sentinel Errors</div>
+      <p class="concept-def">Named <code>var</code> errors like <code>ErrNotFound</code>, <code>ErrAlreadyPaid</code>, <code>ErrAmountMismatch</code> that flow up from the repository through the service to the handler. The handler uses <code>errors.Is()</code> to map them to HTTP status codes. <strong>Service layer never returns HTTP codes — only sentinel errors.</strong></p>
+      <div class="concept-example">errors.Is(err, ErrAlreadyPaid) → 409 Conflict</div>
+    </div>
+
+    <div class="concept-card" style="border-color:rgba(59,130,246,0.3)">
+      <div class="concept-term"><span class="concept-icon">🔐</span> JWT RS256 Auth</div>
+      <p class="concept-def">All public <code>/api/*</code> endpoints require a <strong>Bearer JWT signed with RS256</strong> (asymmetric). The private key lives only in your local <code>.env</code> — services only load the public key. Generate a dev token with <code>make jwt-token</code>. Token expires in 1 hour.</p>
+      <div class="concept-example">Authorization: Bearer &lt;token from `make jwt-token`&gt;</div>
+    </div>
+
+    <div class="concept-card" style="border-color:rgba(249,115,22,0.3)">
+      <div class="concept-term"><span class="concept-icon">🔑</span> X-Internal-Token</div>
+      <p class="concept-def">A <strong>shared secret</strong> used exclusively for service-to-service calls. payment-service sends it when calling <code>PUT /api/bookings/:ref/status</code> to confirm a booking after a charge. This endpoint is <em>excluded from JWT middleware</em> — only the internal token guards it. Compared using <code>crypto/subtle.ConstantTimeCompare</code> to prevent timing attacks.</p>
+      <div class="concept-example">X-Internal-Token: &lt;INTERNAL_TOKEN env var&gt;</div>
+    </div>
+
+    <div class="concept-card" style="border-color:rgba(34,197,94,0.3)">
+      <div class="concept-term"><span class="concept-icon">🧪</span> TDG (Test-Driven Generation)</div>
+      <p class="concept-def">The team's development methodology: <strong>RED</strong> (write a failing test that specifies the behaviour) → <strong>GREEN</strong> (write minimum code to pass) → <strong>REFACTOR</strong> (clean up without changing behaviour). Each phase is a git commit. Tests are specifications, not afterthoughts. Run <code>/tdg</code> in Claude Code to activate the skill.</p>
+      <div class="concept-example">red: test spec → green: implement → refactor: clean up</div>
+    </div>
+
+    <div class="concept-card" style="border-color:rgba(100,116,139,0.3)">
+      <div class="concept-term"><span class="concept-icon">🏗️</span> Domain-Oriented Structure</div>
+      <p class="concept-def">Code is organized by <strong>business domain</strong>, not by technical layer. Each domain folder (<code>flight/</code>, <code>booking/</code>, <code>payment/</code>) contains handler + service + repository + models. You work on a feature by touching one folder. Compare: a layer-oriented structure would put all handlers in one folder, all services in another — forcing you to jump around.</p>
+      <div class="concept-example">services/qoomlee/flight/ → handler, service, repo, models</div>
+    </div>
+
+    <div class="concept-card" style="border-color:rgba(168,85,247,0.3)">
+      <div class="concept-term"><span class="concept-icon">🗃️</span> Two Isolated Databases</div>
+      <p class="concept-def"><strong>payment-service physically cannot read the booking database</strong> — it has no credentials, no connection string. The only way it knows about bookings is via <code>GET /api/bookings/:ref</code>. This is enforced by Docker network topology, not convention. The practical implication: any feature that needs booking data from payment-service must go through an API call.</p>
+      <div class="concept-example">postgres-qoomlee :5433 ← qoomlee-service only<br>postgres-payment :5434 ← payment-service only</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── §5 CODEBASE MAP -->
+<section id="codebase">
+  <div class="section-label">Navigation</div>
+  <h2>Codebase Map</h2>
+  <p class="section-desc">Click any folder to expand. Click a file to see what it does.</p>
+
+  <div class="filetree">
+    <div class="tree-node open" onclick="toggleTree(this)">
+      <span class="tree-icon">▶</span><span class="tree-folder">📁 app/web/</span>
+      <span class="tree-desc">Next.js 16 App Router frontend</span>
+    </div>
+    <div class="tree-children">
+      <div class="tree-node open" onclick="toggleTree(this)">
+        <span class="tree-icon">▶</span><span class="tree-folder">📁 app/</span>
+      </div>
+      <div class="tree-children">
+        <div class="tree-node" onclick="showFileDesc(this, 'page.tsx — Home page with flight search form')"><span class="tree-file">📄 page.tsx</span></div>
+        <div class="tree-node" onclick="showFileDesc(this, 'layout.tsx — Root layout: TopAppBar, Material Symbols, Tailwind globals')"><span class="tree-file">📄 layout.tsx</span></div>
+        <div class="tree-node open" onclick="toggleTree(this)">
+          <span class="tree-icon">▶</span><span class="tree-folder">📁 flights/</span>
+        </div>
+        <div class="tree-children">
+          <div class="tree-node" onclick="showFileDesc(this, 'flights/page.tsx — Flight search form page with AirportSelect, DateRangePicker, TripTypeToggle')"><span class="tree-file">📄 page.tsx</span></div>
+          <div class="tree-node" onclick="showFileDesc(this, 'results/page.tsx — Server component: fetches flights from API, renders FlightList with sort/filter')"><span class="tree-file">📄 results/page.tsx</span></div>
+          <div class="tree-node" onclick="showFileDesc(this, 'hooks/useFlightSearch.ts — Search state machine: validation, URL building, navigation')"><span class="tree-file">📄 hooks/useFlightSearch.ts</span></div>
+          <div class="tree-node" onclick="showFileDesc(this, 'results/lib/fetchFlights.ts — fetch() wrapper for GET /api/flights/search with error handling')"><span class="tree-file">📄 results/lib/fetchFlights.ts</span></div>
+          <div class="tree-node" onclick="showFileDesc(this, 'results/components/FlightCard.tsx — Single flight card: route, price, duration, Best Value badge')"><span class="tree-file">📄 results/components/FlightCard.tsx</span></div>
+        </div>
+        <div class="tree-node open" onclick="toggleTree(this)">
+          <span class="tree-icon">▶</span><span class="tree-folder">📁 bookings/</span>
+        </div>
+        <div class="tree-children">
+          <div class="tree-node" onclick="showFileDesc(this, 'bookings/new/page.tsx — Booking form page (passenger details → POST /api/bookings)')"><span class="tree-file">📄 new/page.tsx</span></div>
+          <div class="tree-node" onclick="showFileDesc(this, 'bookings/new/BookingClient.tsx — Client component handling form state and submission')"><span class="tree-file">📄 new/BookingClient.tsx</span></div>
+          <div class="tree-node" onclick="showFileDesc(this, 'bookings/confirmation/page.tsx — Server component: shows PNR, flight summary, total paid. No API call — data via URL params')"><span class="tree-file">📄 confirmation/page.tsx</span></div>
+        </div>
+        <div class="tree-node open" onclick="toggleTree(this)">
+          <span class="tree-icon">▶</span><span class="tree-folder">📁 payment/</span>
+        </div>
+        <div class="tree-children">
+          <div class="tree-node" onclick="showFileDesc(this, 'payment/page.tsx — Payment page: passes searchParams to PaymentClient')"><span class="tree-file">📄 page.tsx</span></div>
+          <div class="tree-node" onclick="showFileDesc(this, 'PaymentClient.tsx — Client component: Omise.js token flow, then POST /api/payments/charge')"><span class="tree-file">📄 PaymentClient.tsx</span></div>
+          <div class="tree-node" onclick="showFileDesc(this, 'components/ProgressStepper.tsx — Step 1/2/3 UI indicator for the booking flow')"><span class="tree-file">📄 components/ProgressStepper.tsx</span></div>
+        </div>
+      </div>
+      <div class="tree-node open" onclick="toggleTree(this)">
+        <span class="tree-icon">▶</span><span class="tree-folder">📁 e2e/</span>
+        <span class="tree-desc">Playwright test suites</span>
+      </div>
+      <div class="tree-children">
+        <div class="tree-node" onclick="showFileDesc(this, 'flights-search.spec.ts — 16 tests: form interactions, validation, both Desktop Chrome and Pixel 5 viewports')"><span class="tree-file">📄 flights-search.spec.ts</span></div>
+        <div class="tree-node" onclick="showFileDesc(this, 'booking.spec.ts — Booking form flow: passenger details submission and redirect')"><span class="tree-file">📄 booking.spec.ts</span></div>
+        <div class="tree-node" onclick="showFileDesc(this, 'payment.spec.ts — Payment page: Omise form, charge, error states')"><span class="tree-file">📄 payment.spec.ts</span></div>
+        <div class="tree-node" onclick="showFileDesc(this, 'confirmation.spec.ts — 14 tests: PNR display, passenger details, total amount, email notice')"><span class="tree-file">📄 confirmation.spec.ts</span></div>
+        <div class="tree-node" onclick="showFileDesc(this, 'results-to-booking.spec.ts — Full flow: search results → select flight → booking form')"><span class="tree-file">📄 results-to-booking.spec.ts</span></div>
+      </div>
+    </div>
+
+    <div class="tree-node open" onclick="toggleTree(this)" style="margin-top:8px">
+      <span class="tree-icon">▶</span><span class="tree-folder">📁 services/payment/</span>
+      <span class="tree-desc">Go payment microservice</span>
+    </div>
+    <div class="tree-children">
+      <div class="tree-node" onclick="showFileDesc(this, 'payment/models.go — Domain types: Payment, ChargeRequest, ChargeResponse, PaymentReceiptResponse, sentinel errors (ErrAlreadyPaid, ErrNotFound, ErrAmountMismatch)')"><span class="tree-file">📄 payment/models.go</span></div>
+      <div class="tree-node" onclick="showFileDesc(this, 'payment/service.go — Business logic: fetch booking → guard → charge Omise → persist → confirm booking. Interfaces: BookingClient, Omiser, Repository')"><span class="tree-file">📄 payment/service.go</span></div>
+      <div class="tree-node" onclick="showFileDesc(this, 'payment/handler.go — HTTP layer: Charge (POST) and GetByBookingRef (GET). Maps sentinel errors to HTTP codes.')"><span class="tree-file">📄 payment/handler.go</span></div>
+      <div class="tree-node" onclick="showFileDesc(this, 'payment/repository.go — PostgreSQL: INSERT payment row, SELECT latest by booking_ref. Uses sql.NullTime and sql.NullString for nullable columns.')"><span class="tree-file">📄 payment/repository.go</span></div>
+      <div class="tree-node" onclick="showFileDesc(this, 'payment/omise_client.go — Omise SDK adapter implementing the Omiser interface. Wraps omise-go SDK.')"><span class="tree-file">📄 payment/omise_client.go</span></div>
+      <div class="tree-node" onclick="showFileDesc(this, 'payment/charge_handler_test.go — 7 handler unit tests: happy path, 3× missing field, 409 duplicate, 400 mismatch, 402 declined, 500 error')"><span class="tree-file">📄 payment/charge_handler_test.go</span></div>
+      <div class="tree-node" onclick="showFileDesc(this, 'payment/get_handler_test.go — 4 handler tests: 200 SUCCEEDED, 200 FAILED (null paidAt), 404 not found, 500 error')"><span class="tree-file">📄 payment/get_handler_test.go</span></div>
+      <div class="tree-node" onclick="showFileDesc(this, 'cmd/main.go — Wires all deps: DB, Omise client, BookingHTTPClient, Repository, Service, Handler. Registers routes.')"><span class="tree-file">📄 cmd/main.go</span></div>
+    </div>
+
+    <div class="tree-node open" onclick="toggleTree(this)" style="margin-top:8px">
+      <span class="tree-icon">▶</span><span class="tree-folder">📁 services/qoomlee/</span>
+      <span class="tree-desc">Go booking/flight microservice</span>
+    </div>
+    <div class="tree-children">
+      <div class="tree-node open" onclick="toggleTree(this)">
+        <span class="tree-icon">▶</span><span class="tree-folder">📁 flight/</span>
+        <span class="tree-desc">Search + detail endpoints</span>
+      </div>
+      <div class="tree-children">
+        <div class="tree-node" onclick="showFileDesc(this, 'search_handler.go — GET /api/flights/search: parse BKK date → UTC range, query, enrich, sort')"><span class="tree-file">📄 search_handler.go</span></div>
+        <div class="tree-node" onclick="showFileDesc(this, 'get_by_id_handler.go — GET /api/flights/:id: fetch one flight, 404 if missing')"><span class="tree-file">📄 get_by_id_handler.go</span></div>
+        <div class="tree-node" onclick="showFileDesc(this, 'service.go — Flight business logic: date windowing, enrichment, sorting')"><span class="tree-file">📄 service.go</span></div>
+        <div class="tree-node" onclick="showFileDesc(this, 'search_repository_integration_test.go — testcontainers-go: real Postgres, full SQL integration test')"><span class="tree-file">📄 search_repository_integration_test.go</span></div>
+      </div>
+      <div class="tree-node open" onclick="toggleTree(this)">
+        <span class="tree-icon">▶</span><span class="tree-folder">📁 booking/</span>
+        <span class="tree-desc">Create + view + status endpoints</span>
+      </div>
+      <div class="tree-children">
+        <div class="tree-node" onclick="showFileDesc(this, 'create_handler.go — POST /api/bookings: validate, SELECT FOR UPDATE seat, generate 6-char PNR, return 201')"><span class="tree-file">📄 create_handler.go</span></div>
+        <div class="tree-node" onclick="showFileDesc(this, 'get_by_ref_handler.go — GET /api/bookings/:ref: fetch booking with passenger and flight join')"><span class="tree-file">📄 get_by_ref_handler.go</span></div>
+        <div class="tree-node" onclick="showFileDesc(this, 'update_status_handler.go — PUT /api/bookings/:ref/status: internal-only (X-Internal-Token), PENDING→CONFIRMED flip')"><span class="tree-file">📄 update_status_handler.go</span></div>
+      </div>
+    </div>
+
+    <div class="tree-node open" onclick="toggleTree(this)" style="margin-top:8px">
+      <span class="tree-icon">▶</span><span class="tree-folder">📁 infra/db/</span>
+      <span class="tree-desc">PostgreSQL schemas and seed data</span>
+    </div>
+    <div class="tree-children">
+      <div class="tree-node" onclick="showFileDesc(this, 'qoomlee/01_schema.sql — Booking DB: flights, routes, passengers, bookings tables + indexes')"><span class="tree-file">📄 qoomlee/01_schema.sql</span></div>
+      <div class="tree-node" onclick="showFileDesc(this, 'qoomlee/02_seed.sql — Seed: 83 flights across 6 routes, 4 passengers, 4 pre-seeded bookings')"><span class="tree-file">📄 qoomlee/02_seed.sql</span></div>
+      <div class="tree-node" onclick="showFileDesc(this, 'qoomlee-payment/01_schema.sql — Payment DB: payments table with failure_code, failure_message, paid_at nullable columns')"><span class="tree-file">📄 qoomlee-payment/01_schema.sql</span></div>
+      <div class="tree-node" onclick="showFileDesc(this, 'qoomlee-payment/02_seed.sql — Seed: pre-seeded SUCCEEDED payment for reference booking QM7X2K')"><span class="tree-file">📄 qoomlee-payment/02_seed.sql</span></div>
+    </div>
+  </div>
+  <div id="file-desc-box" style="display:none;margin-top:12px;padding:12px 16px;background:var(--blue-dim);border:1px solid rgba(59,130,246,0.3);border-radius:var(--radius-sm);font-size:13px;color:var(--text);"></div>
+</section>
+
+<!-- ─────────────────────────────────────────── §6 CODE PATTERNS -->
+<section id="patterns">
+  <div class="section-label">Reference</div>
+  <h2>Code Patterns</h2>
+  <p class="section-desc">Real code from this repo. Each tab shows a different layer of the stack.</p>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="tabs-header">
+      <button class="tab-btn active" onclick="showTab(this,'tab-handler')">Handler</button>
+      <button class="tab-btn" onclick="showTab(this,'tab-service')">Service</button>
+      <button class="tab-btn" onclick="showTab(this,'tab-repo')">Repository</button>
+      <button class="tab-btn" onclick="showTab(this,'tab-test')">Tests</button>
+      <button class="tab-btn" onclick="showTab(this,'tab-fe')">Frontend</button>
+    </div>
+
+    <div id="tab-handler" class="tab-pane active" style="padding:0">
+      <div class="code-wrap" style="border-radius:0">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-go">package payment
+
+// Handler routes HTTP to the payment domain service.
+type Handler struct{ svc Service }
+
+func NewHandler(svc Service) *Handler { return &amp;Handler{svc: svc} }
+
+// Charge — POST /api/payments/charge
+func (h *Handler) Charge(c *gin.Context) {
+	var req ChargeRequest
+	if err := c.ShouldBindJSON(&amp;req); err != nil {
+		c.JSON(http.StatusBadRequest, apiErr(&quot;MISSING_REQUIRED_FIELD&quot;, &quot;invalid body&quot;))
+		return
+	}
+	p, err := h.svc.Charge(c.Request.Context(), req)
+	if err != nil {
+		var pfe *PaymentFailedError
+		switch {
+		case errors.Is(err, ErrAlreadyPaid):
+			c.JSON(http.StatusConflict, apiErr(&quot;ALREADY_PAID&quot;, &quot;already paid&quot;))
+		case errors.Is(err, ErrAmountMismatch):
+			c.JSON(http.StatusBadRequest, apiErr(&quot;AMOUNT_MISMATCH&quot;, &quot;amount mismatch&quot;))
+		case errors.As(err, &amp;pfe):
+			c.JSON(http.StatusPaymentRequired, gin.H{
+				&quot;error&quot;: &quot;PAYMENT_FAILED&quot;,
+				&quot;failureCode&quot;: pfe.FailureCode,
+				&quot;failureMessage&quot;: pfe.FailureMessage,
+			})
+		default:
+			slog.Error(&quot;charge failed&quot;, &quot;err&quot;, err)
+			c.JSON(http.StatusInternalServerError, apiErr(&quot;INTERNAL_ERROR&quot;, &quot;unexpected error&quot;))
+		}
+		return
+	}
+	c.JSON(http.StatusCreated, ChargeResponse{
+		PaymentID: p.ID, Status: p.Status,
+		Amount: fmt.Sprintf(&quot;%.2f&quot;, float64(p.AmountMinor)/100),
+		PaidAt: p.PaidAt.UTC().Format(time.RFC3339),
+	})
+}
+
+// GetByBookingRef — GET /api/payments/:bookingRef
+func (h *Handler) GetByBookingRef(c *gin.Context) {
+	ref := c.Param(&quot;bookingRef&quot;)
+	p, err := h.svc.GetByBookingRef(c.Request.Context(), ref)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			c.JSON(http.StatusNotFound, apiErr(&quot;NOT_FOUND&quot;, &quot;no payment for &quot;+ref))
+			return
+		}
+		c.JSON(http.StatusInternalServerError, apiErr(&quot;INTERNAL_ERROR&quot;, &quot;unexpected error&quot;))
+		return
+	}
+	resp := PaymentReceiptResponse{BookingRef: p.BookingRef, Status: p.Status, ...}
+	if !p.PaidAt.IsZero() {
+		paidAt := p.PaidAt.UTC().Format(time.RFC3339)
+		resp.PaidAt = &amp;paidAt  // pointer — null in JSON for FAILED payments
+	}
+	c.JSON(http.StatusOK, resp)
+}</code></pre>
+      </div>
+      <div class="pattern-why" style="margin:0 20px 20px">
+        <strong>Why this pattern:</strong> The handler only translates between HTTP and domain errors — no business logic lives here. Sentinel errors (<code>ErrAlreadyPaid</code>, <code>ErrAmountMismatch</code>) make the switch deterministic and testable without mocking HTTP infrastructure.
+      </div>
+    </div>
+
+    <div id="tab-service" class="tab-pane" style="padding:0">
+      <div class="code-wrap" style="border-radius:0">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-go">// Interfaces — every dependency is an interface for testability.
+type BookingClient interface {
+	GetBooking(ctx context.Context, ref string) (*BookingDetail, error)
+	ConfirmBooking(ctx context.Context, ref string, req ConfirmRequest) error
+}
+type Omiser interface {
+	CreateCharge(ctx context.Context, token string, amount int64, currency string) (*ChargeResult, error)
+}
+type Repository interface {
+	Insert(ctx context.Context, p *Payment) (*Payment, error)
+	GetByBookingRef(ctx context.Context, ref string) (*Payment, error)
+}
+
+func (s *service) Charge(ctx context.Context, req ChargeRequest) (*Payment, error) {
+	// 1. Fetch booking — validates ref exists
+	booking, err := s.bookingClient.GetBooking(ctx, req.BookingRef)
+	if err != nil { return nil, err }
+
+	// 2. Idempotency guard
+	if booking.Status == statusConfirmed { return nil, ErrAlreadyPaid }
+
+	// 3. Amount guard — all money in minor units (satang), no floats
+	if req.AmountMinor != booking.TotalAmountMinor { return nil, ErrAmountMismatch }
+
+	// 4. Charge via Omise (synchronous, no webhook)
+	result, err := s.omise.CreateCharge(ctx, req.OmiseToken, req.AmountMinor, req.Currency)
+	if err != nil { return nil, err }
+
+	p := &amp;Payment{BookingRef: req.BookingRef, BookingID: booking.BookingID,
+		PaymentProvider: &quot;OMISE&quot;, ProviderChargeID: result.ProviderChargeID,
+		AmountMinor: req.AmountMinor, Currency: req.Currency,
+	}
+	if result.Status == &quot;failed&quot; {
+		p.Status = &quot;FAILED&quot;
+		p.FailureCode, p.FailureMessage = result.FailureCode, result.FailureMessage
+		s.repo.Insert(ctx, p)
+		return nil, &amp;PaymentFailedError{result.FailureCode, result.FailureMessage}
+	}
+
+	// 5. Persist SUCCEEDED record
+	p.Status, p.PaidAt = &quot;SUCCEEDED&quot;, time.Now().UTC()
+	inserted, err := s.repo.Insert(ctx, p)
+	if err != nil { return nil, err }
+
+	// 6. Flip booking to CONFIRMED (internal call with X-Internal-Token)
+	return inserted, s.bookingClient.ConfirmBooking(ctx, req.BookingRef, ConfirmRequest{
+		PaymentID: inserted.ID, PaymentProvider: &quot;OMISE&quot;,
+		ProviderChargeID: inserted.ProviderChargeID,
+	})
+}</code></pre>
+      </div>
+      <div class="pattern-why" style="margin:0 20px 20px">
+        <strong>Why this pattern:</strong> All 3 dependencies (BookingClient, Omiser, Repository) are interfaces — the service is fully unit-testable with <code>mockBookingClient</code>, <code>mockOmiser</code>, <code>mockRepository</code>. No real DB or HTTP in unit tests.
+      </div>
+    </div>
+
+    <div id="tab-repo" class="tab-pane" style="padding:0">
+      <div class="code-wrap" style="border-radius:0">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-go">func (r *postgresRepository) GetByBookingRef(ctx context.Context, ref string) (*Payment, error) {
+	var p Payment
+	var paidAt sql.NullTime
+	var failureCode, failureMessage sql.NullString
+
+	err := r.db.QueryRowContext(ctx, `
+		SELECT id, booking_ref, booking_id, payment_provider, provider_charge_id,
+		       amount_minor, currency, status, failure_code, failure_message, paid_at
+		FROM payments WHERE booking_ref = $1
+		ORDER BY created_at DESC LIMIT 1`, ref,
+	).Scan(&amp;p.ID, &amp;p.BookingRef, &amp;p.BookingID,
+		&amp;p.PaymentProvider, &amp;p.ProviderChargeID,
+		&amp;p.AmountMinor, &amp;p.Currency, &amp;p.Status,
+		&amp;failureCode, &amp;failureMessage, &amp;paidAt)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound  // sentinel — never leak sql internals to caller
+	}
+	if err != nil { return nil, err }
+
+	if failureCode.Valid    { p.FailureCode = failureCode.String }
+	if failureMessage.Valid { p.FailureMessage = failureMessage.String }
+	if paidAt.Valid         { p.PaidAt = paidAt.Time }
+	return &amp;p, nil
+}
+
+func (r *postgresRepository) Insert(ctx context.Context, p *Payment) (*Payment, error) {
+	var paidAt sql.NullTime
+	if !p.PaidAt.IsZero() { paidAt = sql.NullTime{Time: p.PaidAt, Valid: true} }
+	return p, r.db.QueryRowContext(ctx, `
+		INSERT INTO payments (booking_ref, booking_id, payment_provider,
+		  provider_charge_id, amount_minor, currency, status,
+		  failure_code, failure_message, paid_at)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
+		p.BookingRef, p.BookingID, p.PaymentProvider, p.ProviderChargeID,
+		p.AmountMinor, p.Currency, p.Status,
+		nullStr(p.FailureCode), nullStr(p.FailureMessage), paidAt,
+	).Scan(&amp;p.ID)
+}</code></pre>
+      </div>
+      <div class="pattern-why" style="margin:0 20px 20px">
+        <strong>Why this pattern:</strong> <code>sql.NullTime</code> / <code>sql.NullString</code> handle nullable DB columns cleanly. <code>errors.Is(err, sql.ErrNoRows)</code> (not <code>==</code>) handles wrapped errors correctly. Sentinel <code>ErrNotFound</code> keeps DB internals from leaking to callers.
+      </div>
+    </div>
+
+    <div id="tab-test" class="tab-pane" style="padding:0">
+      <div class="code-wrap" style="border-radius:0">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-go">// mockService — injected via constructor (no reflect, no monkey-patching)
+type mockService struct {
+	payment *Payment
+	err     error
+}
+func (m *mockService) Charge(_ context.Context, _ ChargeRequest) (*Payment, error) {
+	return m.payment, m.err
+}
+
+func TestChargeHandler(t *testing.T) {
+	t.Run(&quot;happy path returns 201 with SUCCEEDED payment&quot;, func(t *testing.T) {
+		svc := &amp;mockService{payment: &amp;Payment{
+			ID: 1, PaymentProvider: &quot;OMISE&quot;,
+			ProviderChargeID: &quot;chrg_test_5fzddg8p5j3qhp1w5jg&quot;,
+			Status: &quot;SUCCEEDED&quot;, AmountMinor: 350000, Currency: &quot;THB&quot;,
+			PaidAt: time.Now(),
+		}}
+		w := doCharge(NewHandler(svc), map[string]any{
+			&quot;bookingRef&quot;: &quot;QM7X2K&quot;, &quot;omiseToken&quot;: &quot;tokn_test_xxxx&quot;,
+			&quot;amountMinor&quot;: 350000, &quot;currency&quot;: &quot;THB&quot;,
+		})
+		assert.Equal(t, http.StatusCreated, w.Code)
+		var resp map[string]any
+		require.NoError(t, json.Unmarshal(w.Body.Bytes(), &amp;resp))
+		assert.Equal(t, &quot;SUCCEEDED&quot;, resp[&quot;status&quot;])
+		assert.Equal(t, &quot;OMISE&quot;, resp[&quot;paymentProvider&quot;])
+	})
+
+	t.Run(&quot;already paid returns 409&quot;, func(t *testing.T) {
+		w := doCharge(NewHandler(&amp;mockService{err: ErrAlreadyPaid}), validBody)
+		assert.Equal(t, http.StatusConflict, w.Code)
+		assertErrCode(t, w, &quot;ALREADY_PAID&quot;)
+	})
+
+	t.Run(&quot;card declined returns 402 with failure details&quot;, func(t *testing.T) {
+		svc := &amp;mockService{err: &amp;PaymentFailedError{
+			FailureCode:    &quot;insufficient_fund&quot;,
+			FailureMessage: &quot;The card has insufficient funds.&quot;,
+		}}
+		w := doCharge(NewHandler(svc), validBody)
+		assert.Equal(t, http.StatusPaymentRequired, w.Code)
+		var resp map[string]string
+		json.Unmarshal(w.Body.Bytes(), &amp;resp)
+		assert.Equal(t, &quot;PAYMENT_FAILED&quot;, resp[&quot;error&quot;])
+		assert.Equal(t, &quot;insufficient_fund&quot;, resp[&quot;failureCode&quot;])
+	})
+}</code></pre>
+      </div>
+      <div class="pattern-why" style="margin:0 20px 20px">
+        <strong>Why this pattern:</strong> <code>mockService</code> is a plain struct implementing the <code>Service</code> interface — no reflection, no 3rd-party mock library. Tests are table-driven via <code>t.Run</code>. One test file per handler file for discoverability.
+      </div>
+    </div>
+
+    <div id="tab-fe" class="tab-pane" style="padding:0">
+      <div class="code-wrap" style="border-radius:0">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-typescript">// Server Component — zero client JS, reads URL searchParams
+export default async function ConfirmationPage({
+  searchParams,
+}: { searchParams: Promise&lt;SearchParams&gt; }) {
+  const p = await searchParams;
+
+  const bookingRef = str(p.ref, &quot;—&quot;);
+  const totalMinor = Number(str(p.totalMinor, &quot;0&quot;));
+  const currency   = str(p.currency, &quot;THB&quot;);
+
+  return (
+    &lt;&gt;
+      &lt;section data-testid=&quot;confirmation-hero&quot;&gt;
+        &lt;span className=&quot;material-symbols-outlined&quot;&gt;check_circle&lt;/span&gt;
+        &lt;h1&gt;Booking Confirmed!&lt;/h1&gt;
+        &lt;p&gt;Your adventure begins here ✈&lt;/p&gt;
+      &lt;/section&gt;
+
+      &lt;div data-testid=&quot;pnr-card&quot;&gt;
+        &lt;span className=&quot;label&quot;&gt;Booking Reference&lt;/span&gt;
+        &lt;span data-testid=&quot;booking-ref&quot;&gt;{bookingRef}&lt;/span&gt;
+        &lt;p data-testid=&quot;flight-summary-line&quot;&gt;
+          {flightNumber} · {origin} → {destination}
+          · {formatDeparture(departureTime)}
+        &lt;/p&gt;
+      &lt;/div&gt;
+
+      &lt;div className=&quot;details&quot;&gt;
+        &lt;span data-testid=&quot;passenger-name&quot;&gt;{passengerName}&lt;/span&gt;
+        &lt;span data-testid=&quot;passenger-email&quot;&gt;{email}&lt;/span&gt;
+        &lt;span data-testid=&quot;route&quot;&gt;{origin} → {destination}&lt;/span&gt;
+        &lt;span data-testid=&quot;total-amount&quot;&gt;
+          {/* Intl.NumberFormat — currency-agnostic, works for THB/USD/SGD */}
+          {formatAmount(totalMinor, currency)}
+        &lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+      </div>
+      <div class="pattern-why" style="margin:0 20px 20px">
+        <strong>Why this pattern:</strong> Server Component reads <code>searchParams</code> directly — zero client JS for the confirmation page. <code>Intl.NumberFormat</code> is currency-agnostic (works for THB, USD, SGD without hardcoding ฿). All <code>data-testid</code> attributes are co-located for Playwright E2E discoverability.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── §7 DEV FLOW -->
+<section id="devflow">
+  <div class="section-label">Process</div>
+  <h2>Development Flow (TDG)</h2>
+  <p class="section-desc">Test-Driven Generation — every feature follows red→green→refactor with atomic commits tagged to a QML issue.</p>
+
+  <div class="flow-wrap">
+    <div class="flow-node" onclick="showFlow(this,'flow-branch')">
+      <div class="flow-label">Feature Branch</div>
+      <div class="flow-sublabel">git checkout -b</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node" onclick="showFlow(this,'flow-red')">
+      <div class="flow-label" style="color:var(--red)">🔴 RED</div>
+      <div class="flow-sublabel">write failing test</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node" onclick="showFlow(this,'flow-green')">
+      <div class="flow-label" style="color:var(--green)">🟢 GREEN</div>
+      <div class="flow-sublabel">make test pass</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node" onclick="showFlow(this,'flow-refactor')">
+      <div class="flow-label" style="color:var(--blue)">🔵 REFACTOR</div>
+      <div class="flow-sublabel">clean up code</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node" onclick="showFlow(this,'flow-commit')">
+      <div class="flow-label">Atomic Commit</div>
+      <div class="flow-sublabel">feat(QML-xxx)</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node" onclick="showFlow(this,'flow-pr')">
+      <div class="flow-label">PR</div>
+      <div class="flow-sublabel">code review</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node" onclick="showFlow(this,'flow-ci')">
+      <div class="flow-label">CI</div>
+      <div class="flow-sublabel">tests + lint</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node" onclick="showFlow(this,'flow-merge')">
+      <div class="flow-label">Merge</div>
+      <div class="flow-sublabel">to main</div>
+    </div>
+  </div>
+
+  <div id="flow-branch"   class="flow-detail"><strong>Feature Branch</strong><p style="margin-top:8px;color:var(--text-dim)">Branch from <code>main</code>. Name: <code>feat/QML-005-payment-charge</code>. One branch per story or per layer within a story.</p></div>
+  <div id="flow-red"      class="flow-detail"><strong style="color:var(--red)">RED — Write the failing test first</strong><p style="margin-top:8px;color:var(--text-dim)">Write test cases before any implementation. Run them — they must fail. Commit with prefix <code>red: test spec for &lt;feature&gt; (#QML-xxx)</code>. This is the specification, not the code.</p>
+    <div class="code-wrap" style="margin-top:10px"><pre><code class="language-bash">go test ./payment/... -run TestChargeHandler
+# FAIL — expected</code></pre></div>
+  </div>
+  <div id="flow-green"    class="flow-detail"><strong style="color:var(--green)">GREEN — Minimum code to pass</strong><p style="margin-top:8px;color:var(--text-dim)">Write just enough code to make the tests pass. No extra features. Commit with <code>green: implement &lt;feature&gt; (#QML-xxx)</code>.</p>
+    <div class="code-wrap" style="margin-top:10px"><pre><code class="language-bash">go test ./payment/... -run TestChargeHandler -v
+# PASS ✓</code></pre></div>
+  </div>
+  <div id="flow-refactor" class="flow-detail"><strong style="color:var(--blue)">REFACTOR — Clean up without changing behaviour</strong><p style="margin-top:8px;color:var(--text-dim)">Extract helpers, rename for clarity, extract interfaces, remove duplication. Tests must still pass. Commit with <code>refactor: &lt;what changed&gt; (#QML-xxx)</code>.</p></div>
+  <div id="flow-commit"   class="flow-detail"><strong>Atomic Commit</strong><p style="margin-top:8px;color:var(--text-dim)">One logical unit per commit. Group by story at PR time using <code>git rebase -i</code> if needed. Format: <code>feat(QML-005): POST /api/payments/charge — handler and tests</code>. Every commit message references the QML story.</p></div>
+  <div id="flow-pr"       class="flow-detail"><strong>Pull Request</strong><p style="margin-top:8px;color:var(--text-dim)">PR body includes: what changed, why, test plan. Link to QML story. At least one reviewer. No merge without passing CI.</p></div>
+  <div id="flow-ci"       class="flow-detail"><strong>CI Gates</strong><p style="margin-top:8px;color:var(--text-dim)">All Go unit tests pass (<code>go test ./...</code>), frontend tests pass (<code>bun run test</code>), type check clean (<code>tsc --noEmit</code>), lint clean. Integration tests run against real DB in CI.</p></div>
+  <div id="flow-merge"    class="flow-detail"><strong>Merge to main</strong><p style="margin-top:8px;color:var(--text-dim)">Squash-merge or rebase-merge preserving the atomic commits. The <code>main</code> branch is always deployable. Update CHALLENGE.md story status to ✅ Done.</p></div>
+</section>
+
+<!-- ─────────────────────────────────────────── §7.5 HOW TO ADD A FEATURE -->
+<section id="howto">
+  <div class="section-label">Walkthrough</div>
+  <h2>How to Add a New Feature</h2>
+  <p class="section-desc">A concrete end-to-end example using <strong>QML-008 — Prevent Duplicate Payments</strong>. Follow this pattern for any story in the Next Up column.</p>
+
+  <div class="walk-steps">
+
+    <div class="walk-step">
+      <div class="walk-step-header" onclick="toggleWalk(this)">
+        <div class="walk-num">1</div>
+        <div>
+          <div class="walk-step-title">Read the story spec in CHALLENGE.md</div>
+          <div class="walk-step-sub">Understand acceptance criteria before touching code</div>
+        </div>
+        <span class="accordion-chevron">▾</span>
+      </div>
+      <div class="walk-step-body">
+        <p>Open <code>CHALLENGE.md</code> and find the story. Read the acceptance criteria carefully — they are the contract. For QML-008: "if booking status is already <code>CONFIRMED</code>, return <code>409 ALREADY_PAID</code> without calling Omise."</p>
+        <p>Also check <code>API_SPECS.md</code> for the exact request/response shape. Never guess the JSON field names.</p>
+        <p style="margin-top:10px;font-size:13px;color:var(--text-muted)">Time: ~5 minutes. Don't skip this — it prevents rework.</p>
+      </div>
+    </div>
+
+    <div class="walk-step">
+      <div class="walk-step-header" onclick="toggleWalk(this)">
+        <div class="walk-num">2</div>
+        <div>
+          <div class="walk-step-title">Create a feature branch</div>
+          <div class="walk-step-sub">One branch per story, named with the QML number</div>
+        </div>
+        <span class="accordion-chevron">▾</span>
+      </div>
+      <div class="walk-step-body">
+        <div class="code-wrap"><button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-bash">git checkout main && git pull
+git checkout -b feat/QML-008-duplicate-payment-guard</code></pre></div>
+      </div>
+    </div>
+
+    <div class="walk-step">
+      <div class="walk-step-header" onclick="toggleWalk(this)">
+        <div class="walk-num">3</div>
+        <div>
+          <div class="walk-step-title" style="color:var(--red)">🔴 RED — Write the failing test first</div>
+          <div class="walk-step-sub">Specify the behaviour before writing any implementation</div>
+        </div>
+        <span class="accordion-chevron">▾</span>
+      </div>
+      <div class="walk-step-body">
+        <p>Open the test file for the handler you're modifying. For QML-008 this is <code>services/payment/payment/charge_handler_test.go</code>. Add a test case for the already-paid scenario:</p>
+        <div class="code-wrap" style="margin-top:10px"><button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-go">t.Run("already paid returns 409", func(t *testing.T) {
+    // mockService returns ErrAlreadyPaid
+    svc := &mockService{err: ErrAlreadyPaid}
+    w := doCharge(NewHandler(svc), validBody)
+    assert.Equal(t, http.StatusConflict, w.Code)
+    assertErrCode(t, w, "ALREADY_PAID")
+})</code></pre></div>
+        <p style="margin-top:12px">Run the test — it must fail:</p>
+        <div class="code-wrap" style="margin-top:8px"><button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-bash">cd services/payment && go test ./payment/... -run TestChargeHandler -v
+# FAIL — expected. This is the spec.</code></pre></div>
+        <div class="code-wrap" style="margin-top:8px"><button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-bash">git add .
+git commit -m "red: test spec for duplicate payment guard (#QML-008)"</code></pre></div>
+      </div>
+    </div>
+
+    <div class="walk-step">
+      <div class="walk-step-header" onclick="toggleWalk(this)">
+        <div class="walk-num">4</div>
+        <div>
+          <div class="walk-step-title" style="color:var(--green)">🟢 GREEN — Implement the minimum code to pass</div>
+          <div class="walk-step-sub">No extra features, no cleanup — just make the test pass</div>
+        </div>
+        <span class="accordion-chevron">▾</span>
+      </div>
+      <div class="walk-step-body">
+        <p>For QML-008, the service already fetches the booking before charging. Add the status check:</p>
+        <div class="code-wrap" style="margin-top:10px"><button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-go">// In service.go — Charge method, after fetching the booking:
+if booking.Status == statusConfirmed {
+    return nil, ErrAlreadyPaid
+}</code></pre></div>
+        <p style="margin-top:12px">Run the tests — all must pass:</p>
+        <div class="code-wrap" style="margin-top:8px"><button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-bash">go test ./payment/... -v
+# PASS ✓</code></pre></div>
+        <div class="code-wrap" style="margin-top:8px"><button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-bash">git add .
+git commit -m "green: implement duplicate payment guard (#QML-008)"</code></pre></div>
+      </div>
+    </div>
+
+    <div class="walk-step">
+      <div class="walk-step-header" onclick="toggleWalk(this)">
+        <div class="walk-num">5</div>
+        <div>
+          <div class="walk-step-title" style="color:var(--blue)">🔵 REFACTOR — Clean up without changing behaviour</div>
+          <div class="walk-step-sub">Extract constants, rename for clarity, remove duplication</div>
+        </div>
+        <span class="accordion-chevron">▾</span>
+      </div>
+      <div class="walk-step-body">
+        <p>Review your change. Is <code>statusConfirmed</code> defined as a named constant? Is the logic in the right layer (service, not handler)? Is there duplication with existing checks? Clean it up.</p>
+        <p>Run tests again after every change to verify behaviour is unchanged:</p>
+        <div class="code-wrap" style="margin-top:8px"><button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-bash">go test ./payment/... -v
+# Still PASS ✓</code></pre></div>
+        <div class="code-wrap" style="margin-top:8px"><button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-bash">git add .
+git commit -m "refactor: extract statusConfirmed constant (#QML-008)"</code></pre></div>
+      </div>
+    </div>
+
+    <div class="walk-step">
+      <div class="walk-step-header" onclick="toggleWalk(this)">
+        <div class="walk-num">6</div>
+        <div>
+          <div class="walk-step-title">Add a contract test against the live stack</div>
+          <div class="walk-step-sub">Verify the real HTTP endpoint — not just mocks</div>
+        </div>
+        <span class="accordion-chevron">▾</span>
+      </div>
+      <div class="walk-step-body">
+        <p>Unit tests mock the service. For QML-008 we also need to verify the endpoint end-to-end with the real database. Add a contract test in <code>scripts/</code> or extend the existing smoke test:</p>
+        <div class="code-wrap" style="margin-top:8px"><button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-bash">TOKEN=$(make jwt-token -s)
+# SEED01 is pre-seeded as CONFIRMED — should get 409
+curl -s -X POST http://localhost:8084/api/payments/charge \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"bookingRef":"SEED01","omiseToken":"tok_test","amountMinor":350000,"currency":"THB"}' \
+| jq .
+# Expected: {"error":"ALREADY_PAID","message":"already paid"}</code></pre></div>
+      </div>
+    </div>
+
+    <div class="walk-step">
+      <div class="walk-step-header" onclick="toggleWalk(this)">
+        <div class="walk-num">7</div>
+        <div>
+          <div class="walk-step-title">Open a PR and update CHALLENGE.md</div>
+          <div class="walk-step-sub">Close the loop — mark the story done</div>
+        </div>
+        <span class="accordion-chevron">▾</span>
+      </div>
+      <div class="walk-step-body">
+        <p>Push your branch and open a PR. The PR description should include: what changed, why, and the test plan. After merge, update the story status in <code>CHALLENGE.md</code> from <code>⬜ Todo</code> to <code>✅ Done</code>.</p>
+        <div class="code-wrap" style="margin-top:8px"><button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-bash">git push -u origin feat/QML-008-duplicate-payment-guard
+gh pr create --title "feat(QML-008): prevent duplicate payments"</code></pre></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── §8 ENVIRONMENTS -->
+<section id="environments">
+  <div class="section-label">Infrastructure</div>
+  <h2>Environments &amp; Ports</h2>
+  <p class="section-desc">All local — production deployment is out of scope for this challenge.</p>
+
+  <table class="data-table" style="margin-bottom:24px">
+    <thead>
+      <tr><th>Environment</th><th>URL</th><th>Purpose</th><th>How to Access</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Local</strong></td>
+        <td class="mono">localhost</td>
+        <td>Development &amp; testing</td>
+        <td><code>docker compose up --build</code></td>
+      </tr>
+      <tr>
+        <td>Dev/CI</td>
+        <td class="mono">—</td>
+        <td>Automated test runs</td>
+        <td>GitHub Actions (to be configured)</td>
+      </tr>
+      <tr>
+        <td>Staging</td>
+        <td class="mono">—</td>
+        <td>Pre-release validation</td>
+        <td>Not yet provisioned</td>
+      </tr>
+      <tr>
+        <td>Production</td>
+        <td class="mono">—</td>
+        <td>Live users</td>
+        <td>Out of scope for this challenge</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 style="margin-bottom:12px">Environment Variables</h3>
+  <p style="font-size:15px;color:var(--text-dim);margin-bottom:16px">All vars live in <code>.env</code> (gitignored). Copy from <code>.env.example</code> to get started.</p>
+  <table class="env-table" style="margin-bottom:32px">
+    <thead>
+      <tr><th>Variable</th><th>Used by</th><th>Status</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mono">OMISE_PUBLIC_KEY</td>
+        <td>payment-service</td>
+        <td><span class="env-required">Required</span></td>
+        <td>Your Omise test public key (<code>pkey_test_…</code>). Get from dashboard.omise.co.</td>
+      </tr>
+      <tr>
+        <td class="mono">OMISE_SECRET_KEY</td>
+        <td>payment-service</td>
+        <td><span class="env-required">Required</span></td>
+        <td>Your Omise test secret key (<code>skey_test_…</code>). Never commit this.</td>
+      </tr>
+      <tr>
+        <td class="mono">INTERNAL_TOKEN</td>
+        <td>both services</td>
+        <td><span class="env-required">Required</span></td>
+        <td>Shared 256-bit secret for service-to-service calls. Both services must have the same value. Generate with <code>openssl rand -hex 32</code>. Services refuse to start if empty.</td>
+      </tr>
+      <tr>
+        <td class="mono">JWT_PUBLIC_KEY</td>
+        <td>both services</td>
+        <td><span class="env-prefilled">Pre-filled</span></td>
+        <td>RSA public key PEM (multi-line). Services use this to verify JWT tokens. <em>Never</em> the private key.</td>
+      </tr>
+      <tr>
+        <td class="mono">JWT_PRIVATE_KEY</td>
+        <td><em>test tooling only</em></td>
+        <td><span class="env-prefilled">Pre-filled</span></td>
+        <td>RSA private key PEM. Used only by <code>make jwt-token</code> to generate dev tokens. <strong>Never loaded by any running service.</strong></td>
+      </tr>
+      <tr>
+        <td class="mono">QOOMLEE_SERVICE_URL</td>
+        <td>payment-service</td>
+        <td><span class="env-prefilled">Pre-filled</span></td>
+        <td>URL of qoomlee-service. Set to <code>http://qoomlee-service:8082</code> in Docker Compose (uses Docker DNS). Set to <code>http://localhost:8082</code> for local testing outside Docker.</td>
+      </tr>
+      <tr>
+        <td class="mono">DB_HOST / DB_PORT / DB_NAME / DB_USER / DB_PASS</td>
+        <td>both services</td>
+        <td><span class="env-prefilled">Pre-filled</span></td>
+        <td>PostgreSQL connection details. Pre-configured in docker-compose.yml. Only change if you modify the DB setup.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 style="margin-bottom:12px">Local Port Map</h3>
+  <table class="data-table">
+    <thead>
+      <tr><th>Port</th><th>Service</th><th>Stack</th><th>Key Endpoints</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mono" style="color:var(--blue)">3000</td>
+        <td>Next.js frontend</td>
+        <td>Node.js / Bun</td>
+        <td>/ (home), /flights, /bookings/new, /payment, /bookings/confirmation</td>
+      </tr>
+      <tr>
+        <td class="mono" style="color:var(--purple)">8082</td>
+        <td>qoomlee-service</td>
+        <td>Go · Gin</td>
+        <td>GET /api/flights/search, POST /api/bookings, GET /health/live</td>
+      </tr>
+      <tr>
+        <td class="mono" style="color:var(--purple)">8084</td>
+        <td>payment-service</td>
+        <td>Go · Gin</td>
+        <td>POST /api/payments/charge, GET /api/payments/:ref, GET /health/ready</td>
+      </tr>
+      <tr>
+        <td class="mono" style="color:var(--orange)">5433</td>
+        <td>postgres-qoomlee</td>
+        <td>PostgreSQL 16</td>
+        <td>flights, routes, passengers, bookings tables</td>
+      </tr>
+      <tr>
+        <td class="mono" style="color:var(--orange)">5434</td>
+        <td>postgres-payment</td>
+        <td>PostgreSQL 16</td>
+        <td>payments table (isolated — payment-service never touches :5433)</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ─────────────────────────────────────────── §8.5 GOTCHAS -->
+<section id="gotchas">
+  <div class="section-label">Watch Out</div>
+  <h2>Common Gotchas &amp; FAQ</h2>
+  <p class="section-desc">Things that reliably trip up new engineers on this codebase. Click each one to see the fix.</p>
+
+  <div class="gotcha-list">
+
+    <div class="gotcha-card">
+      <div class="gotcha-header" onclick="toggleGotcha(this)">
+        <span class="gotcha-icon">🔐</span>
+        <div>
+          <div class="gotcha-title">Every API call returns 401 UNAUTHORIZED</div>
+          <div class="gotcha-symptom">You curl an endpoint and get <code>{"error":"UNAUTHORIZED","message":"missing or invalid token"}</code></div>
+        </div>
+        <span class="gotcha-chevron">▾</span>
+      </div>
+      <div class="gotcha-body">
+        <p>All <code>/api/*</code> routes require a valid RS256 JWT. It expires in 1 hour. The fix is always the same:</p>
+        <div class="code-wrap" style="margin-top:10px"><button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-bash">TOKEN=$(make jwt-token -s)
+curl -H "Authorization: Bearer $TOKEN" http://localhost:8082/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15</code></pre></div>
+        <div class="gotcha-fix"><strong>Rule:</strong> Health endpoints (<code>/health/live</code>, <code>/health/ready</code>) need no token. Everything under <code>/api/*</code> does. The one exception is <code>PUT /api/bookings/:ref/status</code> — it uses <code>X-Internal-Token</code> instead.</div>
+      </div>
+    </div>
+
+    <div class="gotcha-card">
+      <div class="gotcha-header" onclick="toggleGotcha(this)">
+        <span class="gotcha-icon">💰</span>
+        <div>
+          <div class="gotcha-title">Payment returns 400 AMOUNT_MISMATCH even with the correct THB amount</div>
+          <div class="gotcha-symptom">You send <code>"amountMinor": 3500</code> for a 3,500 THB flight and get a mismatch error</div>
+        </div>
+        <span class="gotcha-chevron">▾</span>
+      </div>
+      <div class="gotcha-body">
+        <p>All amounts are in <strong>satang (minor units)</strong> — the smallest unit of THB. 3,500 THB = <strong>350,000 satang</strong>. The field is named <code>amountMinor</code> as a reminder. Every monetary column in the database has a <code>_minor</code> suffix for the same reason.</p>
+        <div class="code-wrap" style="margin-top:10px"><button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-json">// Wrong:  "amountMinor": 3500
+// Correct: "amountMinor": 350000   ← 3500 THB × 100 = 350000 satang</code></pre></div>
+        <div class="gotcha-fix"><strong>Rule:</strong> Multiply by 100 when going to the API. Divide by 100 only when displaying to a human. No floats anywhere.</div>
+      </div>
+    </div>
+
+    <div class="gotcha-card">
+      <div class="gotcha-header" onclick="toggleGotcha(this)">
+        <span class="gotcha-icon">🏦</span>
+        <div>
+          <div class="gotcha-title">Payment-service can't look up booking data in the database</div>
+          <div class="gotcha-symptom">You need booking info in payment-service and wonder if you can just query the booking DB directly</div>
+        </div>
+        <span class="gotcha-chevron">▾</span>
+      </div>
+      <div class="gotcha-body">
+        <p>This is by design, not an oversight. The two services have completely separate databases — payment-service has <em>no credentials</em> for the booking database. The only way to get booking data is via HTTP:</p>
+        <div class="code-wrap" style="margin-top:10px"><button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-go">// In payment-service — fetch booking via API (not direct DB query)
+booking, err := s.bookingClient.GetBooking(ctx, req.BookingRef)</code></pre></div>
+        <div class="gotcha-fix"><strong>Rule:</strong> <code>bookingClient</code> is an interface wrapping HTTP calls to qoomlee-service. Mock it in unit tests. It's injected via constructor in production.</div>
+      </div>
+    </div>
+
+    <div class="gotcha-card">
+      <div class="gotcha-header" onclick="toggleGotcha(this)">
+        <span class="gotcha-icon">🔒</span>
+        <div>
+          <div class="gotcha-title">PUT /api/bookings/:ref/status returns 403 even with the right token</div>
+          <div class="gotcha-symptom">You send a JWT Bearer token and get <code>{"error":"FORBIDDEN"}</code></div>
+        </div>
+        <span class="gotcha-chevron">▾</span>
+      </div>
+      <div class="gotcha-body">
+        <p>This endpoint is <strong>excluded from JWT middleware</strong>. It only accepts the <code>X-Internal-Token</code> header — not a Bearer token. This is intentional: it's a service-to-service endpoint, not a user-facing one.</p>
+        <div class="code-wrap" style="margin-top:10px"><button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-bash"># Wrong: sending JWT
+curl -H "Authorization: Bearer $TOKEN" -X PUT ...
+
+# Correct: sending internal token
+curl -H "X-Internal-Token: $INTERNAL_TOKEN" -X PUT \
+  -d '{"status":"CONFIRMED","paymentId":1,"paymentProvider":"OMISE","providerChargeId":"chrg_..."}' \
+  http://localhost:8082/api/bookings/SEED02/status</code></pre></div>
+        <div class="gotcha-fix"><strong>Rule:</strong> JWT = user-facing <code>/api/*</code> routes. X-Internal-Token = the single internal status-flip endpoint only.</div>
+      </div>
+    </div>
+
+    <div class="gotcha-card">
+      <div class="gotcha-header" onclick="toggleGotcha(this)">
+        <span class="gotcha-icon">🪑</span>
+        <div>
+          <div class="gotcha-title">Booking a sold-out flight returns 409 even though you just started</div>
+          <div class="gotcha-symptom"><code>flightId=6</code> always returns <code>409 NO_SEATS_AVAILABLE</code></div>
+        </div>
+        <span class="gotcha-chevron">▾</span>
+      </div>
+      <div class="gotcha-body">
+        <p>Flight ID 6 (QM999) is intentionally seeded as sold out with <code>available_seats = 0</code>. This is a test fixture — use it to verify your 409 path works correctly. It won't appear in flight search results (filtered out), but <code>POST /api/bookings</code> with <code>flightId: 6</code> should hit the overbooking guard.</p>
+        <div class="gotcha-fix"><strong>Rule:</strong> Use <code>flightId: 1</code> (QM101, 154 seats) for happy-path booking tests. Use <code>flightId: 6</code> to test the sold-out path.</div>
+      </div>
+    </div>
+
+    <div class="gotcha-card">
+      <div class="gotcha-header" onclick="toggleGotcha(this)">
+        <span class="gotcha-icon">🧪</span>
+        <div>
+          <div class="gotcha-title">Integration tests fail saying "Docker daemon not found"</div>
+          <div class="gotcha-symptom"><code>go test ./... -tags=integration</code> panics before any tests run</div>
+        </div>
+        <span class="gotcha-chevron">▾</span>
+      </div>
+      <div class="gotcha-body">
+        <p>Integration tests use <code>testcontainers-go</code>, which starts a real PostgreSQL container automatically. Docker Desktop must be running — testcontainers connects to the Docker socket. It does <em>not</em> use the docker-compose stack.</p>
+        <div class="code-wrap" style="margin-top:10px"><button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-bash"># Make sure Docker Desktop is running, then:
+cd services/qoomlee && go test ./... -tags=integration -v</code></pre></div>
+        <div class="gotcha-fix"><strong>Rule:</strong> Unit tests (<code>go test ./...</code>) have zero external deps. Integration tests need Docker Desktop running.</div>
+      </div>
+    </div>
+
+    <div class="gotcha-card">
+      <div class="gotcha-header" onclick="toggleGotcha(this)">
+        <span class="gotcha-icon">📅</span>
+        <div>
+          <div class="gotcha-title">Flight search returns zero results even for valid routes</div>
+          <div class="gotcha-symptom">BKK→SIN search with today's date returns an empty array</div>
+        </div>
+        <span class="gotcha-chevron">▾</span>
+      </div>
+      <div class="gotcha-body">
+        <p>The seed data has flights on specific dates. The primary test date is <strong>2026-06-15</strong>. Searching with today's date will return no results unless today happens to match a seeded date.</p>
+        <div class="code-wrap" style="margin-top:10px"><button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-bash"># Always use the seeded date for testing:
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8082/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"</code></pre></div>
+        <div class="gotcha-fix"><strong>Rule:</strong> Test date is <code>2026-06-15</code> for most tests, <code>2026-06-16</code> for next-day filtering tests. Always hardcode these dates in your test fixtures.</div>
+      </div>
+    </div>
+
+    <div class="gotcha-card">
+      <div class="gotcha-header" onclick="toggleGotcha(this)">
+        <span class="gotcha-icon">⚙️</span>
+        <div>
+          <div class="gotcha-title">go build fails with "undefined: ErrAlreadyPaid" or similar</div>
+          <div class="gotcha-symptom">Compile error when adding a new sentinel error or referencing one</div>
+        </div>
+        <span class="gotcha-chevron">▾</span>
+      </div>
+      <div class="gotcha-body">
+        <p>Sentinel errors are defined in <code>models.go</code> for the relevant domain package. If you're adding a new one, that's where it lives. If you're referencing one, check it's defined there and that you're in the same package.</p>
+        <div class="code-wrap" style="margin-top:10px"><button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <pre><code class="language-go">// services/payment/payment/models.go
+var (
+    ErrAlreadyPaid    = errors.New("already paid")
+    ErrAmountMismatch = errors.New("amount mismatch")
+    ErrNotFound       = errors.New("not found")
+)</code></pre></div>
+        <div class="gotcha-fix"><strong>Rule:</strong> All domain types (models, sentinel errors, interfaces) live in <code>models.go</code> for that domain. Start there when you can't find something.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── §9 QUALITY GATES -->
+<section id="quality">
+  <div class="section-label">Standards</div>
+  <h2>Quality Gates &amp; Definition of Done</h2>
+  <p class="section-desc">A story is done when all boxes are checked.</p>
+
+  <div class="two-col">
+    <div class="card">
+      <h3 style="margin-bottom:16px;color:var(--green)">✓ Quality Gates</h3>
+      <ul class="checklist">
+        <li><input type="checkbox"> Go unit tests pass: <code>go test ./...</code></li>
+        <li><input type="checkbox"> Frontend unit tests pass: <code>bun run test</code></li>
+        <li><input type="checkbox"> E2E tests pass: <code>bun run test:e2e</code></li>
+        <li><input type="checkbox"> TypeScript type-check clean: <code>tsc --noEmit</code></li>
+        <li><input type="checkbox"> No lint errors: <code>eslint</code></li>
+        <li><input type="checkbox"> Go build succeeds: <code>go build ./...</code></li>
+        <li><input type="checkbox"> Integration tests pass (requires Docker)</li>
+        <li><input type="checkbox"> Health endpoints return 200</li>
+        <li><input type="checkbox"> No hardcoded secrets or credentials in code</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:16px;color:var(--blue)">📋 Definition of Done</h3>
+      <ul class="checklist">
+        <li><input type="checkbox"> All acceptance criteria from CHALLENGE.md met</li>
+        <li><input type="checkbox"> Unit tests written (≥1 happy path + N error cases)</li>
+        <li><input type="checkbox"> Handler, service, and repository each tested independently</li>
+        <li><input type="checkbox"> E2E coverage for any user-facing change</li>
+        <li><input type="checkbox"> Atomic commit with <code>feat(QML-xxx):</code> message</li>
+        <li><input type="checkbox"> Commit body explains what changed and why</li>
+        <li><input type="checkbox"> Error responses use standard shape: <code>{"error":"CODE","message":"..."}</code></li>
+        <li><input type="checkbox"> All money in minor units (satang) — no floats in logic</li>
+        <li><input type="checkbox"> CHALLENGE.md story status updated to ✅ Done</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── §10 CONVENTIONS -->
+<section id="conventions">
+  <div class="section-label">Team</div>
+  <h2>Team Conventions</h2>
+  <p class="section-desc">Consistent patterns that reduce cognitive load across the codebase.</p>
+
+  <div class="conv-grid">
+    <div class="conv-card">
+      <h4><span style="color:var(--green)">●</span> Commit Format</h4>
+      <p>Conventional commits with QML issue reference. Type from: feat / fix / refactor / test / docs / chore.</p>
+      <div class="commit-example">feat(QML-005): POST /api/payments/charge
+
+- Add Charge handler with 7 test cases
+- Guard against amount mismatch and duplicate payment
+- Map sentinel errors to HTTP status codes</div>
+    </div>
+
+    <div class="conv-card">
+      <h4><span style="color:var(--blue)">●</span> Branch Naming</h4>
+      <ul>
+        <li><code>feat/QML-005-payment-charge</code></li>
+        <li><code>fix/QML-006-null-paidat</code></li>
+        <li><code>refactor/QML-001-extract-helpers</code></li>
+        <li><code>test/QML-003-e2e-booking-flow</code></li>
+      </ul>
+    </div>
+
+    <div class="conv-card">
+      <h4><span style="color:var(--purple)">●</span> TDG Commit Prefixes</h4>
+      <ul>
+        <li><code>red: test spec for ...</code> — failing tests first</li>
+        <li><code>green: implement ...</code> — make tests pass</li>
+        <li><code>refactor: ...</code> — clean up, no behavior change</li>
+      </ul>
+      <p style="margin-top:8px">Always append <code>(#QML-xxx)</code> for traceability.</p>
+    </div>
+
+    <div class="conv-card">
+      <h4><span style="color:var(--orange)">●</span> Error Response Shape</h4>
+      <p>All error responses use this exact JSON shape:</p>
+      <div class="commit-example">{"error": "ERROR_CODE",
+ "message": "Human readable message"}</div>
+      <p style="margin-top:8px">Error codes: MISSING_REQUIRED_FIELD, ALREADY_PAID, AMOUNT_MISMATCH, PAYMENT_FAILED, NOT_FOUND, INTERNAL_ERROR, UNAUTHORIZED</p>
+    </div>
+
+    <div class="conv-card">
+      <h4><span style="color:var(--yellow)">●</span> Money / Monetary Values</h4>
+      <ul>
+        <li>Always <code>int64</code> in minor units (satang)</li>
+        <li>No <code>float64</code> in business logic — ever</li>
+        <li>Display: <code>fmt.Sprintf("%.2f", amount/100)</code></li>
+        <li>Frontend: <code>Intl.NumberFormat</code> — no hardcoded ฿</li>
+      </ul>
+    </div>
+
+    <div class="conv-card">
+      <h4><span style="color:var(--purple)">●</span> Go Code Style</h4>
+      <ul>
+        <li>Domain-oriented folders (not layer-oriented)</li>
+        <li>All dependencies as interfaces for testability</li>
+        <li>Sentinel errors with <code>errors.Is</code> (not <code>==</code>)</li>
+        <li>No magic strings — use named constants</li>
+        <li><code>slog.Error</code> for unexpected errors (never swallow)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── §11 ADR LOG -->
+<section id="adrs">
+  <div class="section-label">Decision Log</div>
+  <h2>Architecture Decision Records</h2>
+  <p class="section-desc">Key decisions made during this project, recorded for future contributors.</p>
+
+  <div class="adr-list">
+
+    <div class="adr-item">
+      <div class="adr-header" onclick="toggleAdr(this)">
+        <span class="adr-num">ADR-001</span>
+        <span class="adr-title">Use Test-Driven Generation (TDG) as development methodology</span>
+        <span class="adr-status status-accepted">Accepted</span>
+        <span style="color:var(--text-muted);font-size:16px">▾</span>
+      </div>
+      <div class="adr-body">
+        <div class="adr-section"><strong>Context</strong> This is an agent-driven development challenge where an AI writes the code. Without a disciplined methodology, the agent tends to write implementation first and add tests as an afterthought, leading to low-confidence tests that only verify the implementation that exists rather than the specification.</div>
+        <div class="adr-section"><strong>Decision</strong> Adopt TDG (Test-Driven Generation): write the failing test specification first (red commit), implement the minimum code to pass (green commit), then clean up (refactor commit). Every phase is a git commit. Phase integrity is verified via a checksummed helper script (<code>tdg_phase.sh</code>).</div>
+        <div class="adr-section"><strong>Consequences</strong> + Tests are specifications, not afterthoughts. + Coverage is structural, not incidental. + CI fails fast on regressions. − Slightly slower initial velocity — but significantly higher confidence. − Requires discipline on the red commit (no peeking at implementation).</div>
+      </div>
+    </div>
+
+    <div class="adr-item">
+      <div class="adr-header" onclick="toggleAdr(this)">
+        <span class="adr-num">ADR-002</span>
+        <span class="adr-title">Atomic commits grouped by QML story, not by file type</span>
+        <span class="adr-status status-accepted">Accepted</span>
+        <span style="color:var(--text-muted);font-size:16px">▾</span>
+      </div>
+      <div class="adr-body">
+        <div class="adr-section"><strong>Context</strong> Initial development produced many small TDG commits (red/green/refactor) per file. The git history became hard to navigate — a reviewer couldn't easily see "what does QML-005 consist of?" The raw TDG commits were useful during development but noisy in the long-term history.</div>
+        <div class="adr-section"><strong>Decision</strong> At PR time, soft-reset and re-commit as one atomic commit per logical story-level unit (e.g., one commit for all QML-005 backend, one for QML-005 frontend). Commit messages follow conventional format with a body listing what changed and why.</div>
+        <div class="adr-section"><strong>Consequences</strong> + Git log is a clean story-by-story timeline. + <code>git show &lt;sha&gt;</code> shows the complete change for a feature. + Bisect and revert operate at story granularity. − Loses the red/green/refactor sub-history (acceptable — raw TDG phase is preserved in the PR description).</div>
+      </div>
+    </div>
+
+    <div class="adr-item">
+      <div class="adr-header" onclick="toggleAdr(this)">
+        <span class="adr-num">ADR-003</span>
+        <span class="adr-title">Domain-oriented folder structure over layer-oriented</span>
+        <span class="adr-status status-accepted">Accepted</span>
+        <span style="color:var(--text-muted);font-size:16px">▾</span>
+      </div>
+      <div class="adr-body">
+        <div class="adr-section"><strong>Context</strong> Go services can be organized by layer (handler/, service/, repository/ at the top level) or by domain (flight/handler.go, flight/service.go, booking/handler.go, etc.). The challenge has 2 distinct domains in qoomlee-service (flight, booking) and 1 in payment-service.</div>
+        <div class="adr-section"><strong>Decision</strong> Use domain-oriented structure: <code>flight/</code> and <code>booking/</code> packages in qoomlee-service, <code>payment/</code> package in payment-service. Each package contains handler.go, service.go, repository.go, models.go for that domain.</div>
+        <div class="adr-section"><strong>Consequences</strong> + Related code lives together — one domain change touches one folder. + New contributors can focus on one domain without understanding the whole codebase. + Domains can be extracted to separate services later with minimal surgery. − Slightly more import paths to manage. − Cross-domain helpers (e.g., apiErr) must be duplicated or extracted to a shared package.</div>
+      </div>
+    </div>
+
+    <div class="adr-item">
+      <div class="adr-header" onclick="toggleAdr(this)">
+        <span class="adr-num">ADR-004</span>
+        <span class="adr-title">All monetary values in minor units (satang) as int64</span>
+        <span class="adr-status status-accepted">Accepted</span>
+        <span style="color:var(--text-muted);font-size:16px">▾</span>
+      </div>
+      <div class="adr-body">
+        <div class="adr-section"><strong>Context</strong> Payment systems routinely suffer from floating-point precision errors when monetary amounts are stored or transmitted as float64. THB uses satang (1/100 of a Baht) as the minor unit — the same unit Omise's API expects.</div>
+        <div class="adr-section"><strong>Decision</strong> All monetary values are <code>int64</code> representing minor units (satang) in both the database and all API request/response bodies. Display formatting uses <code>fmt.Sprintf("%.2f", amount/100)</code> in Go and <code>Intl.NumberFormat</code> in TypeScript. No <code>float64</code> in any business logic path.</div>
+        <div class="adr-section"><strong>Consequences</strong> + Zero floating-point precision errors. + Omise API directly compatible — it expects amounts in satang. + Integer comparison for amount validation is exact. − Display layer must always divide by 100. − API clients must understand and send minor units (documented in API spec).</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── FOOTER -->
+<footer>
+  <div>
+    <strong>Qoomlee</strong> — Agent Skills Challenge
+    <span style="margin-left:16px;color:var(--text-muted)">Last updated: June 10, 2026</span>
+  </div>
+  <div style="display:flex;gap:20px;align-items:center">
+    <span style="color:var(--text-muted);font-size:12px">Key concepts · Gotchas · Feature walkthrough added</span>
+    <span style="color:var(--text-muted)">·</span>
+    <span style="color:var(--text-muted);font-size:12px">To update: ask Claude to <em>"update the onboarding file"</em></span>
+  </div>
+</footer>
+
+</div><!-- /main -->
+
+<script>
+// ── Highlight.js ──────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  hljs.highlightAll();
+});
+
+// ── Active nav on scroll ──────────────────────────────────────────────────────
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.nav-item');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navItems.forEach(n => {
+        n.classList.toggle('active', n.getAttribute('href') === '#' + e.target.id);
+      });
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => observer.observe(s));
+
+// ── Accordion ─────────────────────────────────────────────────────────────────
+function toggleAcc(header) {
+  header.parentElement.classList.toggle('open');
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function showTab(btn, paneId) {
+  const container = btn.closest('.card');
+  container.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  container.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(paneId).classList.add('active');
+  hljs.highlightAll();
+}
+
+// ── Dev flow nodes ────────────────────────────────────────────────────────────
+function showFlow(node, detailId) {
+  document.querySelectorAll('.flow-node').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.flow-detail').forEach(d => d.classList.remove('show'));
+  node.classList.add('active');
+  document.getElementById(detailId).classList.add('show');
+}
+
+// ── File tree ─────────────────────────────────────────────────────────────────
+function toggleTree(node) {
+  node.classList.toggle('open');
+  const next = node.nextElementSibling;
+  if (next && next.classList.contains('tree-children')) {
+    next.style.display = node.classList.contains('open') ? 'block' : 'none';
+  }
+}
+// init tree open state
+document.querySelectorAll('.tree-node.open').forEach(n => {
+  const next = n.nextElementSibling;
+  if (next && next.classList.contains('tree-children')) {
+    next.style.display = 'block';
+  }
+});
+
+function showFileDesc(node, desc) {
+  const box = document.getElementById('file-desc-box');
+  box.style.display = 'block';
+  box.textContent = '📄 ' + desc;
+}
+
+// ── ADR accordion ─────────────────────────────────────────────────────────────
+function toggleAdr(header) {
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+// ── Gotcha cards ──────────────────────────────────────────────────────────────
+function toggleGotcha(header) {
+  header.parentElement.classList.toggle('open');
+}
+
+// ── Walkthrough steps ─────────────────────────────────────────────────────────
+function toggleWalk(header) {
+  header.parentElement.classList.toggle('open');
+  const body = header.nextElementSibling;
+  body.style.display = header.parentElement.classList.contains('open') ? 'block' : 'none';
+  hljs.highlightAll();
+}
+
+// ── Copy buttons ──────────────────────────────────────────────────────────────
+function copyCode(btn) {
+  const code = btn.closest('.code-wrap').querySelector('code');
+  const text = code.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ── Search ────────────────────────────────────────────────────────────────────
+const searchInput = document.getElementById('search');
+
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement !== searchInput) {
+    e.preventDefault();
+    searchInput.focus();
+  }
+  if (e.key === 'Escape') searchInput.blur();
+});
+
+searchInput.addEventListener('input', function() {
+  const q = this.value.trim().toLowerCase();
+  // clear highlights
+  document.querySelectorAll('.hl').forEach(el => {
+    el.outerHTML = el.textContent;
+  });
+  if (!q) return;
+  // highlight in main text nodes
+  const walker = document.createTreeWalker(
+    document.querySelector('.main'),
+    NodeFilter.SHOW_TEXT,
+    {
+      acceptNode: n => {
+        const p = n.parentElement;
+        if (p.tagName === 'SCRIPT' || p.tagName === 'STYLE' || p.tagName === 'CODE') return NodeFilter.FILTER_REJECT;
+        return n.textContent.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+      }
+    }
+  );
+  const matches = [];
+  let node;
+  while (node = walker.nextNode()) {
+    if (node.textContent.toLowerCase().includes(q)) matches.push(node);
+  }
+  matches.slice(0, 30).forEach(node => {
+    const span = document.createElement('span');
+    span.innerHTML = node.textContent.replace(
+      new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'),
+      m => `<span class="hl">${m}</span>`
+    );
+    node.parentElement.replaceChild(span, node);
+  });
+  // scroll to first match
+  const first = document.querySelector('.hl');
+  if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
+</script>
+</body>
+</html>

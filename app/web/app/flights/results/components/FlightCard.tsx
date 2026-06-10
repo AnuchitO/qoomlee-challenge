@@ -29,12 +29,7 @@ function formatPrice(minor: number, currency: string): string {
   return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(minor / 100);
 }
 
-export default function FlightCard({
-  flight,
-  passengers,
-  isBestValue = false,
-  onSelect,
-}: Props) {
+export default function FlightCard({ flight, passengers, isBestValue = false, onSelect }: Props) {
   const nextDay = isNextDay(flight.departureTime, flight.arrivalTime);
   const totalPrice = formatPrice(flight.basePriceMinor * passengers, flight.currency);
   const perPerson = formatPrice(flight.basePriceMinor, flight.currency);
@@ -52,9 +47,7 @@ export default function FlightCard({
             </div>
             <div className="min-w-0">
               <h3 className="text-headline-md">Qoomlee</h3>
-              <p className="text-label-sm text-on-surface-variant">
-                {flight.flightNumber}
-              </p>
+              <p className="text-label-sm text-on-surface-variant">{flight.flightNumber}</p>
             </div>
           </div>
           <div className="flex flex-col items-end gap-xs shrink-0">
@@ -71,15 +64,10 @@ export default function FlightCard({
             )}
             <div className="text-right">
               <p className="text-headline-md text-primary">
-                {perPerson}{" "}
-                <span className="text-label-sm text-on-surface-variant">
-                  /person
-                </span>
+                {perPerson} <span className="text-label-sm text-on-surface-variant">/person</span>
               </p>
               {passengers > 1 && (
-                <p className="text-label-sm text-on-surface-variant">
-                  {totalPrice} total
-                </p>
+                <p className="text-label-sm text-on-surface-variant">{totalPrice} total</p>
               )}
             </div>
           </div>
@@ -100,20 +88,14 @@ export default function FlightCard({
                 flight
               </span>
             </div>
-            <p className="text-label-sm text-[#008544] mt-1 font-bold">
-              Non-stop
-            </p>
+            <p className="text-label-sm text-[#008544] mt-1 font-bold">Non-stop</p>
           </div>
           <div className="flex-1 text-right">
             <p className="text-headline-md">
               {formatTime(flight.arrivalTime)}
-              {nextDay && (
-                <span className="text-sm align-top text-error ml-0.5">+1</span>
-              )}
+              {nextDay && <span className="text-sm align-top text-error ml-0.5">+1</span>}
             </p>
-            <p className="text-label-md text-on-surface-variant">
-              {flight.destination}
-            </p>
+            <p className="text-label-md text-on-surface-variant">{flight.destination}</p>
           </div>
         </div>
 
@@ -121,26 +103,23 @@ export default function FlightCard({
         <div className="flex items-center justify-between pt-md border-t border-outline-variant/30">
           <div className="flex gap-md text-on-surface-variant">
             <div className="flex items-center gap-xs">
-              <span className="material-symbols-outlined text-[18px]">
-                luggage
-              </span>
+              <span className="material-symbols-outlined text-[18px]">luggage</span>
               <span className="text-label-sm">20kg</span>
             </div>
             <div className="flex items-center gap-xs">
               <span className="material-symbols-outlined text-[18px]">
                 airline_seat_recline_normal
               </span>
-              <span className="text-label-sm capitalize">{flight.status === "SCHEDULED" ? "Economy" : flight.status}</span>
+              <span className="text-label-sm capitalize">
+                {flight.status === "SCHEDULED" ? "Economy" : flight.status}
+              </span>
             </div>
           </div>
           <button
             onClick={() => onSelect(flight)}
             className="bg-primary-container text-on-primary-container px-lg py-2 rounded-xl text-label-md flex items-center gap-xs active:scale-95 transition-all shadow-sm"
           >
-            Select{" "}
-            <span className="material-symbols-outlined text-[18px]">
-              arrow_forward
-            </span>
+            Select <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
           </button>
         </div>
       </div>

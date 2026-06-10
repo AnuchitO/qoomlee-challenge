@@ -15,7 +15,9 @@ describe("showDatePicker", () => {
 
   it("falls back to focus() when showPicker() throws", () => {
     const input = {
-      showPicker: vi.fn(() => { throw new DOMException("NotAllowedError"); }),
+      showPicker: vi.fn(() => {
+        throw new DOMException("NotAllowedError");
+      }),
       focus: vi.fn(),
     } as unknown as HTMLInputElement;
     showDatePicker(makeRef(input));

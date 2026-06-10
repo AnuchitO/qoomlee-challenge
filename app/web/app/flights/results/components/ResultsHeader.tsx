@@ -17,9 +17,7 @@ export default function ResultsHeader({ summary }: Props) {
           className="active:scale-95 transition-transform duration-150 p-base hover:bg-surface-container-high rounded-full"
           aria-label="Go back"
         >
-          <span className="material-symbols-outlined text-primary">
-            arrow_back
-          </span>
+          <span className="material-symbols-outlined text-primary">arrow_back</span>
         </button>
         <div className="bg-surface-container-highest px-3 py-1 rounded-full flex items-center gap-xs overflow-hidden">
           <span className="text-label-md text-primary truncate">{summary}</span>

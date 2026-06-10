@@ -54,9 +54,7 @@ export default function FlightList({ flights, passengers }: Props) {
 
         {flights.length === 0 && (
           <div className="py-xxl flex flex-col items-center gap-md text-on-surface-variant">
-            <span className="material-symbols-outlined text-[48px]">
-              flight_land
-            </span>
+            <span className="material-symbols-outlined text-[48px]">flight_land</span>
             <p className="text-body-md">No flights found for this route.</p>
           </div>
         )}

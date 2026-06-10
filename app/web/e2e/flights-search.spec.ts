@@ -14,7 +14,7 @@ const visibleText = (page: Page, text: string | RegExp) =>
 const visibleRole = (
   page: Page,
   role: Parameters<Page["getByRole"]>[0],
-  opts?: Parameters<Page["getByRole"]>[1]
+  opts?: Parameters<Page["getByRole"]>[1],
 ) => page.getByRole(role, opts).filter({ visible: true });
 
 test.describe("Flight search form", () => {
@@ -33,9 +33,9 @@ test.describe("Flight search form", () => {
   test("switches to Round trip and shows a return date input", async ({ page }) => {
     await visibleText(page, "Round trip").click();
     // After switching, at least one return date input should appear
-    await expect(
-      page.locator('input[type="date"]').filter({ visible: true }).last()
-    ).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('input[type="date"]').filter({ visible: true }).last()).toBeVisible({
+      timeout: 5000,
+    });
   });
 
   // ── Airport select — desktop ─────────────────────────────────────────────────
@@ -58,7 +58,9 @@ test.describe("Flight search form", () => {
       .filter({ visible: true })
       .fill("Singapore");
     await expect(visibleText(page, "Singapore Changi Airport")).toBeVisible();
-    await expect(page.getByText("Suvarnabhumi Airport").filter({ visible: true })).not.toBeVisible();
+    await expect(
+      page.getByText("Suvarnabhumi Airport").filter({ visible: true }),
+    ).not.toBeVisible();
   });
 
   test("excludes selected origin from destination dropdown (desktop)", async ({ page }) => {
@@ -149,19 +151,21 @@ test.describe("Flight search form", () => {
     await visibleRole(page, "button", { name: "Add return" }).click();
 
     // Return date input must appear in the active layout
-    await expect(
-      page.locator('input[type="date"]').filter({ visible: true }).last()
-    ).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('input[type="date"]').filter({ visible: true }).last()).toBeVisible({
+      timeout: 5000,
+    });
   });
 
   // ── Validation ────────────────────────────────────────────────────────────────
 
-  test("shows origin validation error when Search is clicked with empty fields", async ({ page }) => {
+  test("shows origin validation error when Search is clicked with empty fields", async ({
+    page,
+  }) => {
     await visibleRole(page, "button", { name: "Search Flights" }).click();
 
-    await expect(
-      visibleText(page, "Please enter a departure city or airport")
-    ).toBeVisible({ timeout: 5000 });
+    await expect(visibleText(page, "Please enter a departure city or airport")).toBeVisible({
+      timeout: 5000,
+    });
   });
 
   // ── Happy path ────────────────────────────────────────────────────────────────

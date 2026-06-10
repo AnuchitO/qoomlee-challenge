@@ -21,9 +21,7 @@ export default function FlightsPage() {
             <h1 className="text-headline-lg-mobile md:text-headline-lg text-white mb-xs">
               Flight Search
             </h1>
-            <p className="text-body-md text-white/90">
-              Find your perfect flight
-            </p>
+            <p className="text-body-md text-white/90">Find your perfect flight</p>
           </div>
           <div className="absolute -right-10 -bottom-4 opacity-20 rotate-12">
             <span className="material-symbols-outlined text-[120px] text-white">

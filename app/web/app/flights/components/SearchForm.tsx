@@ -10,17 +10,32 @@ import PassengerSelector from "./PassengerSelector";
 import AirportSelect from "./AirportSelect";
 
 const swapSvg = (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" className="w-4 h-4 text-primary fill-current">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    className="w-4 h-4 text-primary fill-current"
+  >
     <path d="M.44 8.56a1.5 1.5 0 0 1 0-2.12l4.5-4.5a1.5 1.5 0 0 1 2.12 0l4.5 4.5a1.5 1.5 0 0 1-2.12 2.12L7.5 6.622V19.5a1.5 1.5 0 0 1-3 0V6.621l-1.94 1.94a1.5 1.5 0 0 1-2.12 0zm12 6.88a1.5 1.5 0 0 0 0 2.12l4.5 4.5a1.5 1.5 0 0 0 2.12 0l4.5-4.5a1.5 1.5 0 0 0-2.12-2.12l-1.94 1.939V4.5a1.5 1.5 0 0 0-3 0v12.879l-1.94-1.94a1.5 1.5 0 0 0-2.12 0z" />
   </svg>
 );
 
 const addReturnSvg = (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-    <path d="M12 4.25C12.4142 4.25 12.75 4.58579 12.75 5V11.25H19C19.4142 11.25 19.75 11.5858 19.75 12C19.75 12.4142 19.4142 12.75 19 12.75H12.75V19C12.75 19.4142 12.4142 19.75 12 19.75C11.5858 19.75 11.25 19.4142 11.25 19V12.75H5C4.58579 12.75 4.25 12.4142 4.25 12C4.25 11.5858 4.58579 11.25 5 11.25H11.25V5C11.25 4.58579 11.5858 4.25 12 4.25Z" fill="currentColor" className="text-primary" />
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className="shrink-0"
+  >
+    <path
+      d="M12 4.25C12.4142 4.25 12.75 4.58579 12.75 5V11.25H19C19.4142 11.25 19.75 11.5858 19.75 12C19.75 12.4142 19.4142 12.75 19 12.75H12.75V19C12.75 19.4142 12.4142 19.75 12 19.75C11.5858 19.75 11.25 19.4142 11.25 19V12.75H5C4.58579 12.75 4.25 12.4142 4.25 12C4.25 11.5858 4.58579 11.25 5 11.25H11.25V5C11.25 4.58579 11.5858 4.25 12 4.25Z"
+      fill="currentColor"
+      className="text-primary"
+    />
   </svg>
 );
-
 
 export default function SearchForm() {
   const router = useRouter();
@@ -31,14 +46,23 @@ export default function SearchForm() {
   const today = new Date().toISOString().split("T")[0];
 
   const {
-    state, errors,
-    setTripType, setOrigin, setDestination,
-    setDepartureDate, setReturnDate,
-    setPassengers, setCabinClass,
-    swapAirports, validate, buildSearchUrl,
+    state,
+    errors,
+    setTripType,
+    setOrigin,
+    setDestination,
+    setDepartureDate,
+    setReturnDate,
+    setPassengers,
+    setCabinClass,
+    swapAirports,
+    validate,
+    buildSearchUrl,
   } = useFlightSearch();
 
-  const handleSearch = () => { if (validate()) router.push(buildSearchUrl()); };
+  const handleSearch = () => {
+    if (validate()) router.push(buildSearchUrl());
+  };
 
   // Auto-open the return date picker after "Add return" switches to round trip.
   // useLayoutEffect fires synchronously after DOM mutations while the browser's
@@ -53,7 +77,10 @@ export default function SearchForm() {
     }
   }, [state.tripType, autoOpenReturn]);
 
-  const handleSwap = () => { swapAirports(); setRotated((r) => !r); };
+  const handleSwap = () => {
+    swapAirports();
+    setRotated((r) => !r);
+  };
 
   const spinStyle: React.CSSProperties = {
     transform: `rotate(${rotated ? 180 : 0}deg)`,
@@ -68,7 +95,6 @@ export default function SearchForm() {
   return (
     <section className="px-container-margin-mobile md:px-container-margin-desktop -mt-10 relative z-20">
       <div className="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant p-md">
-
         {/* row 1: trip type + passengers */}
         <div className="flex items-center justify-between gap-md mb-md">
           <TripTypeToggle value={state.tripType} onChange={setTripType} />
@@ -84,7 +110,6 @@ export default function SearchForm() {
 
         {/* lg+ — flat single row, one flex column per field */}
         <div className="hidden lg:flex lg:items-end lg:gap-sm">
-
           {/* From */}
           <div className="flex-1 min-w-0 flex flex-col gap-xs">
             <label className="text-label-sm text-on-surface-variant px-1">From</label>
@@ -101,7 +126,9 @@ export default function SearchForm() {
 
           {/* Swap — phantom label keeps height, mb-[17px] centres button in input zone */}
           <div className="shrink-0 flex flex-col gap-xs">
-            <span className="text-label-sm invisible select-none px-1" aria-hidden>·</span>
+            <span className="text-label-sm invisible select-none px-1" aria-hidden>
+              ·
+            </span>
             <button
               type="button"
               onClick={handleSwap}
@@ -125,14 +152,21 @@ export default function SearchForm() {
               error={errors.destination}
               excludeCode={state.origin}
             />
-            {errors.destination && <p className="text-label-sm text-error px-1">{errors.destination}</p>}
+            {errors.destination && (
+              <p className="text-label-sm text-error px-1">{errors.destination}</p>
+            )}
           </div>
 
           {/* Departure */}
           <div className="flex-1 min-w-0 flex flex-col gap-xs">
             <label className="text-label-sm text-on-surface-variant px-1">Departure</label>
-            <div onClick={() => showDatePicker(departureRef)} className={dateBoxClass(!!errors.departureDate)}>
-              <span className="material-symbols-outlined text-outline shrink-0 text-[20px]">calendar_today</span>
+            <div
+              onClick={() => showDatePicker(departureRef)}
+              className={dateBoxClass(!!errors.departureDate)}
+            >
+              <span className="material-symbols-outlined text-outline shrink-0 text-[20px]">
+                calendar_today
+              </span>
               <input
                 ref={departureRef}
                 type="date"
@@ -142,7 +176,9 @@ export default function SearchForm() {
                 className="bg-transparent border-none p-0 w-full min-w-0 focus:ring-0 text-body-md text-on-surface cursor-pointer"
               />
             </div>
-            {errors.departureDate && <p className="text-label-sm text-error px-1">{errors.departureDate}</p>}
+            {errors.departureDate && (
+              <p className="text-label-sm text-error px-1">{errors.departureDate}</p>
+            )}
           </div>
 
           {/* Return */}
@@ -150,8 +186,13 @@ export default function SearchForm() {
             <label className="text-label-sm text-on-surface-variant px-1">Return</label>
             {state.tripType === "round" ? (
               <>
-                <div onClick={() => showDatePicker(returnRef)} className={dateBoxClass(!!errors.returnDate)}>
-                  <span className="material-symbols-outlined text-outline shrink-0 text-[20px]">calendar_today</span>
+                <div
+                  onClick={() => showDatePicker(returnRef)}
+                  className={dateBoxClass(!!errors.returnDate)}
+                >
+                  <span className="material-symbols-outlined text-outline shrink-0 text-[20px]">
+                    calendar_today
+                  </span>
                   <input
                     ref={returnRef}
                     type="date"
@@ -161,12 +202,17 @@ export default function SearchForm() {
                     className="bg-transparent border-none p-0 w-full min-w-0 focus:ring-0 text-body-md text-on-surface cursor-pointer"
                   />
                 </div>
-                {errors.returnDate && <p className="text-label-sm text-error px-1">{errors.returnDate}</p>}
+                {errors.returnDate && (
+                  <p className="text-label-sm text-error px-1">{errors.returnDate}</p>
+                )}
               </>
             ) : (
               <button
                 type="button"
-                onClick={() => { setAutoOpenReturn(true); setTripType("round"); }}
+                onClick={() => {
+                  setAutoOpenReturn(true);
+                  setTripType("round");
+                }}
                 className={`${dateBoxClass(false)} border-dashed hover:bg-surface-container-high active:scale-95 transition-all`}
               >
                 {addReturnSvg}
@@ -177,7 +223,9 @@ export default function SearchForm() {
 
           {/* Search — phantom label aligns button with the input row */}
           <div className="shrink-0 flex flex-col gap-xs">
-            <span className="text-label-sm invisible select-none px-1" aria-hidden>·</span>
+            <span className="text-label-sm invisible select-none px-1" aria-hidden>
+              ·
+            </span>
             <button
               type="button"
               onClick={handleSearch}
@@ -196,9 +244,13 @@ export default function SearchForm() {
           {/* From + swap + To */}
           <div className="flex flex-col gap-xs">
             <div className="flex gap-sm">
-              <label className="flex-1 min-w-0 text-label-sm text-on-surface-variant px-1">From</label>
+              <label className="flex-1 min-w-0 text-label-sm text-on-surface-variant px-1">
+                From
+              </label>
               <div className="w-9 shrink-0" />
-              <label className="flex-1 min-w-0 text-label-sm text-on-surface-variant px-1">To</label>
+              <label className="flex-1 min-w-0 text-label-sm text-on-surface-variant px-1">
+                To
+              </label>
             </div>
             <div className="flex items-center gap-sm">
               <div className="flex-1 min-w-0">
@@ -233,7 +285,9 @@ export default function SearchForm() {
               </div>
             </div>
             {errors.origin && <p className="text-label-sm text-error px-1">{errors.origin}</p>}
-            {errors.destination && <p className="text-label-sm text-error px-1">{errors.destination}</p>}
+            {errors.destination && (
+              <p className="text-label-sm text-error px-1">{errors.destination}</p>
+            )}
           </div>
 
           {/* Dates */}
@@ -261,12 +315,13 @@ export default function SearchForm() {
 
         {/* mobile */}
         <div className="md:hidden space-y-md">
-
           <div>
             <div className="relative">
-              <div className={`border rounded-xl bg-surface-bright overflow-hidden ${
-                errors.origin || errors.destination ? "border-error" : "border-outline-variant"
-              }`}>
+              <div
+                className={`border rounded-xl bg-surface-bright overflow-hidden ${
+                  errors.origin || errors.destination ? "border-error" : "border-outline-variant"
+                }`}
+              >
                 <div className="px-md py-sm">
                   <label className="block text-label-sm text-on-surface-variant mb-1">From</label>
                   <AirportSelect
@@ -302,8 +357,12 @@ export default function SearchForm() {
                 <div style={spinStyle}>{swapSvg}</div>
               </button>
             </div>
-            {errors.origin && <p className="text-label-sm text-error px-1 mt-xs">{errors.origin}</p>}
-            {errors.destination && <p className="text-label-sm text-error px-1 mt-xs">{errors.destination}</p>}
+            {errors.origin && (
+              <p className="text-label-sm text-error px-1 mt-xs">{errors.origin}</p>
+            )}
+            {errors.destination && (
+              <p className="text-label-sm text-error px-1 mt-xs">{errors.destination}</p>
+            )}
           </div>
 
           <DateRangePicker
@@ -332,7 +391,6 @@ export default function SearchForm() {
             Search Flights
           </button>
         </div>
-
       </div>
     </section>
   );

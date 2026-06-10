@@ -47,7 +47,13 @@ describe("DateRangePicker", () => {
 
   it("calls onDepartureChange with null when date is cleared", () => {
     const onDepartureChange = vi.fn();
-    render(<DateRangePicker {...base} departureDate="2026-07-01" onDepartureChange={onDepartureChange} />);
+    render(
+      <DateRangePicker
+        {...base}
+        departureDate="2026-07-01"
+        onDepartureChange={onDepartureChange}
+      />,
+    );
     const [departureInput] = screen.getAllByDisplayValue("2026-07-01");
     fireEvent.change(departureInput, { target: { value: "" } });
     expect(onDepartureChange).toHaveBeenCalledWith(null);
@@ -73,15 +79,13 @@ describe("DateRangePicker", () => {
         {...base}
         isReturnEnabled={true}
         returnError="Please select a return date"
-      />
+      />,
     );
     expect(screen.getByText("Please select a return date")).toBeInTheDocument();
   });
 
   it("applies boxMinHeight style to date boxes", () => {
-    const { container } = render(
-      <DateRangePicker {...base} boxMinHeight={70} />
-    );
+    const { container } = render(<DateRangePicker {...base} boxMinHeight={70} />);
     const styledBox = container.querySelector("[style*='min-height']");
     expect(styledBox).toBeInTheDocument();
   });

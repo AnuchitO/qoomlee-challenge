@@ -46,9 +46,7 @@ export default function DateRangePicker({
     <div className="grid grid-cols-2 gap-md">
       {/* Departure */}
       <div className="space-y-sm">
-        <label className="block text-label-sm text-on-surface-variant px-1">
-          Departure
-        </label>
+        <label className="block text-label-sm text-on-surface-variant px-1">Departure</label>
         <div
           onClick={() => showDatePicker(departureRef)}
           style={boxStyle}
@@ -68,16 +66,12 @@ export default function DateRangePicker({
             className="bg-transparent border-none p-0 w-full min-w-0 focus:ring-0 text-body-md text-on-surface cursor-pointer"
           />
         </div>
-        {departureError && (
-          <p className="text-label-sm text-error px-1">{departureError}</p>
-        )}
+        {departureError && <p className="text-label-sm text-error px-1">{departureError}</p>}
       </div>
 
       {/* Return */}
       <div className="space-y-sm">
-        <label className="block text-label-sm px-1 text-on-surface-variant">
-          Return
-        </label>
+        <label className="block text-label-sm px-1 text-on-surface-variant">Return</label>
         {isReturnEnabled ? (
           <>
             <div
@@ -99,14 +93,15 @@ export default function DateRangePicker({
                 className="bg-transparent border-none p-0 w-full min-w-0 focus:ring-0 text-body-md text-on-surface cursor-pointer"
               />
             </div>
-            {returnError && (
-              <p className="text-label-sm text-error px-1">{returnError}</p>
-            )}
+            {returnError && <p className="text-label-sm text-error px-1">{returnError}</p>}
           </>
         ) : (
           <button
             type="button"
-            onClick={() => { setShouldAutoOpen(true); onAddReturn?.(); }}
+            onClick={() => {
+              setShouldAutoOpen(true);
+              onAddReturn?.();
+            }}
             style={boxStyle}
             className="flex items-center gap-sm border border-dashed border-outline-variant rounded-xl p-md w-full bg-surface-bright hover:bg-surface-container-high active:scale-95 transition-all cursor-pointer"
           >

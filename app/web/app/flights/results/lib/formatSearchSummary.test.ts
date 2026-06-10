@@ -28,9 +28,27 @@ describe("formatSearchSummary", () => {
   });
 
   it("formats cabin class with proper capitalisation", () => {
-    const economy = formatSearchSummary({ origin: "BKK", destination: "SIN", departure: "2026-06-15", passengers: "1", cabin: "economy" });
-    const business = formatSearchSummary({ origin: "BKK", destination: "SIN", departure: "2026-06-15", passengers: "1", cabin: "business" });
-    const first = formatSearchSummary({ origin: "BKK", destination: "SIN", departure: "2026-06-15", passengers: "1", cabin: "first" });
+    const economy = formatSearchSummary({
+      origin: "BKK",
+      destination: "SIN",
+      departure: "2026-06-15",
+      passengers: "1",
+      cabin: "economy",
+    });
+    const business = formatSearchSummary({
+      origin: "BKK",
+      destination: "SIN",
+      departure: "2026-06-15",
+      passengers: "1",
+      cabin: "business",
+    });
+    const first = formatSearchSummary({
+      origin: "BKK",
+      destination: "SIN",
+      departure: "2026-06-15",
+      passengers: "1",
+      cabin: "first",
+    });
 
     expect(economy).toContain("Economy");
     expect(business).toContain("Business");

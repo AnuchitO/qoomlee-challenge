@@ -23,9 +23,7 @@ function str(v: string | undefined, fallback = ""): string {
 }
 
 function formatAmount(minor: number, currency: string): string {
-  return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(
-    minor / 100
-  );
+  return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(minor / 100);
 }
 
 function formatDeparture(iso: string): string {
@@ -105,7 +103,10 @@ export default async function ConfirmationPage({
               </span>
             </div>
             <div className="border-t border-outline-variant pt-sm">
-              <p className="text-label-md text-on-surface-variant" data-testid="flight-summary-line">
+              <p
+                className="text-label-md text-on-surface-variant"
+                data-testid="flight-summary-line"
+              >
                 {flightNumber} · {origin} → {destination} · {formatDeparture(departureTime)}
               </p>
             </div>
@@ -144,10 +145,7 @@ export default async function ConfirmationPage({
               </div>
               <div className="border-t border-outline-variant pt-sm flex justify-between">
                 <span className="text-on-surface-variant font-medium">Total Paid</span>
-                <span
-                  className="text-primary font-bold text-title-md"
-                  data-testid="total-amount"
-                >
+                <span className="text-primary font-bold text-title-md" data-testid="total-amount">
                   {formatAmount(totalMinor, currency)}
                 </span>
               </div>

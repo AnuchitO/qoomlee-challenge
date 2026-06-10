@@ -29,11 +29,7 @@ export default function BottomNav() {
           >
             <span
               className="material-symbols-outlined"
-              style={
-                active
-                  ? { fontVariationSettings: "'FILL' 1" }
-                  : undefined
-              }
+              style={active ? { fontVariationSettings: "'FILL' 1" } : undefined}
             >
               {icon}
             </span>

@@ -78,11 +78,9 @@ export function useFlightSearch(): UseFlightSearch {
   const errorsRef = useRef<ValidationErrors>({});
   const [, setErrorsTick] = useState(0);
 
-  const setTripType = (tripType: TripType) =>
-    setState((s) => ({ ...s, tripType }));
+  const setTripType = (tripType: TripType) => setState((s) => ({ ...s, tripType }));
 
-  const setOrigin = (origin: string) =>
-    setState((s) => ({ ...s, origin: origin.toUpperCase() }));
+  const setOrigin = (origin: string) => setState((s) => ({ ...s, origin: origin.toUpperCase() }));
 
   const setDestination = (destination: string) =>
     setState((s) => ({ ...s, destination: destination.toUpperCase() }));
@@ -90,14 +88,11 @@ export function useFlightSearch(): UseFlightSearch {
   const setDepartureDate = (departureDate: string | null) =>
     setState((s) => ({ ...s, departureDate }));
 
-  const setReturnDate = (returnDate: string | null) =>
-    setState((s) => ({ ...s, returnDate }));
+  const setReturnDate = (returnDate: string | null) => setState((s) => ({ ...s, returnDate }));
 
-  const setPassengers = (passengers: number) =>
-    setState((s) => ({ ...s, passengers }));
+  const setPassengers = (passengers: number) => setState((s) => ({ ...s, passengers }));
 
-  const setCabinClass = (cabinClass: CabinClass) =>
-    setState((s) => ({ ...s, cabinClass }));
+  const setCabinClass = (cabinClass: CabinClass) => setState((s) => ({ ...s, cabinClass }));
 
   const swapAirports = () =>
     setState((s) => ({
@@ -122,10 +117,7 @@ export function useFlightSearch(): UseFlightSearch {
     if (state.tripType === "round" && state.returnDate) {
       parts.push(`return=${encodeURIComponent(state.returnDate)}`);
     }
-    parts.push(
-      `passengers=${state.passengers}`,
-      `cabin=${encodeURIComponent(state.cabinClass)}`
-    );
+    parts.push(`passengers=${state.passengers}`, `cabin=${encodeURIComponent(state.cabinClass)}`);
     return `/flights/results?${parts.join("&")}`;
   };
 

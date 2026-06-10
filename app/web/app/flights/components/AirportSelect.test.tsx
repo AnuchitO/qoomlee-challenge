@@ -40,9 +40,7 @@ describe("AirportSelect", () => {
   });
 
   it("applies error border styling when error prop is provided", () => {
-    const { container } = render(
-      <AirportSelect {...base} error="Required" />
-    );
+    const { container } = render(<AirportSelect {...base} error="Required" />);
     const trigger = container.querySelector("button");
     expect(trigger?.className).toContain("border-error");
   });
@@ -52,26 +50,20 @@ describe("AirportSelect", () => {
   it("opens the dropdown when the trigger is clicked", async () => {
     render(<AirportSelect {...base} />);
     fireEvent.click(screen.getByText("Select origin"));
-    await waitFor(() =>
-      expect(screen.getByText("Popular Cities or Airports")).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText("Popular Cities or Airports")).toBeInTheDocument());
   });
 
   it("lists all airports in the dropdown", async () => {
     render(<AirportSelect {...base} />);
     fireEvent.click(screen.getByText("Select origin"));
-    await waitFor(() =>
-      expect(screen.getByText("Suvarnabhumi Airport")).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText("Suvarnabhumi Airport")).toBeInTheDocument());
     expect(screen.getByText("Singapore Changi Airport")).toBeInTheDocument();
   });
 
   it("excludes the airport matching excludeCode", async () => {
     render(<AirportSelect {...base} excludeCode="BKK" />);
     fireEvent.click(screen.getByText("Select origin"));
-    await waitFor(() =>
-      expect(screen.getByText("Singapore Changi Airport")).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText("Singapore Changi Airport")).toBeInTheDocument());
     expect(screen.queryByText("Suvarnabhumi Airport")).not.toBeInTheDocument();
   });
 
@@ -82,9 +74,7 @@ describe("AirportSelect", () => {
     fireEvent.click(screen.getByText("Select origin"));
     const searchInput = await screen.findByPlaceholderText("Search airports or cities…");
     fireEvent.change(searchInput, { target: { value: "Singapore" } });
-    await waitFor(() =>
-      expect(screen.getByText("Singapore Changi Airport")).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText("Singapore Changi Airport")).toBeInTheDocument());
     expect(screen.queryByText("Suvarnabhumi Airport")).not.toBeInTheDocument();
   });
 
@@ -93,9 +83,7 @@ describe("AirportSelect", () => {
     fireEvent.click(screen.getByText("Select origin"));
     const searchInput = await screen.findByPlaceholderText("Search airports or cities…");
     fireEvent.change(searchInput, { target: { value: "zzznomatch" } });
-    await waitFor(() =>
-      expect(screen.getByText("No airports found")).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText("No airports found")).toBeInTheDocument());
   });
 
   // ── selection ───────────────────────────────────────────────────────────────
@@ -115,7 +103,7 @@ describe("AirportSelect", () => {
     const row = await screen.findByText("Suvarnabhumi Airport");
     fireEvent.click(row.closest("button")!);
     await waitFor(() =>
-      expect(screen.queryByText("Popular Cities or Airports")).not.toBeInTheDocument()
+      expect(screen.queryByText("Popular Cities or Airports")).not.toBeInTheDocument(),
     );
   });
 

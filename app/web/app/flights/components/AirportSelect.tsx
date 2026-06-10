@@ -74,12 +74,18 @@ export default function AirportSelect({
     const dt = setTimeout(() => desktopSearchRef.current?.focus(), 30);
     requestAnimationFrame(() => setSheetVisible(true));
     const mt = setTimeout(() => mobileSearchRef.current?.focus(), 350);
-    return () => { clearTimeout(dt); clearTimeout(mt); };
+    return () => {
+      clearTimeout(dt);
+      clearTimeout(mt);
+    };
   }, [open]);
 
   const closeSheet = () => {
     setSheetVisible(false);
-    setTimeout(() => { setOpen(false); setQuery(""); }, 280);
+    setTimeout(() => {
+      setOpen(false);
+      setQuery("");
+    }, 280);
   };
 
   const handleSelect = (airport: Airport) => {
@@ -91,29 +97,34 @@ export default function AirportSelect({
 
   // Airport list rows — rendered as plain JSX (not as a component) to avoid
   // React unmounting/remounting on every render due to inline component identity
-  const airportRows = filtered.length === 0 ? (
-    <p className="px-4 py-4 text-body-md text-on-surface-variant">No airports found</p>
-  ) : (
-    filtered.map((airport) => (
-      <button
-        key={airport.code}
-        type="button"
-        onClick={() => handleSelect(airport)}
-        className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-container-high transition-colors text-left ${
-          airport.code === value ? "bg-primary-container/40" : ""
-        }`}
-      >
-        <span className="material-symbols-outlined text-on-surface-variant shrink-0 text-[20px]">flight</span>
-        <span className="min-w-0 flex flex-col">
-          <span className="flex items-baseline gap-2 flex-wrap">
-            <span className="font-semibold text-body-md text-on-surface">{airport.name}</span>
-            <span className="text-body-sm text-on-surface-variant">{airport.code}</span>
+  const airportRows =
+    filtered.length === 0 ? (
+      <p className="px-4 py-4 text-body-md text-on-surface-variant">No airports found</p>
+    ) : (
+      filtered.map((airport) => (
+        <button
+          key={airport.code}
+          type="button"
+          onClick={() => handleSelect(airport)}
+          className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-container-high transition-colors text-left ${
+            airport.code === value ? "bg-primary-container/40" : ""
+          }`}
+        >
+          <span className="material-symbols-outlined text-on-surface-variant shrink-0 text-[20px]">
+            flight
           </span>
-          <span className="text-label-sm text-on-surface-variant">{airport.city}, {airport.country}</span>
-        </span>
-      </button>
-    ))
-  );
+          <span className="min-w-0 flex flex-col">
+            <span className="flex items-baseline gap-2 flex-wrap">
+              <span className="font-semibold text-body-md text-on-surface">{airport.name}</span>
+              <span className="text-body-sm text-on-surface-variant">{airport.code}</span>
+            </span>
+            <span className="text-label-sm text-on-surface-variant">
+              {airport.city}, {airport.country}
+            </span>
+          </span>
+        </button>
+      ))
+    );
 
   const triggerBoxed = `border rounded-xl px-md min-h-[70px] bg-surface-bright hover:border-outline ${
     open ? "border-primary ring-1 ring-primary" : error ? "border-error" : "border-outline-variant"
@@ -121,7 +132,6 @@ export default function AirportSelect({
 
   return (
     <div ref={containerRef} className="relative w-full">
-
       {/* ── Trigger ── */}
       <button
         type="button"
@@ -168,7 +178,8 @@ export default function AirportSelect({
       )}
 
       {/* ── Mobile bottom sheet via portal ── */}
-      {open && typeof document !== "undefined" &&
+      {open &&
+        typeof document !== "undefined" &&
         createPortal(
           <div className="md:hidden fixed inset-0 z-[200] flex flex-col justify-end">
             {/* Backdrop */}
@@ -212,7 +223,7 @@ export default function AirportSelect({
               </div>
             </div>
           </div>,
-          document.body
+          document.body,
         )}
     </div>
   );

@@ -37,13 +37,9 @@ export default function SearchForm() {
           {/* From / To */}
           <div className="relative">
             <div className="space-y-sm">
-              <label className="block text-label-sm text-on-surface-variant px-1">
-                From
-              </label>
+              <label className="block text-label-sm text-on-surface-variant px-1">From</label>
               <div className="flex items-center gap-md border border-outline-variant rounded-xl p-md bg-surface-bright focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 transition-all">
-                <span className="material-symbols-outlined text-primary">
-                  flight_takeoff
-                </span>
+                <span className="material-symbols-outlined text-primary">flight_takeoff</span>
                 <input
                   className="bg-transparent border-none p-0 w-full focus:ring-0 text-body-md placeholder:text-outline"
                   placeholder="Departure City"
@@ -54,19 +50,13 @@ export default function SearchForm() {
 
             {/* Swap Button */}
             <button className="absolute right-md top-[60px] z-10 bg-surface-container-lowest border border-outline-variant p-2 rounded-full shadow-sm hover:bg-surface-container-high transition-colors">
-              <span className="material-symbols-outlined text-primary">
-                swap_vert
-              </span>
+              <span className="material-symbols-outlined text-primary">swap_vert</span>
             </button>
 
             <div className="space-y-sm mt-md">
-              <label className="block text-label-sm text-on-surface-variant px-1">
-                To
-              </label>
+              <label className="block text-label-sm text-on-surface-variant px-1">To</label>
               <div className="flex items-center gap-md border border-outline-variant rounded-xl p-md bg-surface-bright focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 transition-all">
-                <span className="material-symbols-outlined text-primary">
-                  flight_land
-                </span>
+                <span className="material-symbols-outlined text-primary">flight_land</span>
                 <input
                   className="bg-transparent border-none p-0 w-full focus:ring-0 text-body-md placeholder:text-outline"
                   placeholder="Arrival City"
@@ -79,9 +69,7 @@ export default function SearchForm() {
           {/* Date Fields */}
           <div className="grid grid-cols-2 gap-md">
             <div className="space-y-sm">
-              <label className="block text-label-sm text-on-surface-variant px-1">
-                Departure
-              </label>
+              <label className="block text-label-sm text-on-surface-variant px-1">Departure</label>
               <div className="flex items-center gap-sm border border-outline-variant rounded-xl p-md bg-surface-bright">
                 <span className="material-symbols-outlined text-outline text-[20px]">
                   calendar_today
@@ -90,9 +78,7 @@ export default function SearchForm() {
               </div>
             </div>
             <div className="space-y-sm">
-              <label className="block text-label-sm text-on-surface-variant px-1">
-                Return
-              </label>
+              <label className="block text-label-sm text-on-surface-variant px-1">Return</label>
               <div className="flex items-center gap-sm border border-outline-variant rounded-xl p-md bg-surface-bright">
                 <span className="material-symbols-outlined text-outline text-[20px]">
                   calendar_today
@@ -109,16 +95,10 @@ export default function SearchForm() {
             </label>
             <div className="flex items-center justify-between border border-outline-variant rounded-xl p-md bg-surface-bright">
               <div className="flex items-center gap-md">
-                <span className="material-symbols-outlined text-outline">
-                  person
-                </span>
-                <span className="text-body-md text-on-surface">
-                  1 Traveler, Economy
-                </span>
+                <span className="material-symbols-outlined text-outline">person</span>
+                <span className="text-body-md text-on-surface">1 Traveler, Economy</span>
               </div>
-              <span className="material-symbols-outlined text-outline">
-                expand_more
-              </span>
+              <span className="material-symbols-outlined text-outline">expand_more</span>
             </div>
           </div>
 

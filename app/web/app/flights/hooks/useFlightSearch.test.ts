@@ -34,7 +34,7 @@ describe("useFlightSearch", () => {
 
     const url = result.current.buildSearchUrl();
     expect(url).toBe(
-      "/flights/results?origin=BKK&destination=SIN&departure=2026-06-15&return=2026-06-22&passengers=2&cabin=business"
+      "/flights/results?origin=BKK&destination=SIN&departure=2026-06-15&return=2026-06-22&passengers=2&cabin=business",
     );
   });
 

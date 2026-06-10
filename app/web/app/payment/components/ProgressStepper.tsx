@@ -14,8 +14,8 @@ export default function ProgressStepper() {
                   completed
                     ? "bg-primary text-on-primary"
                     : active
-                    ? "border-2 border-primary text-primary bg-transparent"
-                    : "bg-outline-variant text-on-surface-variant"
+                      ? "border-2 border-primary text-primary bg-transparent"
+                      : "bg-outline-variant text-on-surface-variant"
                 }`}
               >
                 {completed ? (
@@ -40,9 +40,7 @@ export default function ProgressStepper() {
 
             {idx < STEPS.length - 1 && (
               <div
-                className={`flex-1 h-px mt-4 mx-1 ${
-                  idx < 2 ? "bg-primary" : "bg-outline-variant"
-                }`}
+                className={`flex-1 h-px mt-4 mx-1 ${idx < 2 ? "bg-primary" : "bg-outline-variant"}`}
               />
             )}
           </div>

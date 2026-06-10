@@ -57,31 +57,23 @@ export default function PassengerSelector({
                 onClick={() => onPassengersChange(passengers - 1)}
                 className="w-8 h-8 rounded-full border border-outline-variant flex items-center justify-center text-primary disabled:text-outline disabled:border-outline/30"
               >
-                <span className="material-symbols-outlined text-[18px]">
-                  remove
-                </span>
+                <span className="material-symbols-outlined text-[18px]">remove</span>
               </button>
-              <span className="text-body-md text-on-surface w-4 text-center">
-                {passengers}
-              </span>
+              <span className="text-body-md text-on-surface w-4 text-center">{passengers}</span>
               <button
                 type="button"
                 disabled={passengers >= 9}
                 onClick={() => onPassengersChange(passengers + 1)}
                 className="w-8 h-8 rounded-full border border-outline-variant flex items-center justify-center text-primary disabled:text-outline disabled:border-outline/30"
               >
-                <span className="material-symbols-outlined text-[18px]">
-                  add
-                </span>
+                <span className="material-symbols-outlined text-[18px]">add</span>
               </button>
             </div>
           </div>
 
           {/* Cabin class */}
           <div className="space-y-sm">
-            <span className="text-label-sm text-on-surface-variant">
-              Cabin class
-            </span>
+            <span className="text-label-sm text-on-surface-variant">Cabin class</span>
             <div className="flex flex-col gap-xs">
               {(Object.keys(CABIN_LABELS) as CabinClass[]).map((c) => (
                 <button
@@ -99,9 +91,7 @@ export default function PassengerSelector({
                 >
                   <span className="text-body-md">{CABIN_LABELS[c]}</span>
                   {cabinClass === c && (
-                    <span className="material-symbols-outlined text-[18px]">
-                      check
-                    </span>
+                    <span className="material-symbols-outlined text-[18px]">check</span>
                   )}
                 </button>
               ))}

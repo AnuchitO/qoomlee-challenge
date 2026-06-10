@@ -26,8 +26,12 @@ const BASE_PROPS = {
 };
 
 const fillValidCardForm = () => {
-  fireEvent.change(screen.getByPlaceholderText("e.g. Johnathan Doe"), { target: { value: "John Doe" } });
-  fireEvent.change(screen.getByPlaceholderText("0000 0000 0000 0000"), { target: { value: "1234567890123456" } });
+  fireEvent.change(screen.getByPlaceholderText("e.g. Johnathan Doe"), {
+    target: { value: "John Doe" },
+  });
+  fireEvent.change(screen.getByPlaceholderText("0000 0000 0000 0000"), {
+    target: { value: "1234567890123456" },
+  });
   fireEvent.change(screen.getByPlaceholderText("MM/YY"), { target: { value: "1228" } });
   fireEvent.change(screen.getByPlaceholderText("•••"), { target: { value: "123" } });
   fireEvent.click(screen.getByRole("checkbox", { name: /i agree/i }));
@@ -165,16 +169,24 @@ describe("PaymentClient — card form validation", () => {
 
   it("shows card number error for fewer than 16 digits", () => {
     render(<PaymentClient {...BASE_PROPS} />);
-    fireEvent.change(screen.getByPlaceholderText("e.g. Johnathan Doe"), { target: { value: "John Doe" } });
-    fireEvent.change(screen.getByPlaceholderText("0000 0000 0000 0000"), { target: { value: "1234" } });
+    fireEvent.change(screen.getByPlaceholderText("e.g. Johnathan Doe"), {
+      target: { value: "John Doe" },
+    });
+    fireEvent.change(screen.getByPlaceholderText("0000 0000 0000 0000"), {
+      target: { value: "1234" },
+    });
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
     expect(screen.getByText("Enter a valid 16-digit card number")).toBeInTheDocument();
   });
 
   it("shows expiry format error for wrong format", () => {
     render(<PaymentClient {...BASE_PROPS} />);
-    fireEvent.change(screen.getByPlaceholderText("e.g. Johnathan Doe"), { target: { value: "John Doe" } });
-    fireEvent.change(screen.getByPlaceholderText("0000 0000 0000 0000"), { target: { value: "1234567890123456" } });
+    fireEvent.change(screen.getByPlaceholderText("e.g. Johnathan Doe"), {
+      target: { value: "John Doe" },
+    });
+    fireEvent.change(screen.getByPlaceholderText("0000 0000 0000 0000"), {
+      target: { value: "1234567890123456" },
+    });
     fireEvent.change(screen.getByPlaceholderText("MM/YY"), { target: { value: "12" } });
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
     expect(screen.getByText("Use MM/YY format")).toBeInTheDocument();
@@ -182,8 +194,12 @@ describe("PaymentClient — card form validation", () => {
 
   it("shows CVV error for non-numeric or too-short CVV", () => {
     render(<PaymentClient {...BASE_PROPS} />);
-    fireEvent.change(screen.getByPlaceholderText("e.g. Johnathan Doe"), { target: { value: "John Doe" } });
-    fireEvent.change(screen.getByPlaceholderText("0000 0000 0000 0000"), { target: { value: "1234567890123456" } });
+    fireEvent.change(screen.getByPlaceholderText("e.g. Johnathan Doe"), {
+      target: { value: "John Doe" },
+    });
+    fireEvent.change(screen.getByPlaceholderText("0000 0000 0000 0000"), {
+      target: { value: "1234567890123456" },
+    });
     fireEvent.change(screen.getByPlaceholderText("MM/YY"), { target: { value: "1228" } });
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
     expect(screen.getByText("3 or 4 digits required")).toBeInTheDocument();
@@ -191,8 +207,12 @@ describe("PaymentClient — card form validation", () => {
 
   it("shows T&C error when checkbox is unchecked", () => {
     render(<PaymentClient {...BASE_PROPS} />);
-    fireEvent.change(screen.getByPlaceholderText("e.g. Johnathan Doe"), { target: { value: "John Doe" } });
-    fireEvent.change(screen.getByPlaceholderText("0000 0000 0000 0000"), { target: { value: "1234567890123456" } });
+    fireEvent.change(screen.getByPlaceholderText("e.g. Johnathan Doe"), {
+      target: { value: "John Doe" },
+    });
+    fireEvent.change(screen.getByPlaceholderText("0000 0000 0000 0000"), {
+      target: { value: "1234567890123456" },
+    });
     fireEvent.change(screen.getByPlaceholderText("MM/YY"), { target: { value: "1228" } });
     fireEvent.change(screen.getByPlaceholderText("•••"), { target: { value: "123" } });
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));

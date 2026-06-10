@@ -29,7 +29,15 @@ beforeEach(() => {
 
 describe("FlightList — rendering", () => {
   it("renders a flight card for each flight in the list", () => {
-    render(<FlightList flights={[makeFlight({ id: 1, flightNumber: "QQ101" }), makeFlight({ id: 2, flightNumber: "QQ201" })]} passengers={1} />);
+    render(
+      <FlightList
+        flights={[
+          makeFlight({ id: 1, flightNumber: "QQ101" }),
+          makeFlight({ id: 2, flightNumber: "QQ201" }),
+        ]}
+        passengers={1}
+      />,
+    );
     expect(screen.getByText("QQ101")).toBeInTheDocument();
     expect(screen.getByText("QQ201")).toBeInTheDocument();
   });
@@ -79,7 +87,12 @@ describe("FlightList — Select → booking URL contract", () => {
   });
 
   it("includes encoded departureTime in the booking URL", () => {
-    render(<FlightList flights={[makeFlight({ departureTime: "2026-10-24T08:00:00Z" })]} passengers={1} />);
+    render(
+      <FlightList
+        flights={[makeFlight({ departureTime: "2026-10-24T08:00:00Z" })]}
+        passengers={1}
+      />,
+    );
     fireEvent.click(screen.getByRole("button", { name: /select/i }));
     expect(mockPush.mock.calls[0][0]).toContain("departureTime=");
     expect(mockPush.mock.calls[0][0]).toContain(encodeURIComponent("2026-10-24T08:00:00Z"));
@@ -105,8 +118,18 @@ describe("FlightList — Select → booking URL contract", () => {
 
   it("uses the clicked flight's data, not another flight's", () => {
     // durationMinutes differs so "best" sort is deterministic: f1 (120 min) first, f2 (300 min) second
-    const f1 = makeFlight({ id: 1, flightNumber: "QQ101", basePriceMinor: 810000, durationMinutes: 120 });
-    const f2 = makeFlight({ id: 2, flightNumber: "QQ202", basePriceMinor: 720000, durationMinutes: 300 });
+    const f1 = makeFlight({
+      id: 1,
+      flightNumber: "QQ101",
+      basePriceMinor: 810000,
+      durationMinutes: 120,
+    });
+    const f2 = makeFlight({
+      id: 2,
+      flightNumber: "QQ202",
+      basePriceMinor: 720000,
+      durationMinutes: 300,
+    });
     render(<FlightList flights={[f1, f2]} passengers={1} />);
     const selectButtons = screen.getAllByRole("button", { name: /select/i });
     fireEvent.click(selectButtons[1]); // click second card (f2)

@@ -24,9 +24,7 @@ export default function PopularDestinations() {
   return (
     <section className="mt-xxl px-container-margin-mobile md:px-container-margin-desktop">
       <div className="flex justify-between items-center mb-md">
-        <h2 className="text-headline-md text-on-surface">
-          Popular Destinations
-        </h2>
+        <h2 className="text-headline-md text-on-surface">Popular Destinations</h2>
         <button className="text-primary text-label-md">See All</button>
       </div>
 

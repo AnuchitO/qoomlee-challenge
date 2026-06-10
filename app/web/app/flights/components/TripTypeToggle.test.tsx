@@ -40,8 +40,10 @@ describe("TripTypeToggle", () => {
     expect(onewayBg).not.toBe(roundBg);
 
     rerender(<TripTypeToggle value="round" onChange={() => {}} />);
-    const onewayBgAfter = screen.getByText("One way").closest("button")?.getAttribute("style") ?? "";
-    const roundBgAfter = screen.getByText("Round trip").closest("button")?.getAttribute("style") ?? "";
+    const onewayBgAfter =
+      screen.getByText("One way").closest("button")?.getAttribute("style") ?? "";
+    const roundBgAfter =
+      screen.getByText("Round trip").closest("button")?.getAttribute("style") ?? "";
     expect(roundBgAfter).not.toBe(onewayBgAfter);
   });
 });

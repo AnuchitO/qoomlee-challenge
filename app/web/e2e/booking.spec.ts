@@ -57,9 +57,7 @@ test.describe("Booking page", () => {
   });
 
   test("renders Continue to Payment button", async ({ page }) => {
-    await expect(
-      page.getByRole("button", { name: /continue to payment/i })
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: /continue to payment/i })).toBeVisible();
   });
 
   // ── form validation ───────────────────────────────────────────────────────────

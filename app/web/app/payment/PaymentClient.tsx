@@ -19,13 +19,18 @@ function formatDeparture(iso: string): string {
 }
 
 function formatCountdown(seconds: number): string {
-  const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+  const m = Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, "0");
   const s = (seconds % 60).toString().padStart(2, "0");
   return `${m}:${s}`;
 }
 
 function formatCardNumber(value: string): string {
-  return value.replace(/\D/g, "").slice(0, 16).replace(/(.{4})(?=.)/g, "$1 ");
+  return value
+    .replace(/\D/g, "")
+    .slice(0, 16)
+    .replace(/(.{4})(?=.)/g, "$1 ");
 }
 
 function formatExpiry(value: string): string {
@@ -35,22 +40,24 @@ function formatExpiry(value: string): string {
 
 function generateBookingRef(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  return "QM" + Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+  return (
+    "QM" + Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join("")
+  );
 }
 
 // ── constants ─────────────────────────────────────────────────────────────────
 
 const VALID_PROMO = "QOOMFIRST";
-const PROMO_DISCOUNT_MINOR = 50000;  // ฿500
-const INSURANCE_MINOR = 59000;       // ฿590
+const PROMO_DISCOUNT_MINOR = 50000; // ฿500
+const INSURANCE_MINOR = 59000; // ฿590
 
 type PaymentMethod = "card" | "promptpay" | "bank" | "other";
 
 const PAYMENT_METHODS: { id: PaymentMethod; label: string }[] = [
-  { id: "card",      label: "Card" },
+  { id: "card", label: "Card" },
   { id: "promptpay", label: "PromptPay" },
-  { id: "bank",      label: "Bank" },
-  { id: "other",     label: "Other" },
+  { id: "bank", label: "Bank" },
+  { id: "other", label: "Other" },
 ];
 
 // ── types ─────────────────────────────────────────────────────────────────────
@@ -139,7 +146,8 @@ export default function PaymentClient({
     if (activeMethod === "card") {
       const e: CardErrors = {};
       if (!cardName.trim()) e.cardName = "Required";
-      if (cardNumber.replace(/\s/g, "").length !== 16) e.cardNumber = "Enter a valid 16-digit card number";
+      if (cardNumber.replace(/\s/g, "").length !== 16)
+        e.cardNumber = "Enter a valid 16-digit card number";
       if (!/^\d{2}\/\d{2}$/.test(expiry)) e.expiry = "Use MM/YY format";
       if (!/^\d{3,4}$/.test(cvv)) e.cvv = "3 or 4 digits required";
       if (!agreed) e.terms = "You must agree to the terms to proceed";
@@ -186,7 +194,6 @@ export default function PaymentClient({
       </header>
 
       <div className="max-w-screen-sm mx-auto px-container-margin-mobile py-md space-y-md">
-
         {/* Step progress */}
         <ProgressStepper />
 
@@ -198,10 +205,7 @@ export default function PaymentClient({
             </span>
             <div className="flex items-center gap-xs bg-primary-container/30 text-primary rounded-full px-sm py-0.5">
               <span className="material-symbols-outlined text-[14px]">schedule</span>
-              <span
-                className="text-label-md font-semibold tabular-nums"
-                data-testid="countdown"
-              >
+              <span className="text-label-md font-semibold tabular-nums" data-testid="countdown">
                 {formatCountdown(secondsLeft)}
               </span>
             </div>
@@ -217,11 +221,15 @@ export default function PaymentClient({
           <div className="space-y-sm border-t border-dashed border-outline-variant pt-md">
             <div className="flex justify-between">
               <span className="text-body-md text-on-surface">Base fare</span>
-              <span className="text-body-md text-on-surface">{formatPrice(baseFareMinor, currency)}</span>
+              <span className="text-body-md text-on-surface">
+                {formatPrice(baseFareMinor, currency)}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-body-md text-on-surface">Taxes &amp; Fees</span>
-              <span className="text-body-md text-on-surface">{formatPrice(taxMinor, currency)}</span>
+              <span className="text-body-md text-on-surface">
+                {formatPrice(taxMinor, currency)}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-body-md text-on-surface">Economy Seat</span>
@@ -229,7 +237,9 @@ export default function PaymentClient({
             </div>
             <div className="flex justify-between">
               <span className="text-body-md text-on-surface">Travel Insurance</span>
-              <span className="text-body-md text-on-surface">{formatPrice(INSURANCE_MINOR, currency)}</span>
+              <span className="text-body-md text-on-surface">
+                {formatPrice(INSURANCE_MINOR, currency)}
+              </span>
             </div>
             {promoApplied && (
               <div className="flex justify-between">
@@ -243,7 +253,9 @@ export default function PaymentClient({
 
           <div className="flex justify-between items-center pt-md mt-sm border-t border-outline-variant">
             <span className="text-body-md font-semibold text-on-surface">Total Amount</span>
-            <span className="text-headline-md text-primary">{formatPrice(totalMinor, currency)}</span>
+            <span className="text-headline-md text-primary">
+              {formatPrice(totalMinor, currency)}
+            </span>
           </div>
         </div>
 
@@ -254,7 +266,10 @@ export default function PaymentClient({
               type="text"
               placeholder="Promo code"
               value={promoInput}
-              onChange={(e) => { setPromoInput(e.target.value); setPromoError(""); }}
+              onChange={(e) => {
+                setPromoInput(e.target.value);
+                setPromoError("");
+              }}
               className="flex-1 border border-outline-variant rounded-xl px-md py-3 bg-surface-bright text-body-md placeholder:text-outline focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors"
             />
             <button
@@ -315,7 +330,9 @@ export default function PaymentClient({
                   onChange={(e) => setCardName(e.target.value)}
                   className={inputClass(!!errors.cardName)}
                 />
-                {errors.cardName && <p className="text-label-sm text-error px-1">{errors.cardName}</p>}
+                {errors.cardName && (
+                  <p className="text-label-sm text-error px-1">{errors.cardName}</p>
+                )}
               </div>
 
               <div className="space-y-xs">
@@ -339,7 +356,9 @@ export default function PaymentClient({
                     className="flex-1 py-3 bg-transparent border-none focus:ring-0 text-body-md text-on-surface placeholder:text-outline outline-none"
                   />
                 </div>
-                {errors.cardNumber && <p className="text-label-sm text-error px-1">{errors.cardNumber}</p>}
+                {errors.cardNumber && (
+                  <p className="text-label-sm text-error px-1">{errors.cardNumber}</p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-md">
@@ -355,12 +374,12 @@ export default function PaymentClient({
                     onChange={(e) => setExpiry(formatExpiry(e.target.value))}
                     className={inputClass(!!errors.expiry)}
                   />
-                  {errors.expiry && <p className="text-label-sm text-error px-1">{errors.expiry}</p>}
+                  {errors.expiry && (
+                    <p className="text-label-sm text-error px-1">{errors.expiry}</p>
+                  )}
                 </div>
                 <div className="space-y-xs">
-                  <label className="block text-label-sm text-on-surface-variant px-1">
-                    CVV
-                  </label>
+                  <label className="block text-label-sm text-on-surface-variant px-1">CVV</label>
                   <input
                     type="password"
                     placeholder="•••"
@@ -413,15 +432,15 @@ export default function PaymentClient({
                 {activeMethod === "promptpay"
                   ? "qr_code_2"
                   : activeMethod === "bank"
-                  ? "account_balance"
-                  : "payments"}
+                    ? "account_balance"
+                    : "payments"}
               </span>
               <p className="text-body-md">
                 {activeMethod === "promptpay"
                   ? "PromptPay"
                   : activeMethod === "bank"
-                  ? "Bank Transfer"
-                  : "Other methods"}{" "}
+                    ? "Bank Transfer"
+                    : "Other methods"}{" "}
                 coming soon
               </p>
             </div>
@@ -443,22 +462,19 @@ export default function PaymentClient({
               }`}
             />
             <span className="text-label-sm text-on-surface">
-              I agree to the{" "}
-              <span className="text-primary underline">Terms &amp; Conditions</span>, privacy
-              policy, and booking rules of Qoomlee Airline.
+              I agree to the <span className="text-primary underline">Terms &amp; Conditions</span>,
+              privacy policy, and booking rules of Qoomlee Airline.
             </span>
           </label>
-          {errors.terms && (
-            <p className="text-label-sm text-error px-1">{errors.terms}</p>
-          )}
+          {errors.terms && <p className="text-label-sm text-error px-1">{errors.terms}</p>}
 
           <div className="flex items-start gap-sm bg-surface-container rounded-xl px-md py-sm">
             <span className="material-symbols-outlined text-on-surface-variant text-[18px] shrink-0 mt-0.5">
               info
             </span>
             <p className="text-label-sm text-on-surface-variant">
-              Cancellation policy: Full refund if cancelled within 24 hours of booking.
-              Standard fees apply thereafter.
+              Cancellation policy: Full refund if cancelled within 24 hours of booking. Standard
+              fees apply thereafter.
             </p>
           </div>
         </div>

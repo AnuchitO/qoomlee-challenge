@@ -6,8 +6,7 @@ interface SearchParams {
 }
 
 export function buildApiUrl(params: SearchParams): string {
-  const base =
-    process.env.NEXT_PUBLIC_QOOMLEE_API_URL ?? "http://localhost:8082";
+  const base = process.env.NEXT_PUBLIC_QOOMLEE_API_URL ?? "http://localhost:8082";
 
   const query = new URLSearchParams({
     origin: params.origin,

@@ -23,9 +23,7 @@ test.describe("Booking Confirmation page (QML-006)", () => {
   // ── page renders ────────────────────────────────────────────────────────────
 
   test("renders Booking Confirmed heading", async ({ page }) => {
-    await expect(
-      page.getByRole("heading", { name: /booking confirmed/i })
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: /booking confirmed/i })).toBeVisible();
   });
 
   test("renders the success hero section", async ({ page }) => {
@@ -92,21 +90,19 @@ test.describe("Booking Confirmation page (QML-006)", () => {
   // ── confirmation notice ─────────────────────────────────────────────────────
 
   test("shows email confirmation notice with the passenger email", async ({ page }) => {
-    await expect(
-      page.getByText(/confirmation email.*sent/i)
-    ).toBeVisible();
+    await expect(page.getByText(/confirmation email.*sent/i)).toBeVisible();
     await expect(page.getByText("john@example.com").last()).toBeVisible();
   });
 
   // ── edge cases ──────────────────────────────────────────────────────────────
 
   test("renders gracefully with missing optional fields", async ({ page }) => {
-    await page.goto("/bookings/confirmation?ref=QM0001&flightNumber=QQ200&origin=BKK&destination=SIN&totalMinor=500000&currency=THB&departureTime=2026-12-01T10%3A00%3A00Z");
+    await page.goto(
+      "/bookings/confirmation?ref=QM0001&flightNumber=QQ200&origin=BKK&destination=SIN&totalMinor=500000&currency=THB&departureTime=2026-12-01T10%3A00%3A00Z",
+    );
     await page.waitForLoadState("networkidle");
     await expect(page.getByTestId("booking-ref")).toHaveText("QM0001");
-    await expect(
-      page.getByRole("heading", { name: /booking confirmed/i })
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: /booking confirmed/i })).toBeVisible();
   });
 
   test("page title is Booking Confirmed", async ({ page }) => {

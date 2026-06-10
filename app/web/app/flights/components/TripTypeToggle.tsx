@@ -28,9 +28,7 @@ export default function TripTypeToggle({ value, onChange }: Props) {
               onClick={() => onChange(type)}
               className="flex-shrink-0 flex items-center justify-center rounded-full px-5 py-2 font-bold text-sm transition-colors whitespace-nowrap"
               style={{
-                backgroundColor: isSelected
-                  ? "rgb(194, 228, 255)"
-                  : "rgb(235, 244, 255)",
+                backgroundColor: isSelected ? "rgb(194, 228, 255)" : "rgb(235, 244, 255)",
                 color: isSelected ? "rgb(29, 78, 216)" : "rgb(30, 64, 175)",
               }}
             >

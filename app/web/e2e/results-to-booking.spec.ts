@@ -37,7 +37,7 @@ test.describe("Results page — API-driven rendering", () => {
     await page.waitForLoadState("networkidle");
 
     // Either real flights or the empty state — both are valid outcomes
-    const hasFlights = await page.getByRole("button", { name: /select/i }).count() > 0;
+    const hasFlights = (await page.getByRole("button", { name: /select/i }).count()) > 0;
     const hasEmptyState = await page.getByText("No flights found for this route.").isVisible();
     expect(hasFlights || hasEmptyState).toBe(true);
   });
@@ -57,7 +57,9 @@ test.describe("Results page — API-driven rendering", () => {
 });
 
 test.describe("Booking page — receives correct data from results", () => {
-  test("booking page shows correct flight info from URL params set by FlightList", async ({ page }) => {
+  test("booking page shows correct flight info from URL params set by FlightList", async ({
+    page,
+  }) => {
     await page.goto(BOOKING_WITH_FLIGHT);
     await page.waitForLoadState("networkidle");
     await expect(page.getByText("QQ101")).toBeVisible();

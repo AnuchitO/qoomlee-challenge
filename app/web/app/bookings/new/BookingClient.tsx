@@ -79,9 +79,7 @@ export default function BookingClient({ flight, passengers }: Props) {
 
         <div className="grid grid-cols-2 gap-md">
           <div className="space-y-xs">
-            <label className="block text-label-sm text-on-surface-variant px-1">
-              First Name
-            </label>
+            <label className="block text-label-sm text-on-surface-variant px-1">First Name</label>
             <input
               type="text"
               placeholder="e.g. John"
@@ -95,9 +93,7 @@ export default function BookingClient({ flight, passengers }: Props) {
           </div>
 
           <div className="space-y-xs">
-            <label className="block text-label-sm text-on-surface-variant px-1">
-              Last Name
-            </label>
+            <label className="block text-label-sm text-on-surface-variant px-1">Last Name</label>
             <input
               type="text"
               placeholder="e.g. Doe"
@@ -105,16 +101,12 @@ export default function BookingClient({ flight, passengers }: Props) {
               onChange={(e) => setLastName(e.target.value)}
               className={`${inputBase} ${errors.lastName ? "border-error" : "border-outline-variant"}`}
             />
-            {errors.lastName && (
-              <p className="text-label-sm text-error px-1">{errors.lastName}</p>
-            )}
+            {errors.lastName && <p className="text-label-sm text-error px-1">{errors.lastName}</p>}
           </div>
         </div>
 
         <div className="space-y-xs">
-          <label className="block text-label-sm text-on-surface-variant px-1">
-            Email Address
-          </label>
+          <label className="block text-label-sm text-on-surface-variant px-1">Email Address</label>
           <input
             type="email"
             placeholder="john.doe@example.com"
@@ -122,15 +114,11 @@ export default function BookingClient({ flight, passengers }: Props) {
             onChange={(e) => setEmail(e.target.value)}
             className={`${inputBase} ${errors.email ? "border-error" : "border-outline-variant"}`}
           />
-          {errors.email && (
-            <p className="text-label-sm text-error px-1">{errors.email}</p>
-          )}
+          {errors.email && <p className="text-label-sm text-error px-1">{errors.email}</p>}
         </div>
 
         <div className="space-y-xs">
-          <label className="block text-label-sm text-on-surface-variant px-1">
-            Phone Number
-          </label>
+          <label className="block text-label-sm text-on-surface-variant px-1">Phone Number</label>
           <div className="flex gap-sm">
             <div className="flex items-center justify-center border border-outline-variant rounded-xl px-md bg-surface-bright shrink-0">
               <span className="text-body-md text-on-surface">+66</span>
@@ -145,9 +133,7 @@ export default function BookingClient({ flight, passengers }: Props) {
               }`}
             />
           </div>
-          {errors.phone && (
-            <p className="text-label-sm text-error px-1">{errors.phone}</p>
-          )}
+          {errors.phone && <p className="text-label-sm text-error px-1">{errors.phone}</p>}
         </div>
       </section>
 
@@ -159,9 +145,7 @@ export default function BookingClient({ flight, passengers }: Props) {
 
         <div className="space-y-sm">
           <div className="flex justify-between items-center">
-            <span className="text-body-md text-on-surface">
-              Base Fare ({passengers}x Adult)
-            </span>
+            <span className="text-body-md text-on-surface">Base Fare ({passengers}x Adult)</span>
             <span className="text-body-md text-on-surface">
               {formatPrice(baseFareTotal, flight.currency)}
             </span>

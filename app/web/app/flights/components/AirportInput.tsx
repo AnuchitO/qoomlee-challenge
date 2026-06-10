@@ -21,9 +21,7 @@ export default function AirportInput({
 }: Props) {
   return (
     <div className="space-y-sm">
-      <label className="block text-label-sm text-on-surface-variant px-1">
-        {label}
-      </label>
+      <label className="block text-label-sm text-on-surface-variant px-1">{label}</label>
       <div
         className={`flex items-center gap-md border rounded-xl p-md bg-surface-bright focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 transition-all ${
           error ? "border-error" : "border-outline-variant"

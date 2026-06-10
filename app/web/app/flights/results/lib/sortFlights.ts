@@ -9,9 +9,7 @@ export function sortFlights(flights: Flight[], sortBy: SortBy): Flight[] {
 
     case "departure":
       return copy.sort(
-        (a, b) =>
-          new Date(a.departureTime).getTime() -
-          new Date(b.departureTime).getTime()
+        (a, b) => new Date(a.departureTime).getTime() - new Date(b.departureTime).getTime(),
       );
 
     case "duration":
@@ -21,9 +19,7 @@ export function sortFlights(flights: Flight[], sortBy: SortBy): Flight[] {
     default:
       // Best = shortest duration first, then by price as tiebreaker
       return copy.sort(
-        (a, b) =>
-          a.durationMinutes - b.durationMinutes ||
-          a.basePriceMinor - b.basePriceMinor
+        (a, b) => a.durationMinutes - b.durationMinutes || a.basePriceMinor - b.basePriceMinor,
       );
   }
 }

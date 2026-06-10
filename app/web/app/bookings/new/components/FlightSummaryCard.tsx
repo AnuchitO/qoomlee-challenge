@@ -35,7 +35,9 @@ export default function FlightSummaryCard({ flight }: { flight: FlightData }) {
     <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
       <div className="flex justify-between items-center px-md pt-md pb-sm border-b border-outline-variant/40">
         <span className="text-label-sm text-on-surface-variant">Flight Summary</span>
-        <span className="text-label-sm text-on-surface-variant font-medium">{flight.flightNumber}</span>
+        <span className="text-label-sm text-on-surface-variant font-medium">
+          {flight.flightNumber}
+        </span>
       </div>
 
       <div className="px-md pt-sm pb-md">

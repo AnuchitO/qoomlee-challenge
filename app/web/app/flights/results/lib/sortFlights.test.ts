@@ -17,9 +17,24 @@ const makeFlight = (overrides: Partial<Flight>): Flight => ({
   ...overrides,
 });
 
-const cheap = makeFlight({ id: 1, basePriceMinor: 200000, departureTime: "2026-06-15T03:00:00Z", durationMinutes: 300 });
-const mid   = makeFlight({ id: 2, basePriceMinor: 350000, departureTime: "2026-06-15T01:00:00Z", durationMinutes: 210 });
-const pricey= makeFlight({ id: 3, basePriceMinor: 500000, departureTime: "2026-06-15T02:00:00Z", durationMinutes: 150 });
+const cheap = makeFlight({
+  id: 1,
+  basePriceMinor: 200000,
+  departureTime: "2026-06-15T03:00:00Z",
+  durationMinutes: 300,
+});
+const mid = makeFlight({
+  id: 2,
+  basePriceMinor: 350000,
+  departureTime: "2026-06-15T01:00:00Z",
+  durationMinutes: 210,
+});
+const pricey = makeFlight({
+  id: 3,
+  basePriceMinor: 500000,
+  departureTime: "2026-06-15T02:00:00Z",
+  durationMinutes: 150,
+});
 
 describe("sortFlights", () => {
   it("sorts by price ascending", () => {
@@ -33,9 +48,9 @@ describe("sortFlights", () => {
   it("sorts by departure time ascending", () => {
     const sorted = sortFlights([cheap, pricey, mid], "departure");
 
-    expect(sorted[0].id).toBe(mid.id);   // 01:00
+    expect(sorted[0].id).toBe(mid.id); // 01:00
     expect(sorted[1].id).toBe(pricey.id); // 02:00
-    expect(sorted[2].id).toBe(cheap.id);  // 03:00
+    expect(sorted[2].id).toBe(cheap.id); // 03:00
   });
 
   it("sorts by duration ascending (shortest first)", () => {

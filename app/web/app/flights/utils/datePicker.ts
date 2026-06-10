@@ -5,5 +5,9 @@ import type { RefObject } from "react";
  * Falls back to focus() on browsers that block programmatic showPicker().
  */
 export function showDatePicker(ref: RefObject<HTMLInputElement | null>): void {
-  try { ref.current?.showPicker(); } catch { ref.current?.focus(); }
+  try {
+    ref.current?.showPicker();
+  } catch {
+    ref.current?.focus();
+  }
 }

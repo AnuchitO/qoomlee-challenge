@@ -26,6 +26,7 @@ COMPOSE := $(shell \
 # ── Config ───────────────────────────────────────────────────────────────────
 QOOMLEE_SERVICE_URL ?= http://localhost:8082
 PAYMENT_SERVICE_URL ?= http://localhost:8084
+FRONTEND_URL        ?= http://localhost:3000
 DATE      ?= 2026-06-15
 SERVICES  := qoomlee payment
 SVC_DIR   := services
@@ -116,6 +117,7 @@ up-d: _check-compose _check-env
 	@echo -e "  $(GREEN)✓$(RESET)  All services started"
 	@echo -e "  $(CYAN)→$(RESET)  qoomlee-service $(QOOMLEE_SERVICE_URL)"
 	@echo -e "  $(CYAN)→$(RESET)  payment-service $(PAYMENT_SERVICE_URL)"
+	@echo -e "  $(CYAN)→$(RESET)  frontend        $(FRONTEND_URL)"
 	@echo -e "  $(CYAN)→$(RESET)  Logs         make logs"
 	@echo -e "  $(CYAN)→$(RESET)  Smoke test   make check-smoke"
 
@@ -245,10 +247,12 @@ test-mutation:
 test-security: _require-stack lint-security
 	@echo -e "$(BOLD)Running ZAP baseline scans...$(RESET)"
 	@command -v docker >/dev/null 2>&1 || (echo -e "$(RED)Docker required for ZAP$(RESET)" && exit 1)
-	docker run --rm -t --network=host ghcr.io/zaproxy/zaproxy:stable \
+	docker run --rm -t -v "$(CURDIR):/zap/wrk:rw" --network=host ghcr.io/zaproxy/zaproxy:stable \
 	  zap-baseline.py -t $(QOOMLEE_SERVICE_URL) -r zap-report-qoomlee.html || true
-	docker run --rm -t --network=host ghcr.io/zaproxy/zaproxy:stable \
+	docker run --rm -t -v "$(CURDIR):/zap/wrk:rw" --network=host ghcr.io/zaproxy/zaproxy:stable \
 	  zap-baseline.py -t $(PAYMENT_SERVICE_URL) -r zap-report-payment.html || true
+	docker run --rm -t -v "$(CURDIR):/zap/wrk:rw" --network=host ghcr.io/zaproxy/zaproxy:stable \
+	  zap-baseline.py -t $(FRONTEND_URL) -r zap-report-web.html || true
 	@echo -e "  $(GREEN)✓$(RESET)  ZAP baseline scans complete — see zap-report-*.html"
 
 # ====================================================================================

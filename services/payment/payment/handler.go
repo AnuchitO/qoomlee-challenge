@@ -39,7 +39,7 @@ func (h *Handler) GetByBookingRef(c *gin.Context) {
 		return
 	}
 
-	resp := PaymentReceiptResponse{
+	resp := ReceiptResponse{
 		BookingRef:       p.BookingRef,
 		PaymentProvider:  p.PaymentProvider,
 		ProviderChargeID: p.ProviderChargeID,
@@ -81,7 +81,7 @@ func (h *Handler) Charge(c *gin.Context) {
 
 	p, err := h.svc.Charge(c.Request.Context(), req)
 	if err != nil {
-		var pfe *PaymentFailedError
+		var pfe *FailedError
 		switch {
 		case errors.Is(err, ErrAlreadyPaid):
 			c.JSON(http.StatusConflict, apiErr("ALREADY_PAID", "booking "+req.BookingRef+" has already been paid"))

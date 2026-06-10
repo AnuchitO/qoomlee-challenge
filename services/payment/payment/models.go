@@ -8,13 +8,16 @@ import (
 const statusConfirmed = "CONFIRMED"
 
 var (
-	ErrAlreadyPaid    = errors.New("booking already paid")
+	// ErrAlreadyPaid is returned when a booking has already been paid.
+	ErrAlreadyPaid = errors.New("booking already paid")
+	// ErrAmountMismatch is returned when the charge amount does not match the booking total.
 	ErrAmountMismatch = errors.New("amount does not match booking total")
-	ErrNotFound       = errors.New("payment not found")
+	// ErrNotFound is returned when no payment record exists for a booking.
+	ErrNotFound = errors.New("payment not found")
 )
 
-// PaymentReceiptResponse is the response body for GET /api/payments/:bookingRef.
-type PaymentReceiptResponse struct {
+// ReceiptResponse is the response body for GET /api/payments/:bookingRef.
+type ReceiptResponse struct {
 	BookingRef       string  `json:"bookingRef"`
 	PaymentProvider  string  `json:"paymentProvider"`
 	ProviderChargeID string  `json:"providerChargeId"`
@@ -34,16 +37,17 @@ type ConfirmRequest struct {
 	ProviderChargeID string
 }
 
-// PaymentFailedError is returned when Omise declines the card.
-type PaymentFailedError struct {
+// FailedError is returned when Omise declines the card.
+type FailedError struct {
 	FailureCode    string
 	FailureMessage string
 }
 
-func (e *PaymentFailedError) Error() string {
+func (e *FailedError) Error() string {
 	return "payment failed: " + e.FailureCode
 }
 
+// ChargeRequest is the request body for POST /api/payments/charge.
 type ChargeRequest struct {
 	BookingRef  string `json:"bookingRef"`
 	OmiseToken  string `json:"omiseToken"`
@@ -51,6 +55,7 @@ type ChargeRequest struct {
 	Currency    string `json:"currency"`
 }
 
+// ChargeResponse is the response body for POST /api/payments/charge.
 type ChargeResponse struct {
 	PaymentID        int64  `json:"paymentId"`
 	PaymentProvider  string `json:"paymentProvider"`
@@ -62,6 +67,7 @@ type ChargeResponse struct {
 	PaidAt           string `json:"paidAt"`
 }
 
+// Payment represents a stored payment record.
 type Payment struct {
 	ID               int64
 	BookingID        int64
@@ -76,6 +82,7 @@ type Payment struct {
 	PaidAt           time.Time
 }
 
+// BookingDetail describes the booking returned by the booking service.
 type BookingDetail struct {
 	BookingID        int64
 	BookingRef       string
@@ -84,6 +91,7 @@ type BookingDetail struct {
 	Currency         string
 }
 
+// ChargeResult is the outcome of creating a charge with the payment provider.
 type ChargeResult struct {
 	ProviderChargeID string
 	Status           string

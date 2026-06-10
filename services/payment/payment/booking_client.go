@@ -33,6 +33,7 @@ type bookingResponse struct {
 	Currency         string `json:"currency"`
 }
 
+// GetBooking fetches the booking detail for the given reference from qoomlee-service.
 func (c *HTTPBookingClient) GetBooking(ctx context.Context, ref string) (*BookingDetail, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet,
 		fmt.Sprintf("%s/api/bookings/%s", c.baseURL, ref), nil)
@@ -44,7 +45,7 @@ func (c *HTTPBookingClient) GetBooking(ctx context.Context, ref string) (*Bookin
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode == http.StatusNotFound {
 		return nil, fmt.Errorf("booking %s not found", ref)
@@ -74,6 +75,7 @@ type confirmBody struct {
 	ProviderChargeID string `json:"providerChargeId"`
 }
 
+// ConfirmBooking marks the booking as confirmed with the given payment details.
 func (c *HTTPBookingClient) ConfirmBooking(ctx context.Context, ref string, req ConfirmRequest) error {
 	body, _ := json.Marshal(confirmBody{
 		Status:           statusConfirmed,
@@ -95,7 +97,7 @@ func (c *HTTPBookingClient) ConfirmBooking(ctx context.Context, ref string, req 
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("confirm booking failed with status %d", resp.StatusCode)

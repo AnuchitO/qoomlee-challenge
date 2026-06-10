@@ -153,7 +153,7 @@ func TestServiceCharge(t *testing.T) {
 		assert.Nil(t, p)
 	})
 
-	t.Run("card declined — persists FAILED record and returns PaymentFailedError", func(t *testing.T) {
+	t.Run("card declined — persists FAILED record and returns FailedError", func(t *testing.T) {
 		bc := &mockBookingClient{booking: pendingBooking}
 		om := &mockOmiser{result: declinedCharge}
 		repo := &mockRepository{}
@@ -161,7 +161,7 @@ func TestServiceCharge(t *testing.T) {
 
 		p, err := svc.Charge(context.Background(), validReq)
 
-		var pfe *PaymentFailedError
+		var pfe *FailedError
 		require.ErrorAs(t, err, &pfe)
 		assert.Equal(t, "insufficient_fund", pfe.FailureCode)
 		assert.Nil(t, p)

@@ -15,22 +15,6 @@ import (
 	"github.com/AnuchitO/qoomlee-payment/middleware"
 )
 
-func runRequestLog(logger *slog.Logger, method, path, corrID string, statusCode int) map[string]any {
-	gin.SetMode(gin.TestMode)
-	r := gin.New()
-	r.Use(middleware.CorrelationID(), middleware.RequestLogger(logger))
-	r.GET("/test", func(c *gin.Context) { c.Status(statusCode) })
-	r.POST("/test", func(c *gin.Context) { c.Status(statusCode) })
-
-	req := httptest.NewRequest(method, path, nil)
-	if corrID != "" {
-		req.Header.Set("X-Correlation-ID", corrID)
-	}
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	return nil // caller parses the buffer
-}
-
 func newTestLogger() (*slog.Logger, *bytes.Buffer) {
 	buf := &bytes.Buffer{}
 	return slog.New(slog.NewJSONHandler(buf, nil)), buf

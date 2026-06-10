@@ -124,7 +124,7 @@ func TestChargeHandler(t *testing.T) {
 	})
 
 	t.Run("card declined returns 402 with failure details", func(t *testing.T) {
-		svc := &mockService{err: &PaymentFailedError{
+		svc := &mockService{err: &FailedError{
 			FailureCode:    "insufficient_fund",
 			FailureMessage: "The card has insufficient funds.",
 		}}

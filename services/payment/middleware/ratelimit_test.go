@@ -32,14 +32,14 @@ func TestRateLimit(t *testing.T) {
 	t.Run("burst exhausted: second request from same IP is blocked", func(t *testing.T) {
 		// Burst = 1 so the second request from the same IP is immediately rejected
 		handler := middleware.RateLimit(rate.Limit(0.001), 1)
-		callRateLimit(handler, "10.0.0.2") // consumes the burst
+		callRateLimit(handler, "10.0.0.2")      // consumes the burst
 		w := callRateLimit(handler, "10.0.0.2") // second: rate limited
 		assert.Equal(t, http.StatusTooManyRequests, w.Code)
 	})
 
 	t.Run("different IPs have independent limits", func(t *testing.T) {
 		handler := middleware.RateLimit(rate.Limit(0.001), 1)
-		callRateLimit(handler, "10.0.0.3") // IP A: burst consumed
+		callRateLimit(handler, "10.0.0.3")      // IP A: burst consumed
 		w := callRateLimit(handler, "10.0.0.4") // IP B: fresh limiter
 		assert.NotEqual(t, http.StatusTooManyRequests, w.Code)
 	})

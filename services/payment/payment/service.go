@@ -90,7 +90,7 @@ func (s *service) Charge(ctx context.Context, req ChargeRequest) (*Payment, erro
 		if _, err := s.repo.Insert(ctx, p); err != nil {
 			return nil, err
 		}
-		return nil, &PaymentFailedError{
+		return nil, &FailedError{
 			FailureCode:    result.FailureCode,
 			FailureMessage: result.FailureMessage,
 		}

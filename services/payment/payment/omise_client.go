@@ -21,6 +21,7 @@ func NewOmiseClient(publicKey, secretKey string) (*OmiseClient, error) {
 	return &OmiseClient{client: c}, nil
 }
 
+// CreateCharge creates a charge with Omise for the given card token and amount.
 func (o *OmiseClient) CreateCharge(_ context.Context, token string, amount int64, currency string) (*ChargeResult, error) {
 	charge := &omise.Charge{}
 	if err := o.client.Do(charge, &operations.CreateCharge{

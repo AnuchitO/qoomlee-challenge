@@ -82,7 +82,11 @@ func main() {
 		slog.Error("open db failed", "err", err)
 		os.Exit(1)
 	}
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			slog.Error("close db failed", "err", err)
+		}
+	}()
 
 	omiseClient, err := payment.NewOmiseClient(omisePublicKey, omiseSecretKey)
 	if err != nil {

@@ -6,7 +6,9 @@ import (
 )
 
 var (
-	ErrNotFound         = errors.New("booking not found")
+	// ErrNotFound is returned when no booking exists for the given reference.
+	ErrNotFound = errors.New("booking not found")
+	// ErrNoSeatsAvailable is returned when a flight has no remaining seats.
 	ErrNoSeatsAvailable = errors.New("no seats available")
 )
 

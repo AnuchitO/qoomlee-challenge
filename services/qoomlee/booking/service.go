@@ -2,7 +2,7 @@ package booking
 
 import (
 	"context"
-	"math/rand"
+	"math/rand/v2"
 )
 
 // Service is the business-logic interface for the booking domain.
@@ -40,7 +40,7 @@ func generatePNR() string {
 	const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 	b := make([]byte, 6)
 	for i := range b {
-		b[i] = chars[rand.Intn(len(chars))]
+		b[i] = chars[rand.IntN(len(chars))] //nolint:gosec // PNR is a human-facing reference code, not a security token
 	}
 	return string(b)
 }

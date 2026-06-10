@@ -22,7 +22,7 @@ func (r *repository) Search(ctx context.Context, params SearchParams) ([]Flight,
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var flights []Flight
 	for rows.Next() {

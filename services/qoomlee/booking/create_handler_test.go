@@ -45,7 +45,7 @@ func TestCreateBooking(t *testing.T) {
 
 	t.Run("missing passenger firstName", func(t *testing.T) {
 		body := map[string]any{
-			"flightId": 1,
+			"flightId":  1,
 			"passenger": map[string]any{"lastName": "Doe", "email": "john@example.com"},
 		}
 		w := doCreate(newTestHandler(&mockService{}), body)
@@ -55,7 +55,7 @@ func TestCreateBooking(t *testing.T) {
 
 	t.Run("missing passenger lastName", func(t *testing.T) {
 		body := map[string]any{
-			"flightId": 1,
+			"flightId":  1,
 			"passenger": map[string]any{"firstName": "John", "email": "john@example.com"},
 		}
 		w := doCreate(newTestHandler(&mockService{}), body)
@@ -65,7 +65,7 @@ func TestCreateBooking(t *testing.T) {
 
 	t.Run("missing passenger email", func(t *testing.T) {
 		body := map[string]any{
-			"flightId": 1,
+			"flightId":  1,
 			"passenger": map[string]any{"firstName": "John", "lastName": "Doe"},
 		}
 		w := doCreate(newTestHandler(&mockService{}), body)

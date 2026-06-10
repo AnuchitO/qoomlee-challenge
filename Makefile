@@ -188,17 +188,29 @@ go-build:
 # ====================================================================================
 # TESTING
 # ====================================================================================
-.PHONY: test # Run unit + integration tests for all services
+.PHONY: test # Run all unit + integration tests (Go services + frontend)
 test: test-unit test-integration
 
-.PHONY: test-unit # Run unit tests for all services (no DB required)
-test-unit:
-	@echo -e "$(BOLD)Running unit tests...$(RESET)"
+.PHONY: test-unit # Run unit tests for all services + frontend (no DB or server required)
+test-unit: test-frontend
+	@echo -e "$(BOLD)Running Go unit tests...$(RESET)"
 	@for svc in $(SERVICES); do \
 	  echo -e "  $(CYAN)→$(RESET)  $$svc"; \
 	  (cd $(SVC_DIR)/$$svc && go test ./... -count=1) || exit 1; \
 	done
 	@echo -e "\n  $(GREEN)✓$(RESET)  Unit tests complete"
+
+.PHONY: test-frontend # Run frontend unit tests (Vitest — no server required)
+test-frontend:
+	@echo -e "$(BOLD)Running frontend unit tests (Vitest)...$(RESET)"
+	cd app/web && bun run test
+	@echo -e "  $(GREEN)✓$(RESET)  Frontend unit tests complete"
+
+.PHONY: test-e2e # Run frontend E2E tests (Playwright — requires running stack on :3000)
+test-e2e:
+	@echo -e "$(BOLD)Running frontend E2E tests (Playwright)...$(RESET)"
+	@echo -e "  $(DIM)Note: requires 'make up' and frontend dev server on :3000$(RESET)"
+	cd app/web && bun run test:e2e
 
 .PHONY: test-integration # Run integration tests with real DB (testcontainers-go, requires Docker)
 test-integration:
@@ -368,7 +380,7 @@ lint-docker:
 	@echo -e "  $(GREEN)✓$(RESET)  Dockerfiles pass hadolint"
 
 .PHONY: ci # Full CI pipeline — fmt-check, lint, security, unit + integration tests, coverage
-ci: fmt-check lint lint-security test-unit test-integration test-cover
+ci: fmt-check lint lint-security test-unit test-integration test-cover test-e2e
 	@echo -e "  $(GREEN)✓$(RESET)  CI pipeline passed"
 
 # ====================================================================================

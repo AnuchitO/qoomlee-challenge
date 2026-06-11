@@ -142,10 +142,18 @@ function MonthGrid({
                     .join(" ")}
                 />
               )}
-              {/* pill cap for range start — full cell, rounded on the left so the band opens with a clean capsule edge */}
-              {isBandStart && <div className={`absolute inset-0 rounded-l-full ${bandCls}`} />}
-              {/* pill cap for range end — full cell, rounded on the right so the band closes with a clean capsule edge */}
-              {isBandEnd && <div className={`absolute inset-0 rounded-r-full ${bandCls}`} />}
+              {/* pill cap for range start — begins at circle's left edge so the rounded cap is hidden under the circle */}
+              {isBandStart && (
+                <div
+                  className={`absolute inset-y-0 left-[calc(50%_-_20px)] right-0 rounded-l-full ${bandCls}`}
+                />
+              )}
+              {/* pill cap for range end — ends at circle's right edge so the rounded cap is hidden under the circle */}
+              {isBandEnd && (
+                <div
+                  className={`absolute inset-y-0 left-0 right-[calc(50%_-_20px)] rounded-r-full ${bandCls}`}
+                />
+              )}
 
               <button
                 type="button"

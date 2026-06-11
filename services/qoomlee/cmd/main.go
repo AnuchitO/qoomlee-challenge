@@ -109,10 +109,12 @@ func main() {
 	internal.Use(middleware.InternalToken(internalToken))
 	internal.PUT("/:bookingRef/status", bookingHandler.UpdateStatus)
 
-	// Public API routes — JWT required
+	// Public flight search — no auth required (anyone can search before logging in)
+	r.GET("/api/flights/search", flightHandler.Search)
+
+	// Authenticated API routes — JWT required
 	api := r.Group("/api")
 	api.Use(middleware.JWTAuth(jwtPublicKey))
-	api.GET("/flights/search", flightHandler.Search)
 	api.GET("/flights/:id", flightHandler.GetByID)
 	api.POST("/bookings", bookingHandler.Create)
 	api.GET("/bookings/:bookingRef", bookingHandler.GetByRef)

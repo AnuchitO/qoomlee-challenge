@@ -91,6 +91,30 @@
 | QML-031 | Login & Registration | web | ✅ Done |
 | QML-032 | Manage Profile | web | ✅ Done |
 
+### EPIC: Web — Airport Selection
+| # | Story | Platform | Status |
+|---|-------|----------|--------|
+| QML-033 | Airport Select — Desktop Dropdown | web · desktop | ✅ Done |
+| QML-034 | Airport Select — Mobile Bottom Sheet | web · mobile | ✅ Done |
+
+### EPIC: Web — Discovery
+| # | Story | Platform | Status |
+|---|-------|----------|--------|
+| QML-035 | Popular Destinations & Travel Tips | web | ✅ Done |
+| QML-036 | Check Flight Status | web | ✅ Done |
+| QML-037 | View Travel Requirements | web | ✅ Done |
+
+### EPIC: Web — App Shell
+| # | Story | Platform | Status |
+|---|-------|----------|--------|
+| QML-038 | App Navigation | web | ✅ Done |
+
+### EPIC: Platform Security (Cross-cutting)
+| # | Story | Service | Status |
+|---|-------|---------|--------|
+| QML-039 | HTTP Security Headers — API Services | both services | ✅ Done |
+| QML-040 | HTTP Security Headers — Web Frontend | web | ✅ Done |
+
 ---
 
 ## What You're Building
@@ -957,6 +981,234 @@ api.GET("/bookings/:ref", ...)
 | Component | Edit form pre-fills current profile values |
 | Component | Saving calls the update API with only the changed fields |
 | Component | Settings page renders notification preference toggles |
+
+---
+
+### EPIC: Web — Airport Selection
+
+---
+
+### QML-033 — Airport Select — Desktop Dropdown · ✅ Done
+
+> As a passenger on desktop, I want to type and choose an airport from a dropdown so that I can quickly find the right origin or destination.
+
+**Acceptance Criteria**
+
+- **Given** I click the From or To field on desktop
+  **When** the dropdown opens
+  **Then** a "Popular Cities or Airports" list is shown before I type anything
+- **Given** I type a city or airport name
+  **When** results are filtered
+  **Then** only matching airports are shown; non-matching airports disappear
+- **Given** I have already selected Bangkok (BKK) as origin
+  **When** I open the destination dropdown and search for Bangkok
+  **Then** Bangkok does not appear — the already-selected airport is excluded
+- **Given** I click outside the dropdown
+  **When** the click registers
+  **Then** the dropdown closes without selecting anything
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| E2E | Opens dropdown showing popular cities list on click |
+| E2E | Typing "Singapore" filters to Singapore Changi Airport only |
+| E2E | Destination dropdown excludes the already-selected origin |
+| E2E | Clicking outside the dropdown closes it |
+
+---
+
+### QML-034 — Airport Select — Mobile Bottom Sheet · ✅ Done
+
+> As a passenger on mobile, I want airport selection to open as a bottom sheet so that the list is easy to scroll and tap on a small screen.
+
+**Acceptance Criteria**
+
+- **Given** I tap the From or To field on mobile
+  **When** the bottom sheet opens
+  **Then** it slides up with a drag handle, showing "Flying from" or "Flying to" as the header and a popular airports list
+- **Given** the bottom sheet is open
+  **When** I tap the backdrop behind the sheet
+  **Then** the sheet closes without selecting an airport
+- **Given** I select an airport from the sheet
+  **When** the tap registers
+  **Then** the sheet closes and the selected airport appears in the field
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| E2E | Tapping From opens bottom sheet with "Flying from" header |
+| E2E | Selecting an airport closes the sheet and populates the field |
+| E2E | Tapping the backdrop closes the sheet with no selection |
+
+---
+
+### EPIC: Web — Discovery
+
+---
+
+### QML-035 — Popular Destinations & Travel Tips · ✅ Done
+
+> As a passenger on the home page, I want to see popular destinations and a travel tip so that I can get inspiration and useful information before searching.
+
+**Acceptance Criteria**
+
+- **Given** I am on the flight search home page
+  **When** the page loads
+  **Then** a "Popular Destinations" section shows destination cards with name, starting price, and an optional trending badge
+- **Given** I see the travel tip section
+  **When** it renders
+  **Then** one contextual tip is shown with an icon and short advisory text
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Component | Destination card renders name and starting price |
+| Component | Trending badge appears on the designated card |
+| Component | Travel tip renders with an icon and non-empty text |
+
+---
+
+### QML-036 — Check Flight Status · ✅ Done
+
+> As a passenger, I want to look up a flight by number so that I can see whether it is on time, delayed, or cancelled.
+
+**Acceptance Criteria**
+
+- **Given** I navigate to the flight status page
+  **When** the page loads
+  **Then** I see a search field where I can enter a flight number
+- **Given** I submit a valid flight number
+  **When** the result loads
+  **Then** the flight status (scheduled, delayed, cancelled) is shown alongside the route and times
+- **Given** I submit a flight number that is not found
+  **When** the lookup completes
+  **Then** a clear not-found message is shown
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Component | Status page renders the flight number input |
+| Component | Known flight number shows status, route, and departure/arrival times |
+| Component | Unknown flight number shows a not-found message |
+
+---
+
+### QML-037 — View Travel Requirements · ✅ Done
+
+> As a passenger, I want to see visa and health requirements for my trip so that I know what documents to prepare before flying.
+
+**Acceptance Criteria**
+
+- **Given** I navigate to the travel requirements page
+  **When** the page loads
+  **Then** a list of requirements is shown, each with a title, status (required / not required / check), and details
+- **Given** a requirement has a reference link
+  **When** I tap it
+  **Then** I am taken to the relevant external resource
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Component | Requirements list renders with correct status badge for each item |
+| Component | Items with a link render a tappable anchor |
+
+---
+
+### EPIC: Web — App Shell
+
+---
+
+### QML-038 — App Navigation · ✅ Done
+
+> As a passenger, I want consistent navigation across the app so that I can move between sections without getting lost.
+
+**Acceptance Criteria**
+
+- **Given** I view any page on desktop
+  **When** the header renders
+  **Then** a sticky top app bar shows the Qoomlee logo and links to Search, Bookings, Check-in, and Passes; the current section is highlighted
+- **Given** I view any page on mobile
+  **When** the page renders
+  **Then** a bottom navigation bar with Search, Bookings, Check-in, and Passes icons is fixed at the bottom of the screen
+- **Given** I tap the menu icon on mobile
+  **When** the tap registers
+  **Then** I am taken to the support/settings page
+- **Given** I tap the Qoomlee logo in the top bar
+  **When** the navigation runs
+  **Then** I am taken to the flight search page
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Component | Active nav item is highlighted based on the current route |
+| Component | BottomNav renders four tab items with icons and labels |
+| Component | Tapping the logo navigates to `/flights` |
+| Visual | TopAppBar is sticky (remains visible on scroll) |
+
+---
+
+### EPIC: Platform Security (Cross-cutting)
+
+---
+
+### QML-039 — HTTP Security Headers — API Services · ✅ Done
+
+> As a platform operator, I want every API response to include security headers so that browsers and proxies apply safe defaults for caching, content-type handling, and clickjacking protection.
+
+**Acceptance Criteria**
+
+- **Given** any HTTP response from qoomlee-service or payment-service
+  **When** the response is received
+  **Then** it includes `Cache-Control: no-store, no-cache, must-revalidate`
+- **Given** any HTTP response from either service
+  **When** the response is received
+  **Then** it includes `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, and `Referrer-Policy: strict-origin-when-cross-origin`
+- **Given** the security header middleware is registered
+  **When** the service starts
+  **Then** the middleware is applied globally before any route handler
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Unit | Middleware sets all four headers on every response |
+| Contract | `GET /health/live` response includes `X-Frame-Options: DENY` |
+| Contract | `GET /api/flights/search` response includes `Cache-Control: no-store` |
+
+---
+
+### QML-040 — HTTP Security Headers — Web Frontend · ✅ Done
+
+> As a platform operator, I want the Next.js web app to set a strict Content Security Policy and security headers so that it is protected against XSS, clickjacking, and MIME-type sniffing.
+
+**Acceptance Criteria**
+
+- **Given** any page response from the Next.js app
+  **When** the browser receives it
+  **Then** a `Content-Security-Policy` header restricts scripts, styles, fonts, images, and connections to trusted sources only
+- **Given** the app runs in development
+  **When** Turbopack hot-reload is active
+  **Then** `unsafe-eval` is allowed in the CSP `script-src` directive but removed in production
+- **Given** any page response from the Next.js app
+  **When** the browser receives it
+  **Then** `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, and `Permissions-Policy` are present
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Unit | `next.config.ts` exports a `headers()` function that includes all required header keys |
+| Contract | `GET /flights` response includes `Content-Security-Policy` header |
+| Contract | `Content-Security-Policy` value contains `frame-ancestors 'none'` |
+| Contract | Production CSP does not contain `unsafe-eval` |
+
+---
 
 ## Full Flow Acceptance Criteria
 

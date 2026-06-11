@@ -27,23 +27,69 @@
 
 ## Story Status
 
+### EPIC: Flight Discovery
 | # | Story | Service | Status |
 |---|-------|---------|--------|
 | QML-001 | Search Flights | qoomlee-service | ✅ Done |
 | QML-002 | View Flight Details | qoomlee-service | ✅ Done |
+
+### EPIC: Booking
+| # | Story | Service | Status |
+|---|-------|---------|--------|
 | QML-003 | Create a Booking | qoomlee-service | ✅ Done |
 | QML-004 | View Booking Details | qoomlee-service | ✅ Done |
+| QML-007 | Prevent Overbooking | qoomlee-service | ✅ Done |
+| QML-013 | Passenger Email Validation | qoomlee-service | ⬜ Todo |
+
+### EPIC: Payment
+| # | Story | Service | Status |
+|---|-------|---------|--------|
 | QML-005 | Pay for Booking | payment-service | ⬜ Todo |
 | QML-006 | View Payment Receipt | payment-service | ⬜ Todo |
-| QML-007 | Prevent Overbooking | qoomlee-service | ✅ Done |
 | QML-008 | Prevent Duplicate Payments | payment-service | ⬜ Todo |
 | QML-009 | Handle Payment Failures Gracefully | payment-service | ⬜ Todo |
+
+### EPIC: Platform Security & Observability
+| # | Story | Service | Status |
+|---|-------|---------|--------|
 | QML-010 | Secure Authentication via JWT | both services | ⬜ Todo |
 | QML-011 | Internal Token Guard Middleware | qoomlee-service | ⬜ Todo |
 | QML-012 | Rate Limiting | both services | ⬜ Todo |
-| QML-013 | Passenger Email Validation | qoomlee-service | ⬜ Todo |
 | QML-014 | Request Correlation ID | both services | ⬜ Todo |
 | QML-015 | Structured Request Logging | both services | ⬜ Todo |
+
+### EPIC: Web — Flight Search Experience
+| # | Story | Platform | Status |
+|---|-------|----------|--------|
+| QML-016 | Flight Search Form — Core behavior | web | ✅ Done |
+| QML-017 | Flight Search Form — Desktop layout | web · desktop | ✅ Done |
+| QML-018 | Flight Search Form — Mobile layout | web · mobile | ✅ Done |
+| QML-019 | Date Range Picker — Core behavior | web | ✅ Done |
+| QML-020 | Date Range Picker — Desktop | web · desktop | ✅ Done |
+| QML-021 | Date Range Picker — Mobile | web · mobile | ✅ Done |
+| QML-022 | View Flight Search Results | web | ✅ Done |
+| QML-023 | Travelers & Class — Desktop | web · desktop | ✅ Done |
+| QML-024 | Travelers & Class — Mobile | web · mobile | ✅ Done |
+
+### EPIC: Web — Booking Journey
+| # | Story | Platform | Status |
+|---|-------|----------|--------|
+| QML-025 | Create a Booking | web | ✅ Done |
+| QML-026 | Booking Confirmation with Copy PNR | web | ✅ Done |
+| QML-027 | View My Bookings | web | ✅ Done |
+| QML-028 | Pay for a Booking | web | ✅ Done |
+
+### EPIC: Web — My Trips
+| # | Story | Platform | Status |
+|---|-------|----------|--------|
+| QML-029 | Online Check-in | web | ✅ Done |
+| QML-030 | View Boarding Passes | web | ✅ Done |
+
+### EPIC: Web — Account & Profile
+| # | Story | Platform | Status |
+|---|-------|----------|--------|
+| QML-031 | Login & Registration | web | ✅ Done |
+| QML-032 | Manage Profile | web | ✅ Done |
 
 ---
 
@@ -65,7 +111,9 @@ all the way to a confirmed, paid booking.
 
 ## User Stories
 
-As a passenger, I want to search for flights so that I can find available flights between destinations on a specific date.
+---
+
+### EPIC: Flight Discovery
 
 ---
 
@@ -119,6 +167,10 @@ As a passenger, I want to search for flights so that I can find available flight
 | Positive | `GET /api/flights/1` returns complete flight details |
 | Negative | `GET /api/flights/99999` returns `404 FLIGHT_NOT_FOUND` |
 | Normal | Response includes `durationMinutes` field |
+
+---
+
+### EPIC: Booking
 
 ---
 
@@ -179,6 +231,10 @@ As a passenger, I want to search for flights so that I can find available flight
 | Negative | `GET /api/bookings/XXXXXX` returns `404 BOOKING_NOT_FOUND` |
 | Normal | `PENDING` bookings show `null` for payment provider fields |
 | Normal | `CONFIRMED` bookings show `paymentProvider` and `providerChargeId` |
+
+---
+
+### EPIC: Payment
 
 ---
 
@@ -332,6 +388,10 @@ As a passenger, I want to search for flights so that I can find available flight
 
 ---
 
+### EPIC: Platform Security & Observability
+
+---
+
 ### QML-010 — Secure Authentication via JWT · ⬜ Todo
 
 > As a system, I want to ensure secure authentication using JWT so that only authorized users can access booking functionality.
@@ -406,6 +466,497 @@ api.GET("/bookings/:ref", ...)
 | Contract | Positive | `PUT /api/bookings/SEED02/status` with valid internal token, no JWT → 200 |
 
 ---
+
+## Frontend Web Stories
+
+---
+
+### EPIC: Web — Flight Search Experience
+
+---
+
+### QML-016 — Flight Search Form · ✅ Done
+
+> As a passenger, I want to search for flights by trip type, route, and date so that I can find flights that match my plans.
+
+**Acceptance Criteria**
+
+- **Given** I toggle between "One way" and "Round trip"
+  **When** the selection changes
+  **Then** the return date field appears for round trip and is hidden for one way
+- **Given** I type in the origin or destination field
+  **When** matching airports are found
+  **Then** a dropdown shows IATA code, city name, and airport name for each match
+- **Given** I tap the swap icon between origin and destination
+  **When** the swap completes
+  **Then** the two values are exchanged instantly
+- **Given** I tap Search Flights with one or more required fields empty
+  **When** validation runs
+  **Then** each missing field shows an inline error and the search is blocked
+- **Given** all fields are valid
+  **When** I tap Search Flights
+  **Then** I am taken to the results page with origin, destination, date, passengers, and cabin class in the URL
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Unit | `validate()` returns false and sets `origin` error when origin is empty |
+| Unit | `validate()` returns false and sets `returnDate` error for round-trip when return date is missing |
+| Unit | `validate()` returns true when all required fields are filled |
+| Unit | `swapAirports()` exchanges origin and destination |
+| Unit | `buildSearchUrl()` produces correct query string including cabin and passengers |
+
+---
+
+### QML-017 — Flight Search Form — Desktop Layout · ✅ Done
+
+> As a passenger on desktop, I want the search form to display all fields in a single row so that I can see and fill in everything at once.
+
+**Acceptance Criteria**
+
+- **Given** I view the search form on a screen wider than 1024 px
+  **When** the form renders
+  **Then** From, To, Departure date, Return Date, and Search Flights appear in one horizontal row with labels aligned at the top
+- **Given** one or more fields have validation errors
+  **When** the error messages appear below their field
+  **Then** the Search Flights button stays top-aligned and does not shift down
+- **Given** I hover over any field trigger or the Search button
+  **When** the pointer enters
+  **Then** the cursor changes to a pointer
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Visual | All input top edges are at the same Y position (measured via DOM `getBoundingClientRect`) |
+| Visual | Search button top stays aligned with inputs when error messages appear |
+| Visual | Swap button is vertically centred within the airport input zone |
+
+---
+
+### QML-018 — Flight Search Form — Mobile Layout · ✅ Done
+
+> As a passenger on mobile, I want the search form to stack vertically so that all fields are easy to tap on a small screen.
+
+**Acceptance Criteria**
+
+- **Given** I view the search form on a screen narrower than 768 px
+  **When** the form renders
+  **Then** From and To inputs are stacked inside a single bordered card separated by a divider line
+- **Given** I want to swap origin and destination on mobile
+  **When** I tap the swap button that floats over the divider between the two fields
+  **Then** the two values are exchanged
+- **Given** the form renders on mobile
+  **When** I review the layout
+  **Then** Departure date, Return Date, Travelers & Class, and Search Flights each occupy their own full-width row below the airport card
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Visual | Airport inputs render as a stacked card with a divider on viewports < 768 px |
+| Visual | Swap button is absolutely positioned over the divider, not in the flow |
+| Visual | No horizontal overflow at 375 px viewport width |
+
+---
+
+### QML-019 — Date Range Picker — Core Behavior · ✅ Done
+
+> As a passenger, I want to pick departure and return dates from a calendar so that date selection is visual, fast, and error-free on any device.
+
+**Acceptance Criteria**
+
+- **Given** I open the calendar in one-way mode and pick a date
+  **When** the selection is made
+  **Then** the calendar closes and the departure date is set
+- **Given** I open the calendar in round-trip mode and pick a departure date
+  **When** the selection is made
+  **Then** the calendar stays open and advances to the return date step automatically
+- **Given** I pick a return date after a departure date in round-trip mode
+  **When** the selection is made
+  **Then** the calendar closes with both dates set
+- **Given** I open the return trigger before picking a departure date
+  **When** I pick a return date
+  **Then** the calendar stays open and switches to the departure step so I can pick departure next without reopening
+- **Given** I pick departure after return in the reverse flow
+  **When** the selection is made
+  **Then** the calendar closes with both dates set
+- **Given** I hover over a date while the range band is active
+  **When** the pointer moves
+  **Then** a light band previews the range from the anchor date to the hovered date with rounded pill caps at each end
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Journey | One-way: pick departure → calendar closes |
+| Journey | Round-trip: pick departure → calendar stays open → pick return → calendar closes |
+| Journey | Reverse flow: open return trigger with no departure → pick return → calendar stays open → pick departure → calendar closes |
+| Journey | Opening return trigger with departure already set → pick return → calendar closes |
+| Unit | `onReturnChange` fires with ISO date when return is picked first |
+| Unit | `onDepartureChange` fires and calendar closes when departure is picked after return in reverse flow |
+| Unit | Dates on/after committed return are disabled in departure step (reverse mode) |
+| Unit | Normal round-trip and one-way flows are unaffected by reverse-flow logic |
+
+---
+
+### QML-020 — Date Range Picker — Desktop · ✅ Done
+
+> As a passenger on desktop, I want the calendar to open as a dropdown panel with two months so that I can see a wider date range without scrolling.
+
+**Acceptance Criteria**
+
+- **Given** I click a date trigger on desktop (viewport ≥ 768 px)
+  **When** the calendar opens
+  **Then** it appears as a floating panel below the trigger showing the current month and the next month side by side
+- **Given** the calendar panel is open
+  **When** I click outside both the trigger and the panel
+  **Then** the calendar closes without selecting any date
+- **Given** the calendar is open and focused
+  **When** I press the arrow keys
+  **Then** focus moves between dates by day (left/right) or week (up/down)
+- **Given** a date is focused via keyboard
+  **When** I press Enter or Space
+  **Then** that date is selected as if clicked
+- **Given** the calendar is open
+  **When** I press Escape
+  **Then** the calendar closes without selecting any date
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Regression | Mousedown on a day button inside the portal does not close the calendar before the click fires |
+| Regression | Clicking a day in the desktop portal registers the date (end-to-end) |
+| Regression | Clicking truly outside trigger and panel closes the calendar |
+| Unit | Arrow key navigation moves focused date by 1 day (left/right) and 7 days (up/down) |
+| Unit | Escape closes the calendar and clears hover state |
+
+---
+
+### QML-021 — Date Range Picker — Mobile · ✅ Done
+
+> As a passenger on mobile, I want the calendar to open as a full-screen overlay so that it is easy to tap dates on a small screen.
+
+**Acceptance Criteria**
+
+- **Given** I tap a date trigger on mobile (viewport < 768 px)
+  **When** the calendar opens
+  **Then** it covers the full screen as a modal overlay showing a single scrollable month
+- **Given** the mobile calendar is open
+  **When** I tap a date
+  **Then** the selection registers the same way as on desktop (one-way closes, round-trip advances step)
+- **Given** I have finished selecting dates
+  **When** I tap the "Done" button at the bottom
+  **Then** the modal closes
+- **Given** the mobile calendar is open
+  **When** I review the header
+  **Then** a text label tells me whether I am selecting the departure date or the return date
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Visual | Calendar renders as a full-screen overlay at 390 px viewport width |
+| Visual | "Done" button is visible and fixed at the bottom of the overlay |
+| Visual | Step label ("Select departure date" / "Select return date") is shown in the header |
+| Journey | Tap departure trigger on mobile → pick date → calendar closes (one-way) |
+
+---
+
+### QML-022 — View Flight Search Results · ✅ Done
+
+> As a passenger, I want to see a list of matching flights after searching so that I can compare options and choose one to book.
+
+**Acceptance Criteria**
+
+- **Given** valid search params are in the URL
+  **When** the results page loads
+  **Then** each flight card shows flight number, route, departure/arrival times, duration, available seats, and price
+- **Given** the backend returns no flights for the search
+  **When** the page loads
+  **Then** an empty-state message is shown instead of a blank list
+- **Given** the results page loads
+  **When** I review the header
+  **Then** a summary line confirms the route, date, passenger count, and cabin class I searched for
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Component | `FlightList` renders one card per flight in the array |
+| Component | `FlightList` renders empty-state when the array is empty |
+| Unit | `formatSearchSummary` returns the correct string for all input combinations |
+| Unit | `buildApiUrl` produces the correct query string from search params |
+| Unit | `sortFlights` orders flights by departure time ascending |
+
+---
+
+### QML-023 — Travelers & Class — Desktop · ✅ Done
+
+> As a passenger on desktop, I want to adjust traveler count and cabin class directly in the search form header so that it does not interrupt my focus on the main search fields.
+
+**Acceptance Criteria**
+
+- **Given** I view the search form on desktop
+  **When** the header row renders
+  **Then** the traveler stepper (− count +) and cabin class chips (Economy / Business / First) appear inline to the right of the trip-type toggle, without a card border
+- **Given** I click + or − on the stepper
+  **When** the count changes
+  **Then** the value updates immediately; − is disabled at 1 and + is disabled at 9
+- **Given** I click a cabin class chip
+  **When** the selection registers
+  **Then** the tapped chip becomes selected and the others become unselected
+- **Given** I hover over any chip or stepper button
+  **When** the pointer enters
+  **Then** the cursor changes to a pointer
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Visual | Inline variant renders without a card border or background on desktop |
+| Component | `−` button is disabled and shows `cursor-default` when passenger count is 1 |
+| Component | `+` button is disabled and shows `cursor-default` when passenger count is 9 |
+| Component | Clicking a cabin chip marks it selected and deselects the previous selection |
+
+---
+
+### QML-024 — Travelers & Class — Mobile · ✅ Done
+
+> As a passenger on mobile, I want to see and adjust traveler count and cabin class just below the date fields so that I can complete the search form in a natural top-to-bottom flow.
+
+**Acceptance Criteria**
+
+- **Given** I view the search form on mobile
+  **When** the form renders
+  **Then** a "Travelers & Class" label appears above the stepper and chips, positioned below the date pickers and above the Search button
+- **Given** the mobile control renders
+  **When** I review its appearance
+  **Then** it is a flat row without a card border — the label and controls sit directly on the form background
+- **Given** I interact with the stepper or chips
+  **When** the value changes
+  **Then** behavior is identical to desktop (same increments, same chip toggle)
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Visual | Label "Travelers & Class" is visible above the stepper row on mobile |
+| Visual | No card border renders around the mobile control |
+| Visual | Control appears below the date pickers in the stacked form layout |
+
+---
+
+### EPIC: Web — Booking Journey
+
+---
+
+### QML-025 — Create a Booking · ✅ Done
+
+> As a passenger, I want to fill in my details and book a selected flight so that my seat is reserved and I receive a booking reference.
+
+**Acceptance Criteria**
+
+- **Given** I have selected a flight from the results
+  **When** I open the booking form
+  **Then** the selected flight details are displayed and I must enter first name, last name, email, and phone
+- **Given** I submit the form with all valid fields
+  **When** the booking API responds with success
+  **Then** I am redirected to the confirmation page showing my PNR
+- **Given** I submit the form with a required field missing
+  **When** validation runs
+  **Then** an inline error is shown for each missing field and the form is not submitted
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Component | Form shows validation error when first name, last name, or email is empty |
+| Component | Successful submit navigates to `/bookings/confirmation` with the PNR in the URL |
+| Component | Flight summary (number, route, departure time, price) is visible on the form |
+
+---
+
+### QML-026 — Booking Confirmation with Copy PNR · ✅ Done
+
+> As a passenger, I want to see my booking reference prominently after booking so that I can save it for check-in and support queries.
+
+**Acceptance Criteria**
+
+- **Given** a booking was just confirmed
+  **When** the confirmation page loads
+  **Then** the 6-character PNR is displayed in a large monospace font under the "Booking Reference" label
+- **Given** I tap the copy icon to the right of the PNR
+  **When** the clipboard write succeeds
+  **Then** the icon changes to a check mark for 2 seconds, then resets to the copy icon
+- **Given** the confirmation page loads
+  **When** I scroll through the summary card
+  **Then** flight number, route, departure time, passenger name, email, and total paid are all visible
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Component | Copy icon appears to the right of the PNR value at the top of the PNR number |
+| Component | Clicking the copy icon calls `navigator.clipboard.writeText` with the PNR string |
+| Component | Icon reverts to `content_copy` after 2 seconds |
+| Component | Booking summary renders correct values from URL search params |
+
+---
+
+### QML-027 — View My Bookings · ✅ Done
+
+> As a passenger, I want to see all my bookings in one place so that I can track the status of each trip.
+
+**Acceptance Criteria**
+
+- **Given** I navigate to the Bookings tab
+  **When** the page loads
+  **Then** each booking card shows PNR, route, flight number, departure date, status badge (CONFIRMED / PENDING), and total amount
+- **Given** I tap a booking card
+  **When** the detail page opens
+  **Then** full booking details are shown including passenger info, flight info, and payment status
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Component | CONFIRMED booking shows a green status badge |
+| Component | PENDING booking shows an amber status badge |
+| Component | Tapping a booking card navigates to `/bookings/[ref]` |
+
+---
+
+### QML-028 — Pay for a Booking · ✅ Done
+
+> As a passenger, I want to pay for a pending booking so that my seat is confirmed and I receive payment proof.
+
+**Acceptance Criteria**
+
+- **Given** I have a PENDING booking
+  **When** I open the payment page
+  **Then** the booking reference and total amount due are shown before I enter card details
+- **Given** I submit valid card details
+  **When** the charge succeeds
+  **Then** I see a success confirmation and the booking status updates to CONFIRMED
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Component | Payment form displays the total amount from the booking |
+| Component | Success state is rendered after a successful API response |
+
+---
+
+### EPIC: Web — My Trips
+
+---
+
+### QML-029 — Online Check-in · ✅ Done
+
+> As a passenger, I want to check in online before my flight so that I can skip the airport counter queue.
+
+**Acceptance Criteria**
+
+- **Given** I navigate to Check-in and enter my booking reference
+  **When** a matching booking is found
+  **Then** I can progress through: passenger confirmation → seat selection → review
+- **Given** I enter a booking reference that does not exist
+  **When** the lookup runs
+  **Then** a not-found page tells me the reference is invalid
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Component | Not-found page renders when the booking ref is unknown |
+| E2E | Full check-in flow from ref entry through review completes without errors |
+
+---
+
+### QML-030 — View Boarding Passes · ✅ Done
+
+> As a passenger, I want to view my boarding pass on my phone so that I can present it at the gate without printing.
+
+**Acceptance Criteria**
+
+- **Given** I have a checked-in booking
+  **When** I open the Passes tab
+  **Then** a boarding pass card shows flight number, route, seat, passenger name, and departure time
+- **Given** I tap a boarding pass card
+  **When** the detail view opens
+  **Then** a scannable QR code or barcode is displayed for gate scanning
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Component | Pass card renders all required boarding pass fields |
+| Component | Pass detail view shows a scannable code element |
+
+---
+
+### EPIC: Web — Account & Profile
+
+---
+
+### QML-031 — Login & Registration · ✅ Done
+
+> As a passenger, I want to create an account or log in so that my bookings are saved and accessible across sessions.
+
+**Acceptance Criteria**
+
+- **Given** I am a new user and complete the registration form
+  **When** I submit valid name, email, and password
+  **Then** a verification email is sent and I am prompted to confirm it
+- **Given** I am a registered user and enter valid credentials
+  **When** I submit the login form
+  **Then** I am authenticated and redirected to the flight search page
+- **Given** I forget my password and enter my email on the forgot-password page
+  **When** I submit
+  **Then** a reset link is sent to that address and a confirmation message is shown
+- **Given** I enter an invalid email or a password that does not meet strength requirements
+  **When** the form is submitted
+  **Then** inline validation errors describe what needs to be corrected
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Component | Password strength indicator updates as the password is typed |
+| Component | Register form shows inline error for an invalid email format |
+| Component | Login form redirects to `/flights` after a successful submit |
+| Component | Forgot-password form shows a confirmation message after submit |
+
+---
+
+### QML-032 — Manage Profile · ✅ Done
+
+> As a passenger, I want to view and update my account details so that my personal information stays accurate.
+
+**Acceptance Criteria**
+
+- **Given** I open my profile
+  **When** the page loads
+  **Then** my name, email, phone, nationality, and passport details are shown; my initials appear as the avatar when no photo is uploaded
+- **Given** I tap Edit and change a field
+  **When** I save
+  **Then** the updated value is persisted and reflected on the profile page
+- **Given** I open Account Settings
+  **When** the page loads
+  **Then** I can manage notification preferences and linked payment methods
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Component | Profile page renders user initials when no profile photo is set |
+| Component | Edit form pre-fills current profile values |
+| Component | Saving calls the update API with only the changed fields |
+| Component | Settings page renders notification preference toggles |
 
 ## Full Flow Acceptance Criteria
 

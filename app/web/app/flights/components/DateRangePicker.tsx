@@ -74,7 +74,17 @@ function MonthGrid({
   ];
   while (cells.length % 7 !== 0) cells.push(null);
 
-  const rangeEnd = step === "return" ? (hover ?? end) : end;
+  // In reverse mode (step=departure, return already committed) the band
+  // extends from the hovered/selected departure candidate towards the fixed
+  // return date.  In normal mode it extends from the fixed departure towards
+  // the hovered/selected return candidate.
+  const reverseMode = step === "departure" && end !== null;
+  const effectiveBandStart = reverseMode ? (hover ?? start) : start;
+  const effectiveBandEnd = reverseMode ? end : (hover ?? end);
+  const bandValid =
+    effectiveBandStart !== null &&
+    effectiveBandEnd !== null &&
+    effectiveBandStart < effectiveBandEnd;
 
   return (
     <div className="select-none min-w-[308px]">
@@ -104,7 +114,10 @@ function MonthGrid({
           const iso = toISO(year, month, day);
           const isPast = iso < today;
           const blockedReturn = step === "return" && start != null && iso < start;
-          const disabled = isPast || blockedReturn;
+          // In reverse mode block dates on/after the committed return date so
+          // the user cannot pick a departure that would invert the range.
+          const blockedDeparture = reverseMode && end !== null && iso >= end;
+          const disabled = isPast || blockedReturn || blockedDeparture;
           const col = idx % 7; // 0=Mon … 6=Sun
           const isSunday = col === SUN_IDX;
           const isSaturday = col === SAT_IDX;
@@ -117,13 +130,12 @@ function MonthGrid({
           const isToday = iso === today;
           const isFocused = iso === focusedIso;
 
-          const sameDay = start === rangeEnd;
+          const sameDay = effectiveBandStart === effectiveBandEnd;
           const inBand =
-            !sameDay && start != null && rangeEnd != null && iso > start && iso < rangeEnd;
-          const isBandStart = !sameDay && isStart && rangeEnd != null;
-          // Use rangeEnd (hover-aware) so that when hover < end, the committed
-          // return date gets no band — it sits outside the hover preview range.
-          const isBandEnd = !sameDay && iso === rangeEnd && start != null && iso !== start;
+            bandValid && !sameDay && iso > effectiveBandStart! && iso < effectiveBandEnd!;
+          const isBandStart = bandValid && !sameDay && iso === effectiveBandStart;
+          const isBandEnd =
+            bandValid && !sameDay && iso === effectiveBandEnd && iso !== effectiveBandStart;
 
           // Band tint colour
           const bandCls = "bg-primary/15";
@@ -244,6 +256,9 @@ export default function DateRangePicker({
 
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"departure" | "return">("departure");
+  // Set to true when the calendar is opened from the return trigger with no
+  // departure date — signals that the reverse flow (return → departure) is active.
+  const [returnFirst, setReturnFirst] = useState(false);
   const [hover, setHover] = useState<string | null>(null);
   const [viewY, setViewY] = useState(now.getFullYear());
   const [viewM, setViewM] = useState(now.getMonth());
@@ -352,6 +367,7 @@ export default function DateRangePicker({
         ? (departureDate ?? today)
         : (returnDate ?? departureDate ?? today),
     );
+    setReturnFirst(targetStep === "return" && !departureDate);
     setStep(targetStep);
     setOpen(true);
   };
@@ -361,19 +377,45 @@ export default function DateRangePicker({
   const handleDay = (iso: string) => {
     if (step === "departure") {
       onDepartureChange(iso);
-      if (returnDate && iso >= returnDate) onReturnChange(null);
-      if (isReturnEnabled) {
+      if (returnDate && iso >= returnDate) {
+        // Departure moved on/after return — clear return and continue to return step
+        onReturnChange(null);
+        setReturnFirst(false);
+        if (isReturnEnabled) {
+          setStep("return");
+          setFocusedIso(iso);
+        } else {
+          setOpen(false);
+          setFocusedIso(null);
+        }
+      } else if (returnFirst) {
+        // Reverse flow complete: return was already committed, departure now set — close
+        setOpen(false);
+        setHover(null);
+        setFocusedIso(null);
+        setReturnFirst(false);
+      } else if (isReturnEnabled) {
+        // Normal round-trip flow: advance to return step
         setStep("return");
-        setFocusedIso(returnDate ?? iso);
+        setFocusedIso(iso);
       } else {
+        // One-way: close after departure
         setOpen(false);
         setFocusedIso(null);
       }
     } else {
       onReturnChange(iso);
-      setOpen(false);
-      setHover(null);
-      setFocusedIso(null);
+      if (returnFirst) {
+        // Return picked before departure — stay open and let the user pick
+        // departure immediately without closing the calendar.
+        setStep("departure");
+        setHover(null);
+        setFocusedIso(iso);
+      } else {
+        setOpen(false);
+        setHover(null);
+        setFocusedIso(null);
+      }
     }
   };
 
@@ -405,7 +447,9 @@ export default function DateRangePicker({
         if (focusedIso && focusedIso >= today) {
           const blockedByDep =
             step === "return" && departureDate != null && focusedIso <= departureDate;
-          if (!blockedByDep) handleDay(focusedIso);
+          const blockedByRet =
+            step === "departure" && returnDate != null && focusedIso >= returnDate;
+          if (!blockedByDep && !blockedByRet) handleDay(focusedIso);
         }
         break;
       case "Escape":

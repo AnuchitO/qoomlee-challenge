@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
+import { useState } from "react";
 import DateRangePicker from "./DateRangePicker";
 
 const base = {
@@ -259,6 +260,177 @@ describe("DateRangePicker — user journey: round trip", () => {
 
     fireEvent.click(screen.getByLabelText("Clear return date"));
     expect(onReturnChange).toHaveBeenCalledWith(null);
+  });
+});
+
+// Stateful wrapper so prop updates from callbacks propagate back into the component,
+// matching real usage where the parent owns departure/return state.
+function ControlledPicker({
+  onDepartureChange,
+  onReturnChange,
+  ...rest
+}: Partial<Parameters<typeof DateRangePicker>[0]> & {
+  onDepartureChange?: (d: string | null) => void;
+  onReturnChange?: (d: string | null) => void;
+}) {
+  const [dep, setDep] = useState<string | null>(null);
+  const [ret, setRet] = useState<string | null>(null);
+  return (
+    <DateRangePicker
+      departureDate={dep}
+      returnDate={ret}
+      isReturnEnabled={true}
+      onDepartureChange={(d) => {
+        setDep(d);
+        onDepartureChange?.(d);
+      }}
+      onReturnChange={(d) => {
+        setRet(d);
+        onReturnChange?.(d);
+      }}
+      {...rest}
+    />
+  );
+}
+
+// ── User journey: reverse flow (return picked before departure) ───────────────
+//
+// When a user opens the return trigger without a departure date set they can
+// pick the return date first.  The calendar must stay open and switch to the
+// departure step so they can pick the departure without reopening the calendar.
+// Picking the departure then closes the calendar automatically.
+
+describe("DateRangePicker — user journey: reverse flow (return before departure)", () => {
+  const openReturnTrigger = () => {
+    const returnTrigger = screen.getByTestId("return-trigger");
+    fireEvent.click(returnTrigger.querySelector('[role="button"]') ?? returnTrigger);
+  };
+
+  // Helper: picks the last visible enabled day as return date so there is always
+  // room (enabled days before it) for the departure selection.
+  const pickLastEnabledAsReturn = () => {
+    const days = enabledDays();
+    fireEvent.click(days[days.length - 1]);
+  };
+
+  it("calendar stays open after return is picked when no departure is set yet", () => {
+    render(<DateRangePicker {...base} isReturnEnabled={true} />);
+
+    openReturnTrigger();
+    expect(enabledDays().length).toBeGreaterThan(0);
+
+    pickLastEnabledAsReturn();
+
+    // calendar must remain open so the user can pick departure
+    expect(enabledDays().length).toBeGreaterThan(0);
+  });
+
+  it("fires onReturnChange when return date is picked first", () => {
+    const onReturnChange = vi.fn();
+    render(<DateRangePicker {...base} isReturnEnabled={true} onReturnChange={onReturnChange} />);
+
+    openReturnTrigger();
+    pickLastEnabledAsReturn();
+
+    expect(onReturnChange).toHaveBeenCalledOnce();
+    expect(onReturnChange).toHaveBeenCalledWith(expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
+  });
+
+  it("fires onDepartureChange and closes the calendar when departure is picked after return", () => {
+    const onDepartureChange = vi.fn();
+    const onReturnChange = vi.fn();
+    render(
+      <DateRangePicker
+        {...base}
+        isReturnEnabled={true}
+        onDepartureChange={onDepartureChange}
+        onReturnChange={onReturnChange}
+      />,
+    );
+
+    // Step 1: open return trigger and pick the last visible day as return
+    openReturnTrigger();
+    pickLastEnabledAsReturn();
+    expect(onReturnChange).toHaveBeenCalledOnce();
+    expect(enabledDays().length).toBeGreaterThan(0); // still open in departure step
+
+    // Step 2: pick first enabled day as departure (guaranteed before the return date)
+    fireEvent.click(enabledDays()[0]);
+    expect(onDepartureChange).toHaveBeenCalledOnce();
+    expect(onDepartureChange).toHaveBeenCalledWith(expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
+
+    // calendar closes automatically
+    expect(enabledDays()).toHaveLength(0);
+  });
+
+  it("disables dates on/after the committed return date when selecting departure", () => {
+    const d = new Date();
+    d.setDate(d.getDate() + 10);
+    const returnISO = d.toISOString().split("T")[0];
+    const returnDayStr = String(d.getDate());
+
+    render(<DateRangePicker {...base} isReturnEnabled={true} returnDate={returnISO} />);
+
+    // Open departure trigger — reverseMode is active because returnDate is set
+    fireEvent.click(screen.getByTestId("departure-trigger"));
+
+    // The button for the return date itself must be disabled
+    const returnDayBtn = screen
+      .getAllByRole("button")
+      .find((b) => b.textContent?.trim() === returnDayStr && b.hasAttribute("disabled"));
+    expect(returnDayBtn).toBeTruthy();
+  });
+
+  it("enabled days before the return date can still be clicked in departure step", () => {
+    const d = new Date();
+    d.setDate(d.getDate() + 10);
+    const returnISO = d.toISOString().split("T")[0];
+
+    const onDepartureChange = vi.fn();
+    render(
+      <DateRangePicker
+        {...base}
+        isReturnEnabled={true}
+        returnDate={returnISO}
+        onDepartureChange={onDepartureChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId("departure-trigger"));
+
+    // The first enabled day is before the return — clicking it should fire onDepartureChange
+    expect(enabledDays().length).toBeGreaterThan(0);
+    fireEvent.click(enabledDays()[0]);
+
+    expect(onDepartureChange).toHaveBeenCalledOnce();
+  });
+
+  it("does not affect normal round-trip flow: picking departure still advances to return step", () => {
+    const onDepartureChange = vi.fn();
+    render(
+      <DateRangePicker {...base} isReturnEnabled={true} onDepartureChange={onDepartureChange} />,
+    );
+
+    // Normal flow: no returnDate set, pick departure → should stay open for return
+    fireEvent.click(screen.getByTestId("departure-trigger"));
+    fireEvent.click(enabledDays()[0]);
+
+    expect(onDepartureChange).toHaveBeenCalledOnce();
+    // calendar stays open (advanced to return step)
+    expect(enabledDays().length).toBeGreaterThan(0);
+  });
+
+  it("does not affect one-way flow: calendar still closes after departure is picked", () => {
+    const onDepartureChange = vi.fn();
+    render(
+      <DateRangePicker {...base} isReturnEnabled={false} onDepartureChange={onDepartureChange} />,
+    );
+
+    fireEvent.click(screen.getByTestId("departure-trigger"));
+    fireEvent.click(enabledDays()[0]);
+
+    expect(onDepartureChange).toHaveBeenCalledOnce();
+    expect(enabledDays()).toHaveLength(0); // closed immediately for one-way
   });
 });
 

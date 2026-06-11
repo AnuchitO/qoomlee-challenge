@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import TopAppBar from "../../components/TopAppBar";
-import { formatTHB } from "@/lib/utils/currency";
+import { formatTHB } from "@/lib/currency/currency";
 
 export const metadata: Metadata = {
   title: "Booking Confirmed · Qoomlee",

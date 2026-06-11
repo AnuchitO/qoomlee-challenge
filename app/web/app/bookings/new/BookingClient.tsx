@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Flight } from "@/lib/types/flight";
-import { formatTHB } from "@/lib/utils/currency";
+import { formatTHB } from "@/lib/currency/currency";
 
 const UPGRADE_PRICE_MINOR = 29900;
 

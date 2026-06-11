@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { InsurancePlan } from "./useTravelInsurance";
-import { formatTHB } from "@/lib/utils/currency";
+import { formatTHB } from "@/lib/currency/currency";
 
 interface TravelInsuranceViewProps {
   ref: string;

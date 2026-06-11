@@ -20,8 +20,8 @@ beforeEach(() => {
 describe("DateRangePicker", () => {
   it("renders Departure and Return section labels", () => {
     render(<DateRangePicker {...base} />);
-    expect(screen.getByText("Departure")).toBeInTheDocument();
-    expect(screen.getByText("Return")).toBeInTheDocument();
+    expect(screen.getByText("Departure date")).toBeInTheDocument();
+    expect(screen.getByText("Return Date")).toBeInTheDocument();
   });
 
   it("shows 'Add return' button when isReturnEnabled is false", () => {
@@ -45,13 +45,23 @@ describe("DateRangePicker", () => {
   it("opens calendar when departure trigger is clicked", () => {
     render(<DateRangePicker {...base} />);
     fireEvent.click(screen.getByTestId("departure-trigger"));
-    expect(screen.getByText("Select departure date")).toBeInTheDocument();
+    // calendar is open when day buttons (numbers) become visible
+    const dayButtons = screen
+      .getAllByRole("button")
+      .filter((b) => /^\d{1,2}$/.test(b.textContent ?? ""));
+    expect(dayButtons.length).toBeGreaterThan(0);
   });
 
   it("opens calendar at return step when return trigger is clicked", () => {
     render(<DateRangePicker {...base} isReturnEnabled={true} />);
-    fireEvent.click(screen.getByTestId("return-trigger"));
-    expect(screen.getByText("Select return date")).toBeInTheDocument();
+    // click the inner role=button inside the return trigger
+    const returnTrigger = screen.getByTestId("return-trigger");
+    const innerBtn = returnTrigger.querySelector('[role="button"]') ?? returnTrigger;
+    fireEvent.click(innerBtn);
+    const dayButtons = screen
+      .getAllByRole("button")
+      .filter((b) => /^\d{1,2}$/.test(b.textContent ?? ""));
+    expect(dayButtons.length).toBeGreaterThan(0);
   });
 
   it("calls onDepartureChange when a day is clicked in departure step", async () => {
@@ -87,7 +97,9 @@ describe("DateRangePicker", () => {
       />,
     );
 
-    fireEvent.click(screen.getByTestId("return-trigger"));
+    const returnTrigger = screen.getByTestId("return-trigger");
+    const innerBtn = returnTrigger.querySelector('[role="button"]') ?? returnTrigger;
+    fireEvent.click(innerBtn);
 
     // find enabled day buttons with value > departure day
     const dayButtons = screen

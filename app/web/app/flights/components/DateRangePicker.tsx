@@ -39,6 +39,7 @@ const firstDayOffset = (y: number, m: number) => (new Date(y, m, 1).getDay() + 6
 // ── MonthGrid ─────────────────────────────────────────────────────────────────
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const SUN_IDX = 6; // Sunday is the last column (Mon-start grid)
 
 interface MonthGridProps {
   year: number;
@@ -75,12 +76,15 @@ function MonthGrid({
 
   return (
     <div className="select-none min-w-[252px]">
-      <p className="text-label-md font-semibold text-center text-on-surface mb-3">
+      <p className="text-title-sm font-bold text-center text-primary mb-3">
         {monthLabel(year, month)}
       </p>
       <div className="grid grid-cols-7 mb-1">
-        {DAYS.map((d) => (
-          <div key={d} className="text-center text-label-xs text-on-surface-variant py-1">
+        {DAYS.map((d, i) => (
+          <div
+            key={d}
+            className={`text-center text-label-xs py-1 font-medium ${i === SUN_IDX ? "text-error/70" : "text-on-surface-variant"}`}
+          >
             {d}
           </div>
         ))}
@@ -93,6 +97,7 @@ function MonthGrid({
           const isPast = iso < today;
           const blockedReturn = step === "return" && start != null && iso < start;
           const disabled = isPast || blockedReturn;
+          const isSunday = idx % 7 === SUN_IDX;
 
           const isStart = iso === start;
           const isEnd = iso === end;
@@ -124,7 +129,11 @@ function MonthGrid({
                     ? "ring-1 ring-primary text-primary font-medium"
                     : "",
                   !isSelected && !disabled ? "hover:bg-primary/20" : "",
-                  !isSelected && !disabled && iso !== today ? "text-on-surface" : "",
+                  !isSelected && !disabled && iso !== today
+                    ? isSunday
+                      ? "text-error/80"
+                      : "text-on-surface"
+                    : "",
                 ]
                   .filter(Boolean)
                   .join(" ")}
@@ -274,110 +283,73 @@ export default function DateRangePicker({
 
   // ── calendar panel ────────────────────────────────────────────────────────
 
+  const navBtn = (label: string, disabled: boolean, onClick: () => void) => (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      className="p-1.5 rounded-full hover:bg-surface-container-high disabled:opacity-25 transition-colors shrink-0"
+    >
+      <span className="material-symbols-outlined text-[20px] text-on-surface-variant">
+        {label === "Previous month" ? "chevron_left" : "chevron_right"}
+      </span>
+    </button>
+  );
+
   const panel = (
     <div className="bg-surface-container-lowest rounded-2xl shadow-xl border border-outline-variant p-4">
-      {/* date summary chips */}
-      <div className="flex gap-3 mb-4">
-        <button
-          type="button"
-          onClick={() => setStep("departure")}
-          className={`flex-1 rounded-xl border px-3 py-2 text-left transition-colors ${
-            step === "departure" ? "border-primary bg-primary/5" : "border-outline-variant"
-          }`}
-        >
-          <p className="text-label-xs text-on-surface-variant mb-0.5">Departure</p>
-          <p
-            className={`text-body-sm font-semibold ${departureDate ? "text-on-surface" : "text-outline"}`}
-          >
-            {departureDate ? displayDate(departureDate) : "Select date"}
-          </p>
-        </button>
-        {showReturn && (
-          <button
-            type="button"
-            onClick={() => departureDate && setStep("return")}
-            className={`flex-1 rounded-xl border px-3 py-2 text-left transition-colors ${
-              step === "return" ? "border-primary bg-primary/5" : "border-outline-variant"
-            }`}
-          >
-            <p className="text-label-xs text-on-surface-variant mb-0.5">Return</p>
-            <p
-              className={`text-body-sm font-semibold ${returnDate ? "text-on-surface" : "text-outline"}`}
-            >
-              {returnDate ? displayDate(returnDate) : "Select date"}
-            </p>
-          </button>
-        )}
-      </div>
+      {/* mobile step hint */}
+      {isMobile && (
+        <p className="text-label-sm text-on-surface-variant text-center mb-3">
+          {step === "departure" ? "Select departure date" : "Select return date"}
+        </p>
+      )}
 
-      {/* step hint */}
-      <p className="text-label-sm text-on-surface-variant text-center mb-3">
-        {step === "departure" ? "Select departure date" : "Select return date"}
-      </p>
+      {/* months with nav arrows flanking */}
+      <div className="flex items-start gap-1">
+        {navBtn("Previous month", prevDisabled, () => {
+          if (prevDisabled) return;
+          const [y, m] = shiftMonth(viewY, viewM, -1);
+          setViewY(y);
+          setViewM(m);
+        })}
 
-      {/* month navigation */}
-      <div className="flex justify-between mb-1">
-        <button
-          type="button"
-          onClick={() => {
-            if (prevDisabled) return;
-            const [y, m] = shiftMonth(viewY, viewM, -1);
-            setViewY(y);
-            setViewM(m);
-          }}
-          disabled={prevDisabled}
-          aria-label="Previous month"
-          className="p-1.5 rounded-full hover:bg-surface-container-high disabled:opacity-25 transition-colors"
-        >
-          <span className="material-symbols-outlined text-[20px] text-on-surface-variant">
-            chevron_left
-          </span>
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            const [y, m] = shiftMonth(viewY, viewM, 1);
-            setViewY(y);
-            setViewM(m);
-          }}
-          aria-label="Next month"
-          className="p-1.5 rounded-full hover:bg-surface-container-high transition-colors"
-        >
-          <span className="material-symbols-outlined text-[20px] text-on-surface-variant">
-            chevron_right
-          </span>
-        </button>
-      </div>
-
-      {/* two months */}
-      <div className="md:flex md:gap-6">
-        <div className="flex-1">
-          <MonthGrid
-            year={viewY}
-            month={viewM}
-            today={today}
-            start={departureDate}
-            end={returnDate}
-            hover={hover}
-            step={step}
-            onDay={handleDay}
-            onHover={setHover}
-          />
+        <div className="flex-1 md:flex md:gap-4">
+          <div className="flex-1">
+            <MonthGrid
+              year={viewY}
+              month={viewM}
+              today={today}
+              start={departureDate}
+              end={returnDate}
+              hover={hover}
+              step={step}
+              onDay={handleDay}
+              onHover={setHover}
+            />
+          </div>
+          <div className="hidden md:block w-px bg-outline-variant self-stretch" />
+          <div className="flex-1 mt-6 md:mt-0">
+            <MonthGrid
+              year={ny}
+              month={nm}
+              today={today}
+              start={departureDate}
+              end={returnDate}
+              hover={hover}
+              step={step}
+              onDay={handleDay}
+              onHover={setHover}
+            />
+          </div>
         </div>
-        <div className="hidden md:block w-px bg-outline-variant self-stretch" />
-        <div className="flex-1 mt-6 md:mt-0">
-          <MonthGrid
-            year={ny}
-            month={nm}
-            today={today}
-            start={departureDate}
-            end={returnDate}
-            hover={hover}
-            step={step}
-            onDay={handleDay}
-            onHover={setHover}
-          />
-        </div>
+
+        {navBtn("Next month", false, () => {
+          const [y, m] = shiftMonth(viewY, viewM, 1);
+          setViewY(y);
+          setViewM(m);
+        })}
       </div>
 
       {/* mobile done */}
@@ -400,7 +372,7 @@ export default function DateRangePicker({
     <div ref={wrapRef} className="grid grid-cols-2 gap-md relative">
       {/* departure trigger */}
       <div className="space-y-sm">
-        <label className="block text-label-sm text-on-surface-variant px-1">Departure</label>
+        <label className="block text-label-sm text-on-surface-variant px-1">Departure date</label>
         <div
           role="button"
           tabIndex={0}
@@ -420,22 +392,41 @@ export default function DateRangePicker({
 
       {/* return trigger / add return */}
       <div className="space-y-sm">
-        <label className="block text-label-sm text-on-surface-variant px-1">Return</label>
+        <label className="block text-label-sm text-on-surface-variant px-1">Return Date</label>
         {isReturnEnabled ? (
           <>
             <div
-              role="button"
-              tabIndex={0}
-              onClick={() => openCalendar("return")}
-              onKeyDown={(e) => e.key === "Enter" && openCalendar("return")}
               style={boxStyle}
-              className={fieldClass(!!returnError, open && step === "return")}
+              className={`${fieldClass(!!returnError, open && step === "return")} pr-1`}
               data-testid="return-trigger"
             >
-              <span className="material-symbols-outlined text-[20px] shrink-0 text-outline">
-                calendar_today
-              </span>
-              {formatTrigger(returnDate)}
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => openCalendar("return")}
+                onKeyDown={(e) => e.key === "Enter" && openCalendar("return")}
+                className="flex items-center gap-sm flex-1 min-w-0"
+              >
+                <span className="material-symbols-outlined text-[20px] shrink-0 text-outline">
+                  calendar_today
+                </span>
+                {formatTrigger(returnDate)}
+              </div>
+              {returnDate && (
+                <button
+                  type="button"
+                  aria-label="Clear return date"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onReturnChange(null);
+                  }}
+                  className="shrink-0 ml-1 p-1 rounded-full hover:bg-surface-container-high transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[18px] text-on-surface-variant">
+                    close
+                  </span>
+                </button>
+              )}
             </div>
             {returnError && <p className="text-label-sm text-error px-1">{returnError}</p>}
           </>

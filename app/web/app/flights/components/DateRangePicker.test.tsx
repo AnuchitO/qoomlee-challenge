@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import DateRangePicker from "./DateRangePicker";
 
@@ -10,6 +10,12 @@ const base = {
   onReturnChange: vi.fn(),
   onAddReturn: vi.fn(),
 };
+
+beforeEach(() => {
+  base.onDepartureChange = vi.fn();
+  base.onReturnChange = vi.fn();
+  base.onAddReturn = vi.fn();
+});
 
 describe("DateRangePicker", () => {
   it("renders Departure and Return section labels", () => {

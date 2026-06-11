@@ -1,5 +1,9 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
 import { buildApiUrl } from "./buildApiUrl";
+
+afterEach(() => {
+  delete process.env.NEXT_PUBLIC_QOOMLEE_API_URL;
+});
 
 describe("buildApiUrl", () => {
   it("builds correct API URL from search params", () => {
@@ -38,6 +42,5 @@ describe("buildApiUrl", () => {
     });
 
     expect(url.startsWith("http://api.example.com")).toBe(true);
-    delete process.env.NEXT_PUBLIC_QOOMLEE_API_URL;
   });
 });

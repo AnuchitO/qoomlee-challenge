@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import PaymentClient from "./PaymentClient";
 
@@ -38,7 +38,12 @@ const fillValidCardForm = () => {
 };
 
 beforeEach(() => {
+  vi.useFakeTimers();
   mockPush.mockClear();
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe("PaymentClient — layout", () => {

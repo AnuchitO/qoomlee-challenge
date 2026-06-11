@@ -55,11 +55,12 @@ export default function SearchForm() {
   return (
     <section className="px-container-margin-mobile md:px-container-margin-desktop -mt-10 relative z-20">
       <div className="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant p-md">
-        {/* row 1: trip type + passengers */}
-        <div className="flex items-center justify-between gap-md mb-md">
+        {/* row 1: trip type (+ passengers on md+) */}
+        <div className="flex items-center justify-between gap-md mb-md flex-wrap gap-y-sm">
           <TripTypeToggle value={state.tripType} onChange={setTripType} />
-          <div className="hidden md:block shrink-0">
+          <div className="hidden md:flex">
             <PassengerSelector
+              variant="inline"
               passengers={state.passengers}
               cabinClass={state.cabinClass}
               onPassengersChange={setPassengers}
@@ -69,7 +70,7 @@ export default function SearchForm() {
         </div>
 
         {/* lg+ — flat single row, one flex column per field */}
-        <div className="hidden lg:flex lg:items-end lg:gap-sm">
+        <div className="hidden lg:flex lg:items-start lg:gap-sm">
           {/* From */}
           <div className="flex-1 min-w-0 flex flex-col gap-xs">
             <label className="text-label-sm text-on-surface-variant px-1">From</label>
@@ -93,7 +94,7 @@ export default function SearchForm() {
               type="button"
               onClick={handleSwap}
               aria-label="Swap origin and destination"
-              className="mb-[17px] flex items-center justify-center w-9 h-9 bg-surface-container-lowest border border-outline-variant rounded-full shadow-sm hover:bg-surface-container-high transition-colors"
+              className="mt-[10px] flex items-center justify-center w-9 h-9 bg-surface-container-lowest border border-outline-variant rounded-full shadow-sm hover:bg-surface-container-high transition-colors cursor-pointer"
             >
               <div className="rotate-90">
                 <div style={spinStyle}>{swapSvg}</div>
@@ -140,7 +141,7 @@ export default function SearchForm() {
             <button
               type="button"
               onClick={handleSearch}
-              className="px-xl bg-primary-container text-on-primary-container rounded-xl text-label-md shadow-sm active:scale-95 transition-transform whitespace-nowrap min-h-[70px]"
+              className="px-xl bg-primary-container text-on-primary-container rounded-xl text-label-md shadow-sm active:scale-95 transition-transform whitespace-nowrap min-h-[70px] cursor-pointer"
             >
               Search Flights
             </button>
@@ -178,7 +179,7 @@ export default function SearchForm() {
                 type="button"
                 onClick={handleSwap}
                 aria-label="Swap origin and destination"
-                className="shrink-0 flex items-center justify-center w-9 h-9 bg-surface-container-lowest border border-outline-variant rounded-full shadow-sm hover:bg-surface-container-high transition-colors"
+                className="shrink-0 flex items-center justify-center w-9 h-9 bg-surface-container-lowest border border-outline-variant rounded-full shadow-sm hover:bg-surface-container-high transition-colors cursor-pointer"
               >
                 <div className="rotate-90">
                   <div style={spinStyle}>{swapSvg}</div>
@@ -263,7 +264,7 @@ export default function SearchForm() {
                 type="button"
                 onClick={handleSwap}
                 aria-label="Swap origin and destination"
-                className="absolute right-md top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-9 h-9 bg-surface-container-lowest border border-outline-variant rounded-full shadow-sm hover:bg-surface-container-high transition-colors"
+                className="absolute right-md top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-9 h-9 bg-surface-container-lowest border border-outline-variant rounded-full shadow-sm hover:bg-surface-container-high transition-colors cursor-pointer"
               >
                 <div style={spinStyle}>{swapSvg}</div>
               </button>

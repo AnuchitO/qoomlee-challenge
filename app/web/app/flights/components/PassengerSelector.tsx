@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { CabinClass } from "../hooks/useFlightSearch";
 
 const CABIN_LABELS: Record<CabinClass, string> = {
   economy: "Economy",
   business: "Business",
-  first: "First Class",
+  first: "First",
 };
 
 interface Props {
@@ -14,6 +13,7 @@ interface Props {
   cabinClass: CabinClass;
   onPassengersChange: (n: number) => void;
   onCabinClassChange: (c: CabinClass) => void;
+  variant?: "card" | "inline";
 }
 
 export default function PassengerSelector({
@@ -21,92 +21,93 @@ export default function PassengerSelector({
   cabinClass,
   onPassengersChange,
   onCabinClassChange,
+  variant = "card",
 }: Props) {
-  const [open, setOpen] = useState(false);
-
-  const summary = `${passengers} Traveler${passengers > 1 ? "s" : ""}, ${CABIN_LABELS[cabinClass]}`;
-
-  return (
-    <div className="space-y-sm relative">
-      <label className="block text-label-sm text-on-surface-variant px-1">
-        Travelers &amp; Class
-      </label>
+  const stepper = (
+    <div className="flex items-center gap-xs">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between border border-outline-variant rounded-xl p-md bg-surface-bright text-left"
+        disabled={passengers <= 1}
+        onClick={() => onPassengersChange(passengers - 1)}
+        aria-label="Remove passenger"
+        className="w-7 h-7 rounded-full border border-outline-variant flex items-center justify-center text-primary hover:bg-primary/10 disabled:opacity-30 transition-colors cursor-pointer disabled:cursor-default"
       >
-        <div className="flex items-center gap-md">
-          <span className="material-symbols-outlined text-outline">person</span>
-          <span className="text-body-md text-on-surface">{summary}</span>
-        </div>
-        <span className="material-symbols-outlined text-outline">
-          {open ? "expand_less" : "expand_more"}
-        </span>
+        <span className="material-symbols-outlined text-[16px]">remove</span>
       </button>
+      <div className="flex items-center gap-xs min-w-[2.5rem] justify-center">
+        <span className="material-symbols-outlined text-[16px] text-on-surface-variant">
+          person
+        </span>
+        <span className="text-body-md text-on-surface tabular-nums">{passengers}</span>
+      </div>
+      <button
+        type="button"
+        disabled={passengers >= 9}
+        onClick={() => onPassengersChange(passengers + 1)}
+        aria-label="Add passenger"
+        className="w-7 h-7 rounded-full border border-outline-variant flex items-center justify-center text-primary hover:bg-primary/10 disabled:opacity-30 transition-colors cursor-pointer disabled:cursor-default"
+      >
+        <span className="material-symbols-outlined text-[16px]">add</span>
+      </button>
+    </div>
+  );
 
-      {open && (
-        <div className="absolute top-full left-0 right-0 z-30 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-lg p-md mt-sm space-y-lg">
-          {/* Passenger count */}
-          <div className="flex items-center justify-between">
-            <span className="text-body-md text-on-surface">Passengers</span>
-            <div className="flex items-center gap-md">
-              <button
-                type="button"
-                disabled={passengers <= 1}
-                onClick={() => onPassengersChange(passengers - 1)}
-                className="w-8 h-8 rounded-full border border-outline-variant flex items-center justify-center text-primary disabled:text-outline disabled:border-outline/30"
-              >
-                <span className="material-symbols-outlined text-[18px]">remove</span>
-              </button>
-              <span className="text-body-md text-on-surface w-4 text-center">{passengers}</span>
-              <button
-                type="button"
-                disabled={passengers >= 9}
-                onClick={() => onPassengersChange(passengers + 1)}
-                className="w-8 h-8 rounded-full border border-outline-variant flex items-center justify-center text-primary disabled:text-outline disabled:border-outline/30"
-              >
-                <span className="material-symbols-outlined text-[18px]">add</span>
-              </button>
-            </div>
-          </div>
+  const chips = (
+    <div className="flex items-center gap-xs">
+      {(Object.keys(CABIN_LABELS) as CabinClass[]).map((c) => (
+        <button
+          key={c}
+          type="button"
+          onClick={() => onCabinClassChange(c)}
+          className={`px-sm py-1 rounded-lg text-label-sm transition-colors whitespace-nowrap cursor-pointer ${
+            cabinClass === c
+              ? "bg-primary/10 text-primary font-medium ring-1 ring-primary/30"
+              : "text-on-surface-variant hover:bg-surface-container"
+          }`}
+        >
+          {CABIN_LABELS[c]}
+        </button>
+      ))}
+    </div>
+  );
 
-          {/* Cabin class */}
-          <div className="space-y-sm">
-            <span className="text-label-sm text-on-surface-variant">Cabin class</span>
-            <div className="flex flex-col gap-xs">
-              {(Object.keys(CABIN_LABELS) as CabinClass[]).map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => {
-                    onCabinClassChange(c);
-                    setOpen(false);
-                  }}
-                  className={`flex items-center justify-between px-md py-sm rounded-lg transition-colors ${
-                    cabinClass === c
-                      ? "bg-primary-container text-on-primary-container"
-                      : "hover:bg-surface-container-low text-on-surface"
-                  }`}
-                >
-                  <span className="text-body-md">{CABIN_LABELS[c]}</span>
-                  {cabinClass === c && (
-                    <span className="material-symbols-outlined text-[18px]">check</span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
+  const divider = <div className="w-px h-5 bg-outline-variant shrink-0" />;
 
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            className="w-full bg-primary text-on-primary py-2 rounded-lg text-label-md"
-          >
-            Done
-          </button>
+  if (variant === "inline") {
+    return (
+      <div className="flex items-center gap-sm">
+        {stepper}
+        {divider}
+        {chips}
+      </div>
+    );
+  }
+
+  return (
+    <div className="px-1">
+      <span className="text-label-xs text-on-surface-variant block mb-xs">
+        Travelers &amp; Class
+      </span>
+      <div className="flex items-center gap-sm">
+        {stepper}
+        {divider}
+        <div className="flex items-center gap-xs flex-1">
+          {(Object.keys(CABIN_LABELS) as CabinClass[]).map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => onCabinClassChange(c)}
+              className={`flex-1 px-xs py-1 rounded-lg text-label-sm transition-colors ${
+                cabinClass === c
+                  ? "bg-primary/10 text-primary font-medium ring-1 ring-primary/30 cursor-pointer"
+                  : "text-on-surface-variant hover:bg-surface-container cursor-pointer"
+              }`}
+            >
+              {CABIN_LABELS[c]}
+            </button>
+          ))}
         </div>
-      )}
+      </div>
     </div>
   );
 }

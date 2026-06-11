@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import DateRangePicker from "./DateRangePicker";
 
 const base = {
@@ -154,5 +154,180 @@ describe("DateRangePicker", () => {
     fireEvent.click(screen.getByLabelText("Next month"));
 
     expect(screen.getByText(nextMonthLabel)).toBeInTheDocument();
+  });
+});
+
+// ── User journey tests ────────────────────────────────────────────────────────
+// These tests describe the full flow from the user's perspective so regressions
+// in any layer (state, portal, outside-click handler) are immediately visible.
+
+const enabledDays = () =>
+  screen
+    .getAllByRole("button")
+    .filter((b) => /^\d{1,2}$/.test(b.textContent ?? "") && !b.hasAttribute("disabled"));
+
+describe("DateRangePicker — user journey: one-way trip", () => {
+  it("user opens the calendar, picks a departure date, and the calendar closes", () => {
+    const onDepartureChange = vi.fn();
+    render(<DateRangePicker {...base} onDepartureChange={onDepartureChange} />);
+
+    // user taps the departure field
+    fireEvent.click(screen.getByTestId("departure-trigger"));
+    expect(enabledDays().length).toBeGreaterThan(0);
+
+    // user taps a day
+    fireEvent.click(enabledDays()[0]);
+
+    // date was registered
+    expect(onDepartureChange).toHaveBeenCalledOnce();
+    expect(onDepartureChange).toHaveBeenCalledWith(expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
+
+    // calendar is gone
+    expect(enabledDays()).toHaveLength(0);
+  });
+});
+
+describe("DateRangePicker — user journey: round trip", () => {
+  const tomorrow = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split("T")[0];
+  };
+
+  it("user picks departure then return — both callbacks fire and calendar closes after return", () => {
+    const onDepartureChange = vi.fn();
+    const onReturnChange = vi.fn();
+    render(
+      <DateRangePicker
+        {...base}
+        isReturnEnabled={true}
+        onDepartureChange={onDepartureChange}
+        onReturnChange={onReturnChange}
+      />,
+    );
+
+    // step 1: open and pick departure
+    fireEvent.click(screen.getByTestId("departure-trigger"));
+    fireEvent.click(enabledDays()[0]);
+    expect(onDepartureChange).toHaveBeenCalledOnce();
+
+    // calendar stays open for return step (still shows day buttons)
+    expect(enabledDays().length).toBeGreaterThan(0);
+
+    // step 2: pick return
+    fireEvent.click(enabledDays()[0]);
+    expect(onReturnChange).toHaveBeenCalledOnce();
+
+    // calendar closes
+    expect(enabledDays()).toHaveLength(0);
+  });
+
+  it("user can open the return trigger directly when departure is already set", () => {
+    const onReturnChange = vi.fn();
+    render(
+      <DateRangePicker
+        {...base}
+        isReturnEnabled={true}
+        departureDate={tomorrow()}
+        onReturnChange={onReturnChange}
+      />,
+    );
+
+    // user taps the Return field
+    const returnTrigger = screen.getByTestId("return-trigger");
+    fireEvent.click(returnTrigger.querySelector('[role="button"]') ?? returnTrigger);
+
+    // picks a return day
+    fireEvent.click(enabledDays()[0]);
+
+    expect(onReturnChange).toHaveBeenCalledOnce();
+    expect(onReturnChange).toHaveBeenCalledWith(expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
+    expect(enabledDays()).toHaveLength(0);
+  });
+
+  it("user can clear the return date with the X button", () => {
+    const onReturnChange = vi.fn();
+    render(
+      <DateRangePicker
+        {...base}
+        isReturnEnabled={true}
+        departureDate={tomorrow()}
+        returnDate={tomorrow()}
+        onReturnChange={onReturnChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByLabelText("Clear return date"));
+    expect(onReturnChange).toHaveBeenCalledWith(null);
+  });
+});
+
+// ── Regression: portal outside-click handler ─────────────────────────────────
+//
+// Bug: after switching the desktop panel to createPortal(…, document.body),
+// the outside-click handler used wrapRef.contains(target).  Because the portal
+// lives outside wrapRef in the DOM, every day-button click was treated as
+// "outside", closing the calendar before the day's onClick could fire.
+// Fix: panelRef was added to the portal container and excluded from the check.
+//
+// These tests run with window.innerWidth = 1440 to exercise the desktop portal
+// code path (isMobile = false) where the bug manifested.
+
+describe("DateRangePicker — regression: portal outside-click must not swallow day clicks", () => {
+  beforeEach(() => {
+    Object.defineProperty(window, "innerWidth", {
+      writable: true,
+      configurable: true,
+      value: 1440,
+    });
+    act(() => window.dispatchEvent(new Event("resize")));
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, "innerWidth", {
+      writable: true,
+      configurable: true,
+      value: 0,
+    });
+    act(() => window.dispatchEvent(new Event("resize")));
+  });
+
+  it("mousedown on a day button inside the portal does not close the calendar (desktop)", () => {
+    render(<DateRangePicker {...base} />);
+    fireEvent.click(screen.getByTestId("departure-trigger"));
+
+    const days = enabledDays();
+    expect(days.length).toBeGreaterThan(0);
+
+    // mousedown is what the outside-click handler listens for.
+    // Before the fix it would close the calendar here, making the
+    // subsequent click land on nothing and onDepartureChange never fire.
+    fireEvent.mouseDown(days[0]);
+
+    // calendar must still be open
+    expect(enabledDays().length).toBeGreaterThan(0);
+  });
+
+  it("clicking a day in the desktop portal registers the date (end-to-end regression)", () => {
+    const onDepartureChange = vi.fn();
+    render(<DateRangePicker {...base} onDepartureChange={onDepartureChange} />);
+
+    fireEvent.click(screen.getByTestId("departure-trigger"));
+    fireEvent.click(enabledDays()[0]);
+
+    // Without panelRef the handler closed the calendar on mousedown,
+    // so onClick never fired and this count would be 0.
+    expect(onDepartureChange).toHaveBeenCalledOnce();
+  });
+
+  it("clicking truly outside the trigger and panel closes the calendar (desktop)", () => {
+    render(<DateRangePicker {...base} />);
+    fireEvent.click(screen.getByTestId("departure-trigger"));
+    expect(enabledDays().length).toBeGreaterThan(0);
+
+    // mousedown on an element that is outside both wrapRef and panelRef
+    fireEvent.mouseDown(document.body);
+
+    expect(enabledDays()).toHaveLength(0);
   });
 });

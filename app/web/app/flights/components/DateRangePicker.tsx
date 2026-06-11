@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -23,23 +23,20 @@ const shiftMonth = (y: number, m: number, n: number): [number, number] => {
 const monthLabel = (y: number, m: number) =>
   new Date(y, m).toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
-const displayDate = (iso: string) => {
-  const [y, m, d] = parseISO(iso);
-  return new Date(y, m, d).toLocaleDateString("en-US", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-};
-
 const daysInMonth = (y: number, m: number) => new Date(y, m + 1, 0).getDate();
 const firstDayOffset = (y: number, m: number) => (new Date(y, m, 1).getDay() + 6) % 7; // Mon=0
+
+const addDays = (iso: string, n: number): string => {
+  const [y, m, d] = parseISO(iso);
+  const dt = new Date(y, m, d + n);
+  return toISO(dt.getFullYear(), dt.getMonth(), dt.getDate());
+};
 
 // ── MonthGrid ─────────────────────────────────────────────────────────────────
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const SUN_IDX = 6; // Sunday is the last column (Mon-start grid)
+const SUN_IDX = 6;
+const SAT_IDX = 5;
 
 interface MonthGridProps {
   year: number;
@@ -49,6 +46,7 @@ interface MonthGridProps {
   end: string | null;
   hover: string | null;
   step: "departure" | "return";
+  focusedIso: string | null;
   onDay: (iso: string) => void;
   onHover: (iso: string | null) => void;
 }
@@ -61,6 +59,7 @@ function MonthGrid({
   end,
   hover,
   step,
+  focusedIso,
   onDay,
   onHover,
 }: MonthGridProps) {
@@ -83,7 +82,13 @@ function MonthGrid({
         {DAYS.map((d, i) => (
           <div
             key={d}
-            className={`text-center text-label-xs py-1 font-medium ${i === SUN_IDX ? "text-error/70" : "text-on-surface-variant"}`}
+            className={`text-center text-label-xs py-1 font-medium ${
+              i === SUN_IDX
+                ? "text-error/70"
+                : i === SAT_IDX
+                  ? "text-on-surface-variant/70"
+                  : "text-on-surface-variant"
+            }`}
           >
             {d}
           </div>
@@ -97,12 +102,18 @@ function MonthGrid({
           const isPast = iso < today;
           const blockedReturn = step === "return" && start != null && iso < start;
           const disabled = isPast || blockedReturn;
-          const isSunday = idx % 7 === SUN_IDX;
+          const col = idx % 7; // 0=Mon … 6=Sun
+          const isSunday = col === SUN_IDX;
+          const isSaturday = col === SAT_IDX;
+          const isRowStart = col === 0;
+          const isRowEnd = col === SUN_IDX;
 
           const isStart = iso === start;
           const isEnd = iso === end;
           const isHoverEnd = step === "return" && iso === hover && !disabled;
           const isSelected = isStart || isEnd;
+          const isToday = iso === today;
+          const isFocused = iso === focusedIso;
 
           const sameDay = start === rangeEnd;
           const inBand =
@@ -110,11 +121,28 @@ function MonthGrid({
           const isBandStart = !sameDay && isStart && rangeEnd != null;
           const isBandEnd = !sameDay && (isEnd || isHoverEnd) && start != null && iso !== start;
 
+          // Band tint colour
+          const bandCls = "bg-primary/15";
+
           return (
             <div key={iso} className="relative h-10 flex items-center justify-center">
-              {inBand && <div className="absolute inset-0 bg-primary/10" />}
-              {isBandStart && <div className="absolute inset-y-0 left-1/2 right-0 bg-primary/10" />}
-              {isBandEnd && <div className="absolute inset-y-0 left-0 right-1/2 bg-primary/10" />}
+              {/* continuous band — round at row boundaries */}
+              {inBand && (
+                <div
+                  className={[
+                    `absolute inset-0 ${bandCls}`,
+                    isRowStart ? "rounded-l-full" : "",
+                    isRowEnd ? "rounded-r-full" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                />
+              )}
+              {/* half-band for range start (right half) */}
+              {isBandStart && <div className={`absolute inset-y-0 left-1/2 right-0 ${bandCls}`} />}
+              {/* half-band for range end (left half) */}
+              {isBandEnd && <div className={`absolute inset-y-0 left-0 right-1/2 ${bandCls}`} />}
+
               <button
                 type="button"
                 disabled={disabled}
@@ -122,23 +150,39 @@ function MonthGrid({
                 onMouseEnter={() => !disabled && onHover(iso)}
                 onMouseLeave={() => onHover(null)}
                 className={[
-                  "relative z-10 w-10 h-10 rounded-full flex items-center justify-center text-body-sm transition-colors",
-                  disabled ? "text-outline-variant cursor-default" : "cursor-pointer",
-                  isSelected ? "bg-primary text-on-primary font-semibold" : "",
-                  iso === today && !isSelected
-                    ? "ring-1 ring-primary text-primary font-medium"
+                  "relative z-10 w-10 h-10 rounded-full flex flex-col items-center justify-center transition-colors leading-none",
+                  // disabled: faded
+                  disabled ? "opacity-30 cursor-default" : "cursor-pointer",
+                  // selected circle
+                  isSelected ? "bg-primary text-on-primary font-semibold text-body-sm" : "",
+                  // today ring
+                  isToday && !isSelected
+                    ? "ring-1 ring-primary text-primary font-medium text-body-sm"
                     : "",
+                  // keyboard focus ring
+                  isFocused && !isSelected ? "ring-2 ring-primary/60 ring-offset-1" : "",
+                  // hover
                   !isSelected && !disabled ? "hover:bg-primary/20" : "",
-                  !isSelected && !disabled && iso !== today
+                  // day text colour
+                  !isSelected && !disabled && !isToday
                     ? isSunday
-                      ? "text-error/80"
-                      : "text-on-surface"
+                      ? "text-error/80 text-body-sm"
+                      : isSaturday
+                        ? "text-on-surface-variant text-body-sm"
+                        : "text-on-surface text-body-sm"
                     : "",
                 ]
                   .filter(Boolean)
                   .join(" ")}
               >
-                {day}
+                <span>{day}</span>
+                {isToday && (
+                  <span
+                    className={`text-[7px] leading-none font-semibold mt-0.5 ${isSelected ? "text-on-primary/80" : "text-primary"}`}
+                  >
+                    Today
+                  </span>
+                )}
               </button>
             </div>
           );
@@ -194,6 +238,7 @@ export default function DateRangePicker({
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [desktopPos, setDesktopPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const [focusedIso, setFocusedIso] = useState<string | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -230,8 +275,57 @@ export default function DateRangePicker({
     };
   }, [open, isMobile]);
 
+  // Auto-advance view when keyboard focus moves outside visible months
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => {
+    if (!focusedIso || !open) return;
+    const [fy, fm] = parseISO(focusedIso);
+    const focused = new Date(fy, fm);
+    const [ny, nm] = shiftMonth(viewY, viewM, 1);
+    if (focused < new Date(viewY, viewM)) {
+      const [py, pm] = shiftMonth(viewY, viewM, -1);
+      if (new Date(py, pm) >= new Date(now.getFullYear(), now.getMonth())) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setViewY(py);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setViewM(pm);
+      }
+    } else if (focused > new Date(ny, nm)) {
+      const [ay, am] = shiftMonth(viewY, viewM, 1);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setViewY(ay);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setViewM(am);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusedIso]);
+
+  // Focus panel when it opens (desktop)
+  useEffect(() => {
+    if (open && !isMobile) {
+      requestAnimationFrame(() => panelRef.current?.focus());
+    }
+  }, [open, isMobile]);
+
+  // ── position helper ─────────────────────────────────────────────────────────
+
+  const computePos = useCallback(() => {
+    if (!wrapRef.current) return;
+    const rect = wrapRef.current.getBoundingClientRect();
+    const panelW = 760;
+    const margin = 12;
+    const rawLeft = rect.left + window.scrollX;
+    const clampedLeft = Math.max(
+      margin,
+      Math.min(rawLeft, window.innerWidth - panelW - margin + window.scrollX),
+    );
+    setDesktopPos({ top: rect.bottom + window.scrollY + 8, left: clampedLeft });
+  }, []);
+
+  // ── open calendar ───────────────────────────────────────────────────────────
+
   const openCalendar = (targetStep: "departure" | "return") => {
-    const ref = targetStep === "departure" ? departureDate : departureDate;
+    const ref = targetStep === "departure" ? departureDate : (departureDate ?? null);
     if (ref) {
       const [y, m] = parseISO(ref);
       setViewY(y);
@@ -240,22 +334,17 @@ export default function DateRangePicker({
       setViewY(now.getFullYear());
       setViewM(now.getMonth());
     }
-    // Compute clamped desktop position before opening
-    if (wrapRef.current) {
-      const rect = wrapRef.current.getBoundingClientRect();
-      const panelW = 760; // matches rendered width of dual-month panel
-      const gap = 8;
-      const margin = 12;
-      const rawLeft = rect.left + window.scrollX;
-      const clampedLeft = Math.max(
-        margin,
-        Math.min(rawLeft, window.innerWidth - panelW - margin + window.scrollX),
-      );
-      setDesktopPos({ top: rect.bottom + window.scrollY + gap, left: clampedLeft });
-    }
+    computePos();
+    setFocusedIso(
+      targetStep === "departure"
+        ? (departureDate ?? today)
+        : (returnDate ?? departureDate ?? today),
+    );
     setStep(targetStep);
     setOpen(true);
   };
+
+  // ── day selection ───────────────────────────────────────────────────────────
 
   const handleDay = (iso: string) => {
     if (step === "departure") {
@@ -263,13 +352,52 @@ export default function DateRangePicker({
       if (returnDate && iso >= returnDate) onReturnChange(null);
       if (isReturnEnabled) {
         setStep("return");
+        setFocusedIso(returnDate ?? iso);
       } else {
         setOpen(false);
+        setFocusedIso(null);
       }
     } else {
       onReturnChange(iso);
       setOpen(false);
       setHover(null);
+      setFocusedIso(null);
+    }
+  };
+
+  // ── keyboard navigation ─────────────────────────────────────────────────────
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!open) return;
+    const cur = focusedIso ?? today;
+    switch (e.key) {
+      case "ArrowLeft":
+        e.preventDefault();
+        setFocusedIso(addDays(cur, -1));
+        break;
+      case "ArrowRight":
+        e.preventDefault();
+        setFocusedIso(addDays(cur, 1));
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setFocusedIso(addDays(cur, -7));
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        setFocusedIso(addDays(cur, 7));
+        break;
+      case "Enter":
+      case " ":
+        e.preventDefault();
+        if (focusedIso && focusedIso >= today) handleDay(focusedIso);
+        break;
+      case "Escape":
+        e.preventDefault();
+        setOpen(false);
+        setHover(null);
+        setFocusedIso(null);
+        break;
     }
   };
 
@@ -281,7 +409,6 @@ export default function DateRangePicker({
   })();
 
   const boxStyle = boxMinHeight ? { minHeight: boxMinHeight } : undefined;
-  const showReturn = isReturnEnabled || (open && step === "return");
 
   const formatTrigger = (iso: string | null) => {
     if (!iso) return <span className="text-on-surface-variant text-body-sm">Select date</span>;
@@ -306,7 +433,7 @@ export default function DateRangePicker({
           : "border-outline-variant",
     ].join(" ");
 
-  // ── calendar panel ────────────────────────────────────────────────────────
+  // ── nav button ──────────────────────────────────────────────────────────────
 
   const navBtn = (label: string, disabled: boolean, onClick: () => void) => (
     <button
@@ -322,68 +449,73 @@ export default function DateRangePicker({
     </button>
   );
 
+  // ── calendar panel ──────────────────────────────────────────────────────────
+
+  const monthsBlock = (
+    <div className="flex items-start gap-1">
+      {navBtn("Previous month", prevDisabled, () => {
+        if (prevDisabled) return;
+        const [y, m] = shiftMonth(viewY, viewM, -1);
+        setViewY(y);
+        setViewM(m);
+      })}
+      <div className="flex-1 md:flex md:gap-4">
+        <div className="flex-1">
+          <MonthGrid
+            year={viewY}
+            month={viewM}
+            today={today}
+            start={departureDate}
+            end={returnDate}
+            hover={hover}
+            step={step}
+            focusedIso={focusedIso}
+            onDay={handleDay}
+            onHover={setHover}
+          />
+        </div>
+        <div className="hidden md:block w-px bg-outline-variant self-stretch" />
+        <div className="flex-1 mt-6 md:mt-0">
+          <MonthGrid
+            year={ny}
+            month={nm}
+            today={today}
+            start={departureDate}
+            end={returnDate}
+            hover={hover}
+            step={step}
+            focusedIso={focusedIso}
+            onDay={handleDay}
+            onHover={setHover}
+          />
+        </div>
+      </div>
+      {navBtn("Next month", false, () => {
+        const [y, m] = shiftMonth(viewY, viewM, 1);
+        setViewY(y);
+        setViewM(m);
+      })}
+    </div>
+  );
+
   const panel = (
-    <div className="bg-surface-container-lowest rounded-2xl shadow-xl border border-outline-variant p-4">
-      {/* mobile step hint */}
+    <div
+      className="bg-surface-container-lowest rounded-2xl shadow-xl border border-outline-variant p-4
+                 animate-[calendar-in_150ms_ease-out]"
+    >
       {isMobile && (
         <p className="text-label-sm text-on-surface-variant text-center mb-3">
           {step === "departure" ? "Select departure date" : "Select return date"}
         </p>
       )}
-
-      {/* months with nav arrows flanking */}
-      <div className="flex items-start gap-1">
-        {navBtn("Previous month", prevDisabled, () => {
-          if (prevDisabled) return;
-          const [y, m] = shiftMonth(viewY, viewM, -1);
-          setViewY(y);
-          setViewM(m);
-        })}
-
-        <div className="flex-1 md:flex md:gap-4">
-          <div className="flex-1">
-            <MonthGrid
-              year={viewY}
-              month={viewM}
-              today={today}
-              start={departureDate}
-              end={returnDate}
-              hover={hover}
-              step={step}
-              onDay={handleDay}
-              onHover={setHover}
-            />
-          </div>
-          <div className="hidden md:block w-px bg-outline-variant self-stretch" />
-          <div className="flex-1 mt-6 md:mt-0">
-            <MonthGrid
-              year={ny}
-              month={nm}
-              today={today}
-              start={departureDate}
-              end={returnDate}
-              hover={hover}
-              step={step}
-              onDay={handleDay}
-              onHover={setHover}
-            />
-          </div>
-        </div>
-
-        {navBtn("Next month", false, () => {
-          const [y, m] = shiftMonth(viewY, viewM, 1);
-          setViewY(y);
-          setViewM(m);
-        })}
-      </div>
-
-      {/* mobile done */}
+      {monthsBlock}
       {isMobile && (
         <button
           type="button"
           onClick={() => {
             setOpen(false);
             setHover(null);
+            setFocusedIso(null);
           }}
           className="mt-4 w-full py-3 bg-primary text-on-primary rounded-xl text-label-md font-semibold"
         >
@@ -459,8 +591,10 @@ export default function DateRangePicker({
           <button
             type="button"
             onClick={() => {
+              computePos(); // fix: compute position before portal opens
               onAddReturn?.();
               setStep("return");
+              setFocusedIso(departureDate ?? today);
               setOpen(true);
               if (departureDate) {
                 const [y, m] = parseISO(departureDate);
@@ -477,18 +611,21 @@ export default function DateRangePicker({
         )}
       </div>
 
-      {/* desktop portal — positioned with getBoundingClientRect so it never overflows */}
+      {/* desktop portal */}
       {open &&
         !isMobile &&
         mounted &&
         createPortal(
           <div
             ref={panelRef}
+            tabIndex={-1}
+            onKeyDown={handleKeyDown}
             style={{
               position: "absolute",
               top: desktopPos.top,
               left: desktopPos.left,
               zIndex: 9999,
+              outline: "none",
             }}
           >
             {panel}
@@ -507,9 +644,15 @@ export default function DateRangePicker({
               onClick={() => {
                 setOpen(false);
                 setHover(null);
+                setFocusedIso(null);
               }}
             />
-            <div className="relative max-h-[90vh] overflow-y-auto rounded-t-3xl">{panel}</div>
+            <div
+              className="relative max-h-[90vh] overflow-y-auto rounded-t-3xl animate-[slide-up_250ms_ease-out]"
+              onKeyDown={handleKeyDown}
+            >
+              {panel}
+            </div>
           </div>,
           document.body,
         )}

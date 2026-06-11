@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import TopAppBar from "../../components/TopAppBar";
 import { formatTHB } from "@/lib/currency/currency";
+import CopyPNR from "./CopyPNR";
 
 export const metadata: Metadata = {
   title: "Booking Confirmed · Qoomlee",
@@ -87,12 +88,15 @@ export default async function ConfirmationPage({
                 <span className="text-label-sm text-on-surface-variant block mb-xs uppercase tracking-wider">
                   Booking Reference
                 </span>
-                <span
-                  className="font-mono text-headline-lg text-primary tracking-[0.15em] font-bold"
-                  data-testid="booking-ref"
-                >
-                  {bookingRef}
-                </span>
+                <div className="flex items-start gap-1">
+                  <span
+                    className="font-mono text-headline-lg text-primary tracking-[0.15em] font-bold"
+                    data-testid="booking-ref"
+                  >
+                    {bookingRef}
+                  </span>
+                  <CopyPNR value={bookingRef} />
+                </div>
               </div>
               <span className="material-symbols-outlined text-on-surface-variant text-[28px] mt-1">
                 airplane_ticket

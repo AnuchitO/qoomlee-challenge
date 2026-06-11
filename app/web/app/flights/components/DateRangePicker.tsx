@@ -193,6 +193,7 @@ export default function DateRangePicker({
   const [viewM, setViewM] = useState(now.getMonth());
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [desktopPos, setDesktopPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -205,17 +206,25 @@ export default function DateRangePicker({
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  // Close on outside click (desktop only)
+  // Close on outside click or scroll (desktop only)
   useEffect(() => {
     if (!open || isMobile) return;
-    const handler = (e: MouseEvent) => {
+    const close = (e: MouseEvent) => {
       if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
         setOpen(false);
         setHover(null);
       }
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    const onScroll = () => {
+      setOpen(false);
+      setHover(null);
+    };
+    document.addEventListener("mousedown", close);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", close);
+      window.removeEventListener("scroll", onScroll);
+    };
   }, [open, isMobile]);
 
   const openCalendar = (targetStep: "departure" | "return") => {
@@ -227,6 +236,19 @@ export default function DateRangePicker({
     } else {
       setViewY(now.getFullYear());
       setViewM(now.getMonth());
+    }
+    // Compute clamped desktop position before opening
+    if (wrapRef.current) {
+      const rect = wrapRef.current.getBoundingClientRect();
+      const panelW = 740; // matches rendered width of dual-month panel
+      const gap = 8;
+      const margin = 12;
+      const rawLeft = rect.left + window.scrollX;
+      const clampedLeft = Math.max(
+        margin,
+        Math.min(rawLeft, window.innerWidth - panelW - margin + window.scrollX),
+      );
+      setDesktopPos({ top: rect.bottom + window.scrollY + gap, left: clampedLeft });
     }
     setStep(targetStep);
     setOpen(true);
@@ -369,7 +391,7 @@ export default function DateRangePicker({
   );
 
   return (
-    <div ref={wrapRef} className="grid grid-cols-2 gap-md relative">
+    <div ref={wrapRef} className="grid grid-cols-2 gap-md">
       {/* departure trigger */}
       <div className="space-y-sm">
         <label className="block text-label-sm text-on-surface-variant px-1">Departure date</label>
@@ -452,10 +474,23 @@ export default function DateRangePicker({
         )}
       </div>
 
-      {/* desktop inline dropdown */}
-      {open && !isMobile && (
-        <div className="absolute top-full left-0 mt-2 z-50 min-w-[660px]">{panel}</div>
-      )}
+      {/* desktop portal — positioned with getBoundingClientRect so it never overflows */}
+      {open &&
+        !isMobile &&
+        mounted &&
+        createPortal(
+          <div
+            style={{
+              position: "absolute",
+              top: desktopPos.top,
+              left: desktopPos.left,
+              zIndex: 9999,
+            }}
+          >
+            {panel}
+          </div>,
+          document.body,
+        )}
 
       {/* mobile bottom-sheet portal */}
       {open &&

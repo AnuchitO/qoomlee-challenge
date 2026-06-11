@@ -17,7 +17,7 @@ export default function FlightsPage() {
       <main className="pb-24 md:pb-8">
         {/* Hero Banner */}
         <section className="hero-gradient pt-xl md:pt-xxl pb-xxl md:pb-[80px] relative overflow-hidden">
-          <div className="px-container-margin-mobile md:px-container-margin-desktop max-w-6xl mx-auto relative z-10">
+          <div className="px-container-margin-mobile md:px-container-margin-desktop max-w-7xl mx-auto relative z-10">
             <h1 className="text-headline-lg-mobile md:text-headline-lg text-white mb-xs">
               Flight Search
             </h1>
@@ -30,7 +30,7 @@ export default function FlightsPage() {
           </div>
         </section>
 
-        <div className="md:max-w-6xl md:mx-auto">
+        <div className="max-w-7xl mx-auto">
           <SearchForm />
           <PopularDestinations />
           <TravelTip />

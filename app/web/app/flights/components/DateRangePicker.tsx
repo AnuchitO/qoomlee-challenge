@@ -113,7 +113,6 @@ function MonthGrid({
 
           const isStart = iso === start;
           const isEnd = iso === end;
-          const isHoverEnd = step === "return" && iso === hover && !disabled;
           const isSelected = isStart || isEnd;
           const isToday = iso === today;
           const isFocused = iso === focusedIso;
@@ -122,7 +121,9 @@ function MonthGrid({
           const inBand =
             !sameDay && start != null && rangeEnd != null && iso > start && iso < rangeEnd;
           const isBandStart = !sameDay && isStart && rangeEnd != null;
-          const isBandEnd = !sameDay && (isEnd || isHoverEnd) && start != null && iso !== start;
+          // Use rangeEnd (hover-aware) so that when hover < end, the committed
+          // return date gets no band — it sits outside the hover preview range.
+          const isBandEnd = !sameDay && iso === rangeEnd && start != null && iso !== start;
 
           // Band tint colour
           const bandCls = "bg-primary/15";

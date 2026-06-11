@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import TopAppBar from "../../components/TopAppBar";
+import { formatTHB } from "@/lib/utils/currency";
 
 export const metadata: Metadata = {
   title: "Booking Confirmed · Qoomlee",
@@ -20,10 +21,6 @@ interface SearchParams {
 
 function str(v: string | undefined, fallback = ""): string {
   return v ?? fallback;
-}
-
-function formatAmount(minor: number, currency: string): string {
-  return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(minor / 100);
 }
 
 function formatDeparture(iso: string): string {
@@ -55,7 +52,6 @@ export default async function ConfirmationPage({
   const lastName = str(p.lastName);
   const email = str(p.email);
   const totalMinor = Number(str(p.totalMinor, "0"));
-  const currency = str(p.currency, "THB");
 
   const passengerName = [firstName, lastName].filter(Boolean).join(" ") || "—";
 
@@ -146,7 +142,7 @@ export default async function ConfirmationPage({
               <div className="border-t border-outline-variant pt-sm flex justify-between">
                 <span className="text-on-surface-variant font-medium">Total Paid</span>
                 <span className="text-primary font-bold text-title-md" data-testid="total-amount">
-                  {formatAmount(totalMinor, currency)}
+                  {formatTHB(totalMinor / 100)}
                 </span>
               </div>
             </div>

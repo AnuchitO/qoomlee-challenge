@@ -7,17 +7,17 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush, back: vi.fn() }),
 }));
 
-// price=10000 → $100/person, so math is easy
+// price=10000 → ฿100/person, so math is easy
 // base=10000, tax=round(10000*0.15)=1500, insurance=59000
-// total without promo = 70500 → $705.00
-// total with promo    = 70500-50000 = 20500 → $205.00
+// total without promo = 70500 → ฿705
+// total with promo    = 70500-50000 = 20500 → ฿205
 const BASE_PROPS = {
   flightNumber: "QQ101",
   origin: "BKK",
   destination: "SIN",
   departureTime: "2026-10-24T08:00:00Z",
   basePriceMinor: 10000,
-  currency: "USD",
+  currency: "THB",
   passengers: 1,
   firstName: "John",
   lastName: "Doe",
@@ -89,14 +89,14 @@ describe("PaymentClient — layout", () => {
 describe("PaymentClient — pricing", () => {
   it("shows base fare (price × passengers)", () => {
     render(<PaymentClient {...BASE_PROPS} />);
-    // 10000 minor = $100.00
-    expect(screen.getByText("$100.00")).toBeInTheDocument();
+    // 10000 minor = ฿100
+    expect(screen.getByText("฿100")).toBeInTheDocument();
   });
 
   it("shows taxes as 15% of base fare", () => {
     render(<PaymentClient {...BASE_PROPS} />);
-    // round(10000 × 0.15) = 1500 → $15.00
-    expect(screen.getByText("$15.00")).toBeInTheDocument();
+    // round(10000 × 0.15) = 1500 → ฿15
+    expect(screen.getByText("฿15")).toBeInTheDocument();
   });
 
   it("shows Travel Insurance line", () => {
@@ -111,14 +111,14 @@ describe("PaymentClient — pricing", () => {
 
   it("shows the total amount in the pay button", () => {
     render(<PaymentClient {...BASE_PROPS} />);
-    // total = 10000+1500+59000 = 70500 → $705.00
+    // total = 10000+1500+59000 = 70500 → ฿705
     expect(screen.getByRole("button", { name: /pay.*705.*securely/i })).toBeInTheDocument();
   });
 
   it("scales base fare for multiple passengers", () => {
     render(<PaymentClient {...BASE_PROPS} passengers={2} />);
-    // 2 × $100.00 = $200.00
-    expect(screen.getByText("$200.00")).toBeInTheDocument();
+    // 2 × ฿100 = ฿200
+    expect(screen.getByText("฿200")).toBeInTheDocument();
   });
 });
 
@@ -141,7 +141,7 @@ describe("PaymentClient — promo code", () => {
     render(<PaymentClient {...BASE_PROPS} />);
     fireEvent.change(screen.getByPlaceholderText("Promo code"), { target: { value: "QOOMFIRST" } });
     fireEvent.click(screen.getByRole("button", { name: "Apply" }));
-    // total = 70500 - 50000 = 20500 → $205.00
+    // total = 70500 - 50000 = 20500 → ฿205
     expect(screen.getByRole("button", { name: /pay.*205.*securely/i })).toBeInTheDocument();
   });
 

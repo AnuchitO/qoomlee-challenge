@@ -1,8 +1,8 @@
 import ProgressStepper from "./components/ProgressStepper";
+import { formatTHB } from "@/lib/utils/currency";
 import {
   formatCountdown,
   formatDeparture,
-  formatPrice,
   PAYMENT_METHODS,
   PROMO_DISCOUNT_MINOR,
   INSURANCE_MINOR,
@@ -16,7 +16,6 @@ interface PaymentClientViewProps {
   origin: string;
   destination: string;
   departureTime: string;
-  currency: string;
   passengers: number;
   secondsLeft: number;
   promoInput: string;
@@ -59,7 +58,6 @@ export function PaymentClientView({
   origin,
   destination,
   departureTime,
-  currency,
   passengers,
   secondsLeft,
   promoInput,
@@ -136,15 +134,11 @@ export function PaymentClientView({
           <div className="space-y-sm border-t border-dashed border-outline-variant pt-md">
             <div className="flex justify-between">
               <span className="text-body-md text-on-surface">Base fare</span>
-              <span className="text-body-md text-on-surface">
-                {formatPrice(baseFareMinor, currency)}
-              </span>
+              <span className="text-body-md text-on-surface">{formatTHB(baseFareMinor / 100)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-body-md text-on-surface">Taxes &amp; Fees</span>
-              <span className="text-body-md text-on-surface">
-                {formatPrice(taxMinor, currency)}
-              </span>
+              <span className="text-body-md text-on-surface">{formatTHB(taxMinor / 100)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-body-md text-on-surface">Economy Seat</span>
@@ -153,14 +147,14 @@ export function PaymentClientView({
             <div className="flex justify-between">
               <span className="text-body-md text-on-surface">Travel Insurance</span>
               <span className="text-body-md text-on-surface">
-                {formatPrice(INSURANCE_MINOR, currency)}
+                {formatTHB(INSURANCE_MINOR / 100)}
               </span>
             </div>
             {promoApplied && (
               <div className="flex justify-between">
                 <span className="text-body-md font-semibold text-on-surface">Promo Discount</span>
                 <span className="text-body-md font-semibold text-primary">
-                  -{formatPrice(discountMinor, currency)}
+                  -{formatTHB(discountMinor / 100)}
                 </span>
               </div>
             )}
@@ -168,9 +162,7 @@ export function PaymentClientView({
 
           <div className="flex justify-between items-center pt-md mt-sm border-t border-outline-variant">
             <span className="text-body-md font-semibold text-on-surface">Total Amount</span>
-            <span className="text-headline-md text-primary">
-              {formatPrice(totalMinor, currency)}
-            </span>
+            <span className="text-headline-md text-primary">{formatTHB(totalMinor / 100)}</span>
           </div>
         </div>
 
@@ -201,7 +193,7 @@ export function PaymentClientView({
                 auto_awesome
               </span>
               <span className="text-label-md text-primary font-semibold">
-                {VALID_PROMO} applied — {formatPrice(PROMO_DISCOUNT_MINOR, currency)} off!
+                {VALID_PROMO} applied — {formatTHB(PROMO_DISCOUNT_MINOR / 100)} off!
               </span>
             </div>
           )}
@@ -397,7 +389,7 @@ export function PaymentClientView({
             className="w-full bg-primary text-on-primary py-4 rounded-xl text-headline-md shadow-md active:scale-95 transition-transform flex items-center justify-center gap-sm"
           >
             <span className="material-symbols-outlined text-[20px]">lock</span>
-            Pay {formatPrice(totalMinor, currency)} Securely
+            Pay {formatTHB(totalMinor / 100)} Securely
           </button>
           <p className="text-center text-label-sm text-on-surface-variant flex items-center justify-center gap-md">
             <span className="flex items-center gap-xs">

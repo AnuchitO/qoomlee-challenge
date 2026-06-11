@@ -3,6 +3,7 @@
 import type { Flight } from "../lib/types";
 import { formatDuration } from "../lib/formatSearchSummary";
 import FlightRoute from "../../../components/FlightRoute";
+import { formatTHB } from "@/lib/utils/currency";
 
 interface Props {
   flight: Flight;
@@ -28,14 +29,10 @@ function isNextDay(departure: string, arrival: string): boolean {
   return localDateKey(arrival) > localDateKey(departure);
 }
 
-function formatPrice(minor: number, currency: string): string {
-  return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(minor / 100);
-}
-
 export default function FlightCard({ flight, passengers, isBestValue = false, onSelect }: Props) {
   const nextDay = isNextDay(flight.departureTime, flight.arrivalTime);
-  const totalPrice = formatPrice(flight.basePriceMinor * passengers, flight.currency);
-  const perPerson = formatPrice(flight.basePriceMinor, flight.currency);
+  const totalPrice = formatTHB((flight.basePriceMinor * passengers) / 100);
+  const perPerson = formatTHB(flight.basePriceMinor / 100);
 
   return (
     <section className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-md transition-all hover:shadow-md hover:border-primary/30 group">

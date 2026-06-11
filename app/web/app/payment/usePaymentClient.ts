@@ -1,10 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export function formatPrice(minor: number, currency: string): string {
-  return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(minor / 100);
-}
-
 export function formatDeparture(iso: string): string {
   const d = new Date(iso);
   const weekday = d.toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" });

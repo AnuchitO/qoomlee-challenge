@@ -8,9 +8,9 @@ vi.mock("next/navigation", () => ({
 }));
 
 // flight with simple price so math is easy to verify:
-// basePriceMinor=10000 → $100.00 per person
-// taxes = round(10000 * 0.15) = 1500 → $15.00
-// total = 11500 → $115.00
+// basePriceMinor=10000 → ฿100 per person
+// taxes = round(10000 * 0.15) = 1500 → ฿15
+// total = 11500 → ฿115
 const flight = {
   id: 1,
   flightNumber: "QQ101",
@@ -19,7 +19,7 @@ const flight = {
   departureTime: "2026-10-24T08:00:00Z",
   arrivalTime: "2026-10-24T11:30:00Z",
   basePriceMinor: 10000,
-  currency: "USD",
+  currency: "THB",
   availableSeats: 50,
   status: "SCHEDULED",
   durationMinutes: 210,
@@ -152,25 +152,25 @@ describe("BookingClient — payment summary", () => {
 
   it("calculates base fare as price × passengers", () => {
     render(<BookingClient flight={flight} passengers={1} />);
-    // basePriceMinor=10000 → $100.00
-    expect(screen.getByText("$100.00")).toBeInTheDocument();
+    // basePriceMinor=10000 → ฿100
+    expect(screen.getByText("฿100")).toBeInTheDocument();
   });
 
   it("scales base fare for multiple passengers", () => {
     render(<BookingClient flight={flight} passengers={2} />);
-    // 2 × $100.00 = $200.00
-    expect(screen.getByText("$200.00")).toBeInTheDocument();
+    // 2 × ฿100 = ฿200
+    expect(screen.getByText("฿200")).toBeInTheDocument();
   });
 
   it("calculates taxes as 15% of base fare", () => {
     render(<BookingClient flight={flight} passengers={1} />);
-    // round(10000 × 0.15) = 1500 → $15.00
-    expect(screen.getByText("$15.00")).toBeInTheDocument();
+    // round(10000 × 0.15) = 1500 → ฿15
+    expect(screen.getByText("฿15")).toBeInTheDocument();
   });
 
   it("calculates total as base fare + taxes", () => {
     render(<BookingClient flight={flight} passengers={1} />);
-    // 10000 + 1500 = 11500 → $115.00
-    expect(screen.getByText("$115.00")).toBeInTheDocument();
+    // 10000 + 1500 = 11500 → ฿115
+    expect(screen.getByText("฿115")).toBeInTheDocument();
   });
 });

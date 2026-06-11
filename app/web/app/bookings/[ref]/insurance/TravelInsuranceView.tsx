@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { InsurancePlan } from "./useTravelInsurance";
+import { formatTHB } from "@/lib/utils/currency";
 
 interface TravelInsuranceViewProps {
   ref: string;
@@ -76,7 +77,7 @@ export function TravelInsuranceView({
               </span>
               <div className="flex items-center gap-sm">
                 <p className="text-headline-md text-primary">
-                  ฿{plan.price}
+                  {formatTHB(plan.price)}
                   <span className="text-label-sm text-on-surface-variant">/person</span>
                 </p>
                 <div
@@ -143,7 +144,7 @@ export function TravelInsuranceView({
           onClick={handleAddInsurance}
           className="w-full h-14 bg-primary text-on-primary text-label-md rounded-xl shadow-sm hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-sm"
         >
-          Add Insurance · ฿{selectedPrice}
+          Add Insurance · {formatTHB(selectedPrice)}
           <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
         </button>
       </div>

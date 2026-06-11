@@ -3,12 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Flight } from "@/lib/types/flight";
-
-function formatPrice(minor: number, currency: string): string {
-  const major = minor / 100;
-  if (currency === "THB") return `฿${major.toLocaleString()}`;
-  return `$${major.toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
-}
+import { formatTHB } from "@/lib/utils/currency";
 
 const UPGRADE_PRICE_MINOR = 29900;
 
@@ -146,15 +141,11 @@ export default function BookingClient({ flight, passengers }: Props) {
         <div className="space-y-sm">
           <div className="flex justify-between items-center">
             <span className="text-body-md text-on-surface">Base Fare ({passengers}x Adult)</span>
-            <span className="text-body-md text-on-surface">
-              {formatPrice(baseFareTotal, flight.currency)}
-            </span>
+            <span className="text-body-md text-on-surface">{formatTHB(baseFareTotal / 100)}</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-body-md text-on-surface">Taxes &amp; Fees</span>
-            <span className="text-body-md text-on-surface">
-              {formatPrice(taxTotal, flight.currency)}
-            </span>
+            <span className="text-body-md text-on-surface">{formatTHB(taxTotal / 100)}</span>
           </div>
         </div>
 
@@ -175,15 +166,13 @@ export default function BookingClient({ flight, passengers }: Props) {
             </p>
           </div>
           <span className="text-label-md font-semibold text-tertiary-container shrink-0">
-            +{formatPrice(UPGRADE_PRICE_MINOR, flight.currency)}
+            +{formatTHB(UPGRADE_PRICE_MINOR / 100)}
           </span>
         </div>
 
         <div className="flex justify-between items-center pt-sm border-t border-outline-variant">
           <span className="text-body-md font-semibold text-on-surface">Total Amount</span>
-          <span className="text-headline-md text-primary">
-            {formatPrice(grandTotal, flight.currency)}
-          </span>
+          <span className="text-headline-md text-primary">{formatTHB(grandTotal / 100)}</span>
         </div>
       </section>
 

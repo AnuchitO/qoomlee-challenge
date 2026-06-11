@@ -142,10 +142,10 @@ function MonthGrid({
                     .join(" ")}
                 />
               )}
-              {/* half-band for range start (right half) */}
-              {isBandStart && <div className={`absolute inset-y-0 left-1/2 right-0 ${bandCls}`} />}
-              {/* half-band for range end (left half) */}
-              {isBandEnd && <div className={`absolute inset-y-0 left-0 right-1/2 ${bandCls}`} />}
+              {/* pill cap for range start — full cell, rounded on the left so the band opens with a clean capsule edge */}
+              {isBandStart && <div className={`absolute inset-0 rounded-l-full ${bandCls}`} />}
+              {/* pill cap for range end — full cell, rounded on the right so the band closes with a clean capsule edge */}
+              {isBandEnd && <div className={`absolute inset-0 rounded-r-full ${bandCls}`} />}
 
               <button
                 type="button"

@@ -75,11 +75,11 @@ function MonthGrid({
   const rangeEnd = step === "return" ? (hover ?? end) : end;
 
   return (
-    <div className="select-none min-w-[294px]">
+    <div className="select-none min-w-[308px]">
       <p className="text-title-sm font-bold text-center text-primary mb-4">
         {monthLabel(year, month)}
       </p>
-      <div className="grid grid-cols-7 gap-x-1 mb-2">
+      <div className="grid grid-cols-7 mb-2">
         {DAYS.map((d, i) => (
           <div
             key={d}
@@ -89,7 +89,7 @@ function MonthGrid({
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-x-1 gap-y-1">
+      <div className="grid grid-cols-7 gap-y-1">
         {cells.map((day, idx) => {
           if (!day) return <div key={`e${idx}`} className="h-10" />;
 
@@ -243,7 +243,7 @@ export default function DateRangePicker({
     // Compute clamped desktop position before opening
     if (wrapRef.current) {
       const rect = wrapRef.current.getBoundingClientRect();
-      const panelW = 740; // matches rendered width of dual-month panel
+      const panelW = 760; // matches rendered width of dual-month panel
       const gap = 8;
       const margin = 12;
       const rawLeft = rect.left + window.scrollX;

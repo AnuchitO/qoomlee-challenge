@@ -5,7 +5,10 @@ import { createPortal } from "react-dom";
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
-const todayISO = () => new Date().toISOString().split("T")[0];
+const todayISO = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
 
 const parseISO = (iso: string): [number, number, number] => {
   const [y, m, d] = iso.split("-").map(Number);
@@ -325,7 +328,7 @@ export default function DateRangePicker({
   // ── open calendar ───────────────────────────────────────────────────────────
 
   const openCalendar = (targetStep: "departure" | "return") => {
-    const ref = targetStep === "departure" ? departureDate : (departureDate ?? null);
+    const ref = targetStep === "departure" ? departureDate : (returnDate ?? departureDate ?? null);
     if (ref) {
       const [y, m] = parseISO(ref);
       setViewY(y);
@@ -390,7 +393,11 @@ export default function DateRangePicker({
       case "Enter":
       case " ":
         e.preventDefault();
-        if (focusedIso && focusedIso >= today) handleDay(focusedIso);
+        if (focusedIso && focusedIso >= today) {
+          const blockedByDep =
+            step === "return" && departureDate != null && focusedIso <= departureDate;
+          if (!blockedByDep) handleDay(focusedIso);
+        }
         break;
       case "Escape":
         e.preventDefault();

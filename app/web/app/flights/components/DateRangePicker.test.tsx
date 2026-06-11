@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
-import { useState } from "react";
 import DateRangePicker from "./DateRangePicker";
 
 const base = {
@@ -65,7 +64,7 @@ describe("DateRangePicker", () => {
     expect(dayButtons.length).toBeGreaterThan(0);
   });
 
-  it("calls onDepartureChange when a day is clicked in departure step", async () => {
+  it("calls onDepartureChange when a day is clicked in departure step", () => {
     const onDepartureChange = vi.fn();
     render(<DateRangePicker {...base} onDepartureChange={onDepartureChange} />);
 
@@ -82,7 +81,7 @@ describe("DateRangePicker", () => {
     expect(onDepartureChange).toHaveBeenCalledWith(expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
   });
 
-  it("calls onReturnChange when a return date is selected after departure", async () => {
+  it("calls onReturnChange when a return date is selected after departure", () => {
     const onReturnChange = vi.fn();
     // Pre-set a departure date so the return step is valid
     const today = new Date();
@@ -263,36 +262,6 @@ describe("DateRangePicker — user journey: round trip", () => {
   });
 });
 
-// Stateful wrapper so prop updates from callbacks propagate back into the component,
-// matching real usage where the parent owns departure/return state.
-function ControlledPicker({
-  onDepartureChange,
-  onReturnChange,
-  ...rest
-}: Partial<Parameters<typeof DateRangePicker>[0]> & {
-  onDepartureChange?: (d: string | null) => void;
-  onReturnChange?: (d: string | null) => void;
-}) {
-  const [dep, setDep] = useState<string | null>(null);
-  const [ret, setRet] = useState<string | null>(null);
-  return (
-    <DateRangePicker
-      departureDate={dep}
-      returnDate={ret}
-      isReturnEnabled={true}
-      onDepartureChange={(d) => {
-        setDep(d);
-        onDepartureChange?.(d);
-      }}
-      onReturnChange={(d) => {
-        setRet(d);
-        onReturnChange?.(d);
-      }}
-      {...rest}
-    />
-  );
-}
-
 // ── User journey: reverse flow (return picked before departure) ───────────────
 //
 // When a user opens the return trigger without a departure date set they can
@@ -446,7 +415,10 @@ describe("DateRangePicker — user journey: reverse flow (return before departur
 // code path (isMobile = false) where the bug manifested.
 
 describe("DateRangePicker — regression: portal outside-click must not swallow day clicks", () => {
+  let originalInnerWidth: number;
+
   beforeEach(() => {
+    originalInnerWidth = window.innerWidth;
     Object.defineProperty(window, "innerWidth", {
       writable: true,
       configurable: true,
@@ -459,7 +431,7 @@ describe("DateRangePicker — regression: portal outside-click must not swallow 
     Object.defineProperty(window, "innerWidth", {
       writable: true,
       configurable: true,
-      value: 0,
+      value: originalInnerWidth,
     });
     act(() => window.dispatchEvent(new Event("resize")));
   });

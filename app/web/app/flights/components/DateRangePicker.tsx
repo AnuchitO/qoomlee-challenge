@@ -195,6 +195,7 @@ export default function DateRangePicker({
   const [mounted, setMounted] = useState(false);
   const [desktopPos, setDesktopPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const wrapRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // SSR-safe portal mounting — setState in empty-dep effect is intentional here
@@ -210,7 +211,9 @@ export default function DateRangePicker({
   useEffect(() => {
     if (!open || isMobile) return;
     const close = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+      const inTrigger = wrapRef.current?.contains(e.target as Node);
+      const inPanel = panelRef.current?.contains(e.target as Node);
+      if (!inTrigger && !inPanel) {
         setOpen(false);
         setHover(null);
       }
@@ -480,6 +483,7 @@ export default function DateRangePicker({
         mounted &&
         createPortal(
           <div
+            ref={panelRef}
             style={{
               position: "absolute",
               top: desktopPos.top,

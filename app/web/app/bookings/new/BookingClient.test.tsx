@@ -152,25 +152,25 @@ describe("BookingClient — payment summary", () => {
 
   it("calculates base fare as price × passengers", () => {
     render(<BookingClient flight={flight} passengers={1} />);
-    // basePriceMinor=10000 → ฿100
-    expect(screen.getByText("฿100")).toBeInTheDocument();
+    // basePriceMinor=10000 → ฿100.00
+    expect(screen.getByText("฿100.00")).toBeInTheDocument();
   });
 
   it("scales base fare for multiple passengers", () => {
     render(<BookingClient flight={flight} passengers={2} />);
-    // 2 × ฿100 = ฿200
-    expect(screen.getByText("฿200")).toBeInTheDocument();
+    // 2 × ฿100 = ฿200.00
+    expect(screen.getByText("฿200.00")).toBeInTheDocument();
   });
 
   it("calculates taxes as 15% of base fare", () => {
     render(<BookingClient flight={flight} passengers={1} />);
-    // round(10000 × 0.15) = 1500 → ฿15
-    expect(screen.getByText("฿15")).toBeInTheDocument();
+    // round(10000 × 0.15) = 1500 → ฿15.00
+    expect(screen.getByText("฿15.00")).toBeInTheDocument();
   });
 
   it("calculates total as base fare + taxes", () => {
     render(<BookingClient flight={flight} passengers={1} />);
-    // 10000 + 1500 = 11500 → ฿115
-    expect(screen.getByText("฿115")).toBeInTheDocument();
+    // 10000 + 1500 = 11500 → ฿115.00
+    expect(screen.getByText("฿115.00")).toBeInTheDocument();
   });
 });

@@ -89,14 +89,14 @@ describe("PaymentClient — layout", () => {
 describe("PaymentClient — pricing", () => {
   it("shows base fare (price × passengers)", () => {
     render(<PaymentClient {...BASE_PROPS} />);
-    // 10000 minor = ฿100
-    expect(screen.getByText("฿100")).toBeInTheDocument();
+    // 10000 minor = ฿100.00
+    expect(screen.getByText("฿100.00")).toBeInTheDocument();
   });
 
   it("shows taxes as 15% of base fare", () => {
     render(<PaymentClient {...BASE_PROPS} />);
-    // round(10000 × 0.15) = 1500 → ฿15
-    expect(screen.getByText("฿15")).toBeInTheDocument();
+    // round(10000 × 0.15) = 1500 → ฿15.00
+    expect(screen.getByText("฿15.00")).toBeInTheDocument();
   });
 
   it("shows Travel Insurance line", () => {
@@ -117,8 +117,8 @@ describe("PaymentClient — pricing", () => {
 
   it("scales base fare for multiple passengers", () => {
     render(<PaymentClient {...BASE_PROPS} passengers={2} />);
-    // 2 × ฿100 = ฿200
-    expect(screen.getByText("฿200")).toBeInTheDocument();
+    // 2 × ฿100 = ฿200.00
+    expect(screen.getByText("฿200.00")).toBeInTheDocument();
   });
 });
 

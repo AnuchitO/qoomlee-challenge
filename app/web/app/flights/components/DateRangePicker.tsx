@@ -637,7 +637,7 @@ export default function DateRangePicker({
                     e.stopPropagation();
                     onReturnChange(null);
                   }}
-                  className="shrink-0 ml-1 p-1 rounded-full hover:bg-surface-container-high transition-colors"
+                  className="shrink-0 ml-1 p-1 rounded-full hover:bg-surface-container-high transition-colors flex items-center justify-center self-center"
                 >
                   <span className="material-symbols-outlined text-[18px] text-on-surface-variant">
                     close

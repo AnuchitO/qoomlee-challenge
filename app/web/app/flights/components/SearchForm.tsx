@@ -71,51 +71,61 @@ export default function SearchForm() {
 
         {/* lg+ — flat single row, one flex column per field */}
         <div className="hidden lg:flex lg:items-start lg:gap-sm">
-          {/* From */}
-          <div className="flex-1 min-w-0 flex flex-col gap-xs">
-            <label className="text-label-sm text-on-surface-variant px-1">From</label>
-            <AirportSelect
-              value={state.origin}
-              onChange={setOrigin}
-              icon="flight_takeoff"
-              placeholder="Select origin"
-              error={errors.origin}
-              excludeCode={state.destination}
-            />
-            {errors.origin && <p className="text-label-sm text-error px-1">{errors.origin}</p>}
-          </div>
-
-          {/* Swap — phantom label keeps height, mb-[17px] centres button in input zone */}
-          <div className="shrink-0 flex flex-col gap-xs">
-            <span className="text-label-sm invisible select-none px-1" aria-hidden>
-              ·
-            </span>
-            <button
-              type="button"
-              onClick={handleSwap}
-              aria-label="Swap origin and destination"
-              className="mt-[10px] flex items-center justify-center w-9 h-9 bg-surface-container-lowest border border-outline-variant rounded-full shadow-sm hover:bg-surface-container-high transition-colors cursor-pointer"
-            >
-              <div className="rotate-90">
-                <div style={spinStyle}>{swapSvg}</div>
+          {/* From + To — combined wider container with floating swap */}
+          <div className="flex-[2] min-w-0 flex flex-col gap-xs">
+            {/* Labels row */}
+            <div className="flex">
+              <div className="flex-1 min-w-0 px-1">
+                <label className="block text-label-sm text-on-surface-variant">From</label>
               </div>
-            </button>
-          </div>
-
-          {/* To */}
-          <div className="flex-1 min-w-0 flex flex-col gap-xs">
-            <label className="text-label-sm text-on-surface-variant px-1">To</label>
-            <AirportSelect
-              value={state.destination}
-              onChange={setDestination}
-              icon="flight_land"
-              placeholder="Select destination"
-              error={errors.destination}
-              excludeCode={state.origin}
-            />
-            {errors.destination && (
-              <p className="text-label-sm text-error px-1">{errors.destination}</p>
-            )}
+              <div className="flex-1 min-w-0 px-1">
+                <label className="block text-label-sm text-on-surface-variant">To</label>
+              </div>
+            </div>
+            {/* Inputs row with swap floating at the boundary */}
+            <div className="relative flex gap-3">
+              <div className="flex-1 min-w-0">
+                <AirportSelect
+                  value={state.origin}
+                  onChange={setOrigin}
+                  icon="flight_takeoff"
+                  placeholder="Select origin"
+                  error={errors.origin}
+                  excludeCode={state.destination}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleSwap}
+                aria-label="Swap origin and destination"
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-9 h-9 bg-surface-container-lowest border border-outline-variant rounded-full shadow-sm hover:bg-surface-container-high transition-colors cursor-pointer"
+              >
+                <div className="rotate-90">
+                  <div style={spinStyle}>{swapSvg}</div>
+                </div>
+              </button>
+              <div className="flex-1 min-w-0">
+                <AirportSelect
+                  value={state.destination}
+                  onChange={setDestination}
+                  icon="flight_land"
+                  placeholder="Select destination"
+                  error={errors.destination}
+                  excludeCode={state.origin}
+                />
+              </div>
+            </div>
+            {/* Errors row */}
+            <div className="flex gap-3">
+              <div className="flex-1">
+                {errors.origin && <p className="text-label-sm text-error px-1">{errors.origin}</p>}
+              </div>
+              <div className="flex-1">
+                {errors.destination && (
+                  <p className="text-label-sm text-error px-1">{errors.destination}</p>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Dates */}
@@ -155,16 +165,15 @@ export default function SearchForm() {
         >
           {/* From + swap + To */}
           <div className="flex flex-col gap-xs">
-            <div className="flex gap-sm">
+            <div className="flex">
               <label className="flex-1 min-w-0 text-label-sm text-on-surface-variant px-1">
                 From
               </label>
-              <div className="w-9 shrink-0" />
               <label className="flex-1 min-w-0 text-label-sm text-on-surface-variant px-1">
                 To
               </label>
             </div>
-            <div className="flex items-center gap-sm">
+            <div className="relative flex gap-3">
               <div className="flex-1 min-w-0">
                 <AirportSelect
                   value={state.origin}
@@ -179,7 +188,7 @@ export default function SearchForm() {
                 type="button"
                 onClick={handleSwap}
                 aria-label="Swap origin and destination"
-                className="shrink-0 flex items-center justify-center w-9 h-9 bg-surface-container-lowest border border-outline-variant rounded-full shadow-sm hover:bg-surface-container-high transition-colors cursor-pointer"
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-9 h-9 bg-surface-container-lowest border border-outline-variant rounded-full shadow-sm hover:bg-surface-container-high transition-colors cursor-pointer"
               >
                 <div className="rotate-90">
                   <div style={spinStyle}>{swapSvg}</div>

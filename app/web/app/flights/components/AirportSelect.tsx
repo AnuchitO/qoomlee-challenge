@@ -136,7 +136,7 @@ export default function AirportSelect({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className={`w-full flex items-center gap-sm text-left transition-colors ${borderless ? "py-1" : triggerBoxed}`}
+        className={`w-full flex items-center gap-sm text-left transition-colors cursor-pointer ${borderless ? "py-1" : triggerBoxed}`}
       >
         <span className="material-symbols-outlined text-primary shrink-0 text-[20px]">{icon}</span>
         {selected ? (

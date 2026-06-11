@@ -544,7 +544,7 @@ export default function DateRangePicker({
   return (
     <div ref={wrapRef} className="grid grid-cols-2 gap-md">
       {/* departure trigger */}
-      <div className="space-y-sm">
+      <div className="space-y-xs">
         <label className="block text-label-sm text-on-surface-variant px-1">Departure date</label>
         <div
           role="button"
@@ -564,7 +564,7 @@ export default function DateRangePicker({
       </div>
 
       {/* return trigger / add return */}
-      <div className="space-y-sm">
+      <div className="space-y-xs">
         <label className="block text-label-sm text-on-surface-variant px-1">Return Date</label>
         {isReturnEnabled ? (
           <>

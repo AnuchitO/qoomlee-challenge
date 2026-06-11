@@ -75,11 +75,11 @@ function MonthGrid({
   const rangeEnd = step === "return" ? (hover ?? end) : end;
 
   return (
-    <div className="select-none min-w-[252px]">
-      <p className="text-title-sm font-bold text-center text-primary mb-3">
+    <div className="select-none min-w-[294px]">
+      <p className="text-title-sm font-bold text-center text-primary mb-4">
         {monthLabel(year, month)}
       </p>
-      <div className="grid grid-cols-7 mb-1">
+      <div className="grid grid-cols-7 gap-x-1 mb-2">
         {DAYS.map((d, i) => (
           <div
             key={d}
@@ -89,9 +89,9 @@ function MonthGrid({
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-7">
+      <div className="grid grid-cols-7 gap-x-1 gap-y-1">
         {cells.map((day, idx) => {
-          if (!day) return <div key={`e${idx}`} className="h-9" />;
+          if (!day) return <div key={`e${idx}`} className="h-10" />;
 
           const iso = toISO(year, month, day);
           const isPast = iso < today;
@@ -111,7 +111,7 @@ function MonthGrid({
           const isBandEnd = !sameDay && (isEnd || isHoverEnd) && start != null && iso !== start;
 
           return (
-            <div key={iso} className="relative h-9 flex items-center justify-center">
+            <div key={iso} className="relative h-10 flex items-center justify-center">
               {inBand && <div className="absolute inset-0 bg-primary/10" />}
               {isBandStart && <div className="absolute inset-y-0 left-1/2 right-0 bg-primary/10" />}
               {isBandEnd && <div className="absolute inset-y-0 left-0 right-1/2 bg-primary/10" />}
@@ -122,7 +122,7 @@ function MonthGrid({
                 onMouseEnter={() => !disabled && onHover(iso)}
                 onMouseLeave={() => onHover(null)}
                 className={[
-                  "relative z-10 w-9 h-9 rounded-full flex items-center justify-center text-body-sm transition-colors",
+                  "relative z-10 w-10 h-10 rounded-full flex items-center justify-center text-body-sm transition-colors",
                   disabled ? "text-outline-variant cursor-default" : "cursor-pointer",
                   isSelected ? "bg-primary text-on-primary font-semibold" : "",
                   iso === today && !isSelected
@@ -454,7 +454,7 @@ export default function DateRangePicker({
 
       {/* desktop inline dropdown */}
       {open && !isMobile && (
-        <div className="absolute top-full left-0 mt-2 z-50 min-w-[580px]">{panel}</div>
+        <div className="absolute top-full left-0 mt-2 z-50 min-w-[660px]">{panel}</div>
       )}
 
       {/* mobile bottom-sheet portal */}

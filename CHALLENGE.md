@@ -339,17 +339,20 @@ As a passenger, I want to search for flights so that I can find available flight
 **Acceptance Criteria**
 
 - **Given** a request with a valid RS256 JWT in `Authorization: Bearer <token>`
-  **When** the request hits any `/api/*` route
+  **When** the request hits a JWT-protected `/api/*` route
   **Then** the request is passed through to the handler
 - **Given** a request with no `Authorization` header
-  **When** the request hits any `/api/*` route
+  **When** the request hits a JWT-protected `/api/*` route
   **Then** the service returns `401` with `{ "error": "UNAUTHORIZED", "message": "missing or invalid token" }`
 - **Given** a request with an expired JWT
-  **When** the request hits any `/api/*` route
+  **When** the request hits a JWT-protected `/api/*` route
   **Then** the service returns `401 UNAUTHORIZED`
 - **Given** a request signed with the wrong algorithm (e.g. HS256)
-  **When** the request hits any `/api/*` route
+  **When** the request hits a JWT-protected `/api/*` route
   **Then** the service returns `401 UNAUTHORIZED` (algorithm must be validated explicitly)
+- **Given** `GET /api/flights/search`
+  **When** called with no `Authorization` header
+  **Then** the request is allowed — flight search is public so passengers can browse before logging in
 - **Given** `PUT /api/bookings/:bookingRef/status`
   **When** called with a valid `X-Internal-Token` and no JWT
   **Then** the request is allowed — this route is exempt from JWT
@@ -366,21 +369,26 @@ As a passenger, I want to search for flights so that I can find available flight
 
 - Algorithm: RS256 (asymmetric). Use `github.com/golang-jwt/jwt/v5`.
 - Required JWT claims: `sub` (subject), `exp` (expiry). Reject if either is missing.
-- Middleware wired on the `/api` group in `cmd/main.go`, NOT on the health or internal routes.
+- `GET /api/flights/search` is registered directly on the root router (no JWT middleware) so unauthenticated users can search for flights.
+- JWT middleware wired on the `/api` group in `cmd/main.go`, covering booking and flight-detail routes only.
 - Use router groups to separate unprotected routes from JWT-protected ones:
 
 ```go
-// No JWT — health probes + internal service endpoint
-open := r.Group("/")
-open.GET("/health/live", ...)
-open.GET("/health/ready", ...)
-open.PUT("/api/bookings/:ref/status", middleware.InternalToken(...), h.UpdateStatus)
+// No JWT — health probes, internal service endpoint, and flight search
+r.GET("/health/live", ...)
+r.GET("/health/ready", ...)
+r.GET("/api/flights/search", flightHandler.Search)
 
-// JWT required — all public API endpoints
-api := r.Group("/")
-api.Use(middleware.JWTMiddleware(os.Getenv("JWT_PUBLIC_KEY")))
-api.GET("/api/flights/search", ...)
-api.POST("/api/bookings", ...)
+internal := r.Group("/api/bookings")
+internal.Use(middleware.InternalToken(...))
+internal.PUT("/:ref/status", bookingHandler.UpdateStatus)
+
+// JWT required — booking and flight detail
+api := r.Group("/api")
+api.Use(middleware.JWTAuth(jwtPublicKey))
+api.GET("/flights/:id", ...)
+api.POST("/bookings", ...)
+api.GET("/bookings/:ref", ...)
 ```
 
 **Test Cases**
@@ -392,7 +400,8 @@ api.POST("/api/bookings", ...)
 | Unit | Negative | Expired token → 401 |
 | Unit | Negative | HS256-signed token → 401 (algorithm mismatch) |
 | Unit | Negative | Malformed token string → 401 |
-| Contract | Negative | `GET /api/flights/search` without token → 401 |
+| Contract | Positive | `GET /api/flights/search` without token → 200 (public route) |
+| Contract | Negative | `POST /api/bookings` without token → 401 |
 | Contract | Positive | `GET /health/live` without token → 200 |
 | Contract | Positive | `PUT /api/bookings/SEED02/status` with valid internal token, no JWT → 200 |
 

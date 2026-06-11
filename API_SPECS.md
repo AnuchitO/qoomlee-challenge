@@ -17,7 +17,7 @@ Internal service-to-service calls use the Docker Compose service name (e.g. `htt
 
 ## Authentication
 
-All API endpoints (except `/health/*`) require a **JWT RS256** bearer token.
+Most API endpoints require a **JWT RS256** bearer token. **Exception:** `GET /api/flights/search` is public — no token needed so passengers can browse flights before logging in.
 
 ```
 Authorization: Bearer <token>
@@ -69,9 +69,7 @@ Search available flights by route and date.
 
 **Request example**
 ```bash
-TOKEN=$(make jwt-token -s)
-curl -H "Authorization: Bearer $TOKEN" \
-  "http://localhost:8082/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"
+curl "http://localhost:8082/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"
 ```
 
 **Response `200 OK`**
@@ -121,11 +119,6 @@ curl -H "Authorization: Bearer $TOKEN" \
 **Response `400 Bad Request`** — invalid date format
 ```json
 { "error": "INVALID_DATE_FORMAT", "message": "date must be in YYYY-MM-DD format" }
-```
-
-**Response `401 Unauthorized`** — missing or invalid JWT
-```json
-{ "error": "UNAUTHORIZED", "message": "missing or invalid token" }
 ```
 
 ---

@@ -1,9 +1,8 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFlightSearch } from "../hooks/useFlightSearch";
-import { showDatePicker } from "../utils/datePicker";
 import TripTypeToggle from "./TripTypeToggle";
 import DateRangePicker from "./DateRangePicker";
 import PassengerSelector from "./PassengerSelector";
@@ -20,30 +19,9 @@ const swapSvg = (
   </svg>
 );
 
-const addReturnSvg = (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className="shrink-0"
-  >
-    <path
-      d="M12 4.25C12.4142 4.25 12.75 4.58579 12.75 5V11.25H19C19.4142 11.25 19.75 11.5858 19.75 12C19.75 12.4142 19.4142 12.75 19 12.75H12.75V19C12.75 19.4142 12.4142 19.75 12 19.75C11.5858 19.75 11.25 19.4142 11.25 19V12.75H5C4.58579 12.75 4.25 12.4142 4.25 12C4.25 11.5858 4.58579 11.25 5 11.25H11.25V5C11.25 4.58579 11.5858 4.25 12 4.25Z"
-      fill="currentColor"
-      className="text-primary"
-    />
-  </svg>
-);
-
 export default function SearchForm() {
   const router = useRouter();
   const [rotated, setRotated] = useState(false);
-  const autoOpenReturn = useRef(false);
-  const departureRef = useRef<HTMLInputElement>(null);
-  const returnRef = useRef<HTMLInputElement>(null);
-  const today = new Date().toISOString().split("T")[0];
 
   const {
     state,
@@ -64,19 +42,6 @@ export default function SearchForm() {
     if (validate()) router.push(buildSearchUrl());
   };
 
-  // Auto-open the return date picker after "Add return" switches to round trip.
-  // useLayoutEffect fires synchronously after DOM mutations while the browser's
-  // user-gesture window (transient activation) is still valid for showPicker().
-  useLayoutEffect(() => {
-    if (state.tripType === "round" && autoOpenReturn.current) {
-      autoOpenReturn.current = false;
-      if (returnRef.current) {
-        returnRef.current.getBoundingClientRect();
-        showDatePicker(returnRef);
-      }
-    }
-  }, [state.tripType]);
-
   const handleSwap = () => {
     swapAirports();
     setRotated((r) => !r);
@@ -86,11 +51,6 @@ export default function SearchForm() {
     transform: `rotate(${rotated ? 180 : 0}deg)`,
     transition: "transform 0.35s ease",
   };
-
-  const dateBoxClass = (hasError: boolean) =>
-    `flex items-center gap-sm border rounded-xl px-md bg-surface-bright cursor-pointer min-h-[70px] ${
-      hasError ? "border-error" : "border-outline-variant"
-    }`;
 
   return (
     <section className="px-container-margin-mobile md:px-container-margin-desktop -mt-10 relative z-20">
@@ -157,68 +117,19 @@ export default function SearchForm() {
             )}
           </div>
 
-          {/* Departure */}
-          <div className="flex-1 min-w-0 flex flex-col gap-xs">
-            <label className="text-label-sm text-on-surface-variant px-1">Departure</label>
-            <div
-              onClick={() => showDatePicker(departureRef)}
-              className={dateBoxClass(!!errors.departureDate)}
-            >
-              <span className="material-symbols-outlined text-outline shrink-0 text-[20px]">
-                calendar_today
-              </span>
-              <input
-                ref={departureRef}
-                type="date"
-                min={today}
-                value={state.departureDate ?? ""}
-                onChange={(e) => setDepartureDate(e.target.value || null)}
-                className="bg-transparent border-none p-0 w-full min-w-0 focus:ring-0 text-body-md text-on-surface cursor-pointer"
-              />
-            </div>
-            {errors.departureDate && (
-              <p className="text-label-sm text-error px-1">{errors.departureDate}</p>
-            )}
-          </div>
-
-          {/* Return */}
-          <div className="flex-1 min-w-0 flex flex-col gap-xs">
-            <label className="text-label-sm text-on-surface-variant px-1">Return</label>
-            {state.tripType === "round" ? (
-              <>
-                <div
-                  onClick={() => showDatePicker(returnRef)}
-                  className={dateBoxClass(!!errors.returnDate)}
-                >
-                  <span className="material-symbols-outlined text-outline shrink-0 text-[20px]">
-                    calendar_today
-                  </span>
-                  <input
-                    ref={returnRef}
-                    type="date"
-                    min={state.departureDate ?? today}
-                    value={state.returnDate ?? ""}
-                    onChange={(e) => setReturnDate(e.target.value || null)}
-                    className="bg-transparent border-none p-0 w-full min-w-0 focus:ring-0 text-body-md text-on-surface cursor-pointer"
-                  />
-                </div>
-                {errors.returnDate && (
-                  <p className="text-label-sm text-error px-1">{errors.returnDate}</p>
-                )}
-              </>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  autoOpenReturn.current = true;
-                  setTripType("round");
-                }}
-                className={`${dateBoxClass(false)} border-dashed hover:bg-surface-container-high active:scale-95 transition-all`}
-              >
-                {addReturnSvg}
-                <span className="text-body-md text-primary truncate">Add return</span>
-              </button>
-            )}
+          {/* Dates */}
+          <div className="flex-[2] min-w-0">
+            <DateRangePicker
+              departureDate={state.departureDate}
+              returnDate={state.returnDate}
+              isReturnEnabled={state.tripType === "round"}
+              departureError={errors.departureDate}
+              returnError={errors.returnDate}
+              onDepartureChange={setDepartureDate}
+              onReturnChange={setReturnDate}
+              onAddReturn={() => setTripType("round")}
+              boxMinHeight={70}
+            />
           </div>
 
           {/* Search — phantom label aligns button with the input row */}

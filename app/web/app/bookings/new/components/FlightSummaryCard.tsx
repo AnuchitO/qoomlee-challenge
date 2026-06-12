@@ -1,23 +1,7 @@
 import { findAirport } from "../../../flights/data/airports";
 import FlightRoute from "../../../components/FlightRoute";
 import type { Flight } from "@/lib/types/flight";
-
-function formatDepartureDateTime(iso: string): string {
-  const date = new Date(iso);
-  const datePart = date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-  const timePart = date.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-    timeZone: "UTC",
-  });
-  return `${datePart} · ${timePart}`;
-}
+import { formatDepartureDateTime } from "@/lib/format/flightDateTime";
 
 export default function FlightSummaryCard({ flight }: { flight: Flight }) {
   const originAirport = findAirport(flight.origin);

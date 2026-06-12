@@ -4,29 +4,13 @@ import type { Flight } from "../lib/types";
 import { formatDuration } from "../lib/formatSearchSummary";
 import FlightRoute from "../../../components/FlightRoute";
 import { formatTHB } from "@/lib/currency/currency";
+import { formatFlightTime, isNextDay } from "@/lib/format/flightDateTime";
 
 interface Props {
   flight: Flight;
   passengers: number;
   isBestValue?: boolean;
   onSelect: (flight: Flight) => void;
-}
-
-function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString(undefined, {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-}
-
-function localDateKey(iso: string): string {
-  const d = new Date(iso);
-  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-}
-
-function isNextDay(departure: string, arrival: string): boolean {
-  return localDateKey(arrival) > localDateKey(departure);
 }
 
 export default function FlightCard({ flight, passengers, isBestValue = false, onSelect }: Props) {
@@ -77,8 +61,8 @@ export default function FlightCard({ flight, passengers, isBestValue = false, on
         <FlightRoute
           origin={flight.origin}
           destination={flight.destination}
-          departureTime={formatTime(flight.departureTime)}
-          arrivalTime={formatTime(flight.arrivalTime)}
+          departureTime={formatFlightTime(flight.departureTime)}
+          arrivalTime={formatFlightTime(flight.arrivalTime)}
           arrivalSuffix={nextDay && <span className="text-sm align-top text-error ml-0.5">+1</span>}
           duration={formatDuration(flight.durationMinutes)}
           stopLabel="Non-stop"

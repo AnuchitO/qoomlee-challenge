@@ -21,6 +21,21 @@ describe("AirportSelect — memory: closeSheet timer cleanup", () => {
     vi.useRealTimers();
   });
 
+  it("cancels the pending sheet-visibility animation frame when closed before it fires", () => {
+    const rafSpy = vi.spyOn(globalThis, "requestAnimationFrame");
+    const cafSpy = vi.spyOn(globalThis, "cancelAnimationFrame");
+
+    const { unmount } = render(<AirportSelect {...base} />);
+    fireEvent.click(screen.getByText("Select origin"));
+
+    expect(rafSpy).toHaveBeenCalled();
+    const rafId = rafSpy.mock.results[0]!.value as number;
+
+    unmount();
+
+    expect(cafSpy).toHaveBeenCalledWith(rafId);
+  });
+
   it("clears the pending closeSheet timeout when unmounted before it fires", () => {
     const { unmount } = render(<AirportSelect {...base} />);
 

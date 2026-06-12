@@ -86,11 +86,12 @@ export default function AirportSelect({
   useEffect(() => {
     if (!open) return;
     const dt = setTimeout(() => desktopSearchRef.current?.focus(), 30);
-    requestAnimationFrame(() => setSheetVisible(true));
+    const raf = requestAnimationFrame(() => setSheetVisible(true));
     const mt = setTimeout(() => mobileSearchRef.current?.focus(), 350);
     return () => {
       clearTimeout(dt);
       clearTimeout(mt);
+      cancelAnimationFrame(raf);
       setQuery("");
       setSheetVisible(false);
     };

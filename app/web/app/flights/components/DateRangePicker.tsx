@@ -618,17 +618,15 @@ export default function DateRangePicker({
         {isReturnEnabled ? (
           <>
             <div
+              role="button"
+              tabIndex={0}
+              onClick={() => openCalendar("return")}
+              onKeyDown={(e) => e.key === "Enter" && openCalendar("return")}
               style={boxStyle}
               className={`${fieldClass(!!returnError, open && step === "return")} pr-1`}
               data-testid="return-trigger"
             >
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => openCalendar("return")}
-                onKeyDown={(e) => e.key === "Enter" && openCalendar("return")}
-                className="flex items-center gap-sm flex-1 min-w-0"
-              >
+              <div className="flex items-center gap-sm flex-1 min-w-0">
                 <span className="material-symbols-outlined text-[20px] shrink-0 text-outline">
                   calendar_today
                 </span>

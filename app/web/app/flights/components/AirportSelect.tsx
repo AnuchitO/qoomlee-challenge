@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AIRPORTS, Airport, findAirport } from "../data/airports";
 import { useDelayedAction } from "@/app/hooks/useDelayedAction";
@@ -28,6 +28,7 @@ export default function AirportSelect({
   const [open, setOpen] = useState(false);
   const [sheetVisible, setSheetVisible] = useState(false);
   const [query, setQuery] = useState("");
+  const listboxId = useId();
 
   const containerRef = useRef<HTMLDivElement>(null);
   // Separate ref for the portal sheet so the outside-click handler can exclude it
@@ -68,6 +69,16 @@ export default function AirportSelect({
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
   }, []);
+
+  // Close on Escape while open.
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open]);
 
   // Focus search inputs and trigger bottom sheet slide-up when opening.
   // The cleanup runs when `open` flips back to false, resetting the
@@ -143,6 +154,9 @@ export default function AirportSelect({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={listboxId}
         className={`w-full flex items-center gap-sm text-left transition-colors cursor-pointer ${borderless ? "py-1" : triggerBoxed}`}
       >
         <span className="material-symbols-outlined text-primary shrink-0 text-[20px]">{icon}</span>
@@ -162,7 +176,11 @@ export default function AirportSelect({
 
       {/* ── Desktop dropdown ── */}
       {open && (
-        <div className="hidden md:flex flex-col absolute z-50 top-full mt-1 left-0 w-full min-w-[260px] max-h-72 bg-surface-container-lowest rounded-xl shadow-lg border border-outline-variant overflow-hidden">
+        <div
+          id={listboxId}
+          role="listbox"
+          className="hidden md:flex flex-col absolute z-50 top-full mt-1 left-0 w-full min-w-[260px] max-h-72 bg-surface-container-lowest rounded-xl shadow-lg border border-outline-variant overflow-hidden"
+        >
           <div className="p-2 border-b border-outline-variant shrink-0">
             <input
               ref={desktopSearchRef}

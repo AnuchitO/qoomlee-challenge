@@ -129,4 +129,32 @@ describe("AirportSelect", () => {
 
     filterSpy.mockRestore();
   });
+
+  // ── accessibility ───────────────────────────────────────────────────────────
+
+  it("exposes aria-haspopup/aria-expanded/aria-controls on the trigger", async () => {
+    render(<AirportSelect {...base} />);
+    const trigger = screen.getByText("Select origin").closest("button")!;
+
+    expect(trigger).toHaveAttribute("aria-haspopup", "listbox");
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+    const controlsId = trigger.getAttribute("aria-controls");
+    expect(controlsId).toBeTruthy();
+
+    fireEvent.click(trigger);
+    await waitFor(() => expect(trigger).toHaveAttribute("aria-expanded", "true"));
+    expect(document.getElementById(controlsId!)).toBeTruthy();
+  });
+
+  it("closes the dropdown when Escape is pressed", async () => {
+    render(<AirportSelect {...base} />);
+    fireEvent.click(screen.getByText("Select origin"));
+    await waitFor(() => expect(screen.getByText("Popular Cities or Airports")).toBeInTheDocument());
+
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    await waitFor(() =>
+      expect(screen.queryByText("Popular Cities or Airports")).not.toBeInTheDocument(),
+    );
+  });
 });

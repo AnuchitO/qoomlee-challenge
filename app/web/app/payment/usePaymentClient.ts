@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import {
+  formatCardNumber,
+  formatExpiry,
+  formatCvv,
+  validateCardFields,
+} from "@/lib/forms/cardFormatting";
 
 export function formatDeparture(iso: string): string {
   const d = new Date(iso);
@@ -15,18 +21,6 @@ export function formatCountdown(seconds: number): string {
     .padStart(2, "0");
   const s = (seconds % 60).toString().padStart(2, "0");
   return `${m}:${s}`;
-}
-
-function formatCardNumber(value: string): string {
-  return value
-    .replace(/\D/g, "")
-    .slice(0, 16)
-    .replace(/(.{4})(?=.)/g, "$1 ");
-}
-
-function formatExpiry(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 4);
-  return digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
 }
 
 function generateBookingRef(): string {
@@ -138,7 +132,7 @@ export function usePaymentClient({
   }
 
   function handleCvvChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setCvv(e.target.value.replace(/\D/g, "").slice(0, 4));
+    setCvv(formatCvv(e.target.value));
   }
 
   function handleSaveCardChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -163,12 +157,7 @@ export function usePaymentClient({
   // pay
   const handlePay = () => {
     if (activeMethod === "card") {
-      const e: CardErrors = {};
-      if (!cardName.trim()) e.cardName = "Required";
-      if (cardNumber.replace(/\s/g, "").length !== 16)
-        e.cardNumber = "Enter a valid 16-digit card number";
-      if (!/^\d{2}\/\d{2}$/.test(expiry)) e.expiry = "Use MM/YY format";
-      if (!/^\d{3,4}$/.test(cvv)) e.cvv = "3 or 4 digits required";
+      const e: CardErrors = validateCardFields({ cardName, cardNumber, expiry, cvv });
       if (!agreed) e.terms = "You must agree to the terms to proceed";
       setErrors(e);
       if (Object.keys(e).length > 0) return;

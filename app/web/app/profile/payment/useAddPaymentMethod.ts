@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { formatCardNumber, formatExpiry, formatCvv } from "@/lib/forms/cardFormatting";
 
 export interface PaymentMethodForm {
   cardName: string;
@@ -7,20 +8,6 @@ export interface PaymentMethodForm {
   expiry: string;
   cvv: string;
   setDefault: boolean;
-}
-
-function formatCardNumber(value: string) {
-  return value
-    .replace(/\D/g, "")
-    .slice(0, 16)
-    .replace(/(.{4})/g, "$1 ")
-    .trim();
-}
-
-function formatExpiry(value: string) {
-  const digits = value.replace(/\D/g, "").slice(0, 4);
-  if (digits.length > 2) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-  return digits;
 }
 
 export function useAddPaymentMethod() {
@@ -50,7 +37,7 @@ export function useAddPaymentMethod() {
   }
 
   function setCvv(e: React.ChangeEvent<HTMLInputElement>) {
-    setForm((f) => ({ ...f, cvv: e.target.value.replace(/\D/g, "").slice(0, 4) }));
+    setForm((f) => ({ ...f, cvv: formatCvv(e.target.value) }));
   }
 
   function setDefault(e: React.ChangeEvent<HTMLInputElement>) {

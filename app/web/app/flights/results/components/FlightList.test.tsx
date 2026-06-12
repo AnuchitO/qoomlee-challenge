@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import FlightList from "./FlightList";
 import type { Flight } from "../lib/types";
+import * as sortFlightsModule from "../lib/sortFlights";
 
 const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({
@@ -51,6 +52,24 @@ describe("FlightList — rendering", () => {
     render(<FlightList flights={[makeFlight()]} passengers={1} />);
     expect(screen.getByRole("button", { name: "Best" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Price" })).toBeInTheDocument();
+  });
+});
+
+describe("FlightList — performance: memoized sorting", () => {
+  it("does not re-sort when re-rendering for a reason unrelated to flights or sortBy", () => {
+    const sortSpy = vi.spyOn(sortFlightsModule, "sortFlights");
+    const flights = Array.from({ length: 6 }, (_, i) =>
+      makeFlight({ id: i + 1, flightNumber: `QQ${100 + i}` }),
+    );
+
+    render(<FlightList flights={flights} passengers={1} />);
+    const callsAfterMount = sortSpy.mock.calls.length;
+
+    // Clicking "Show more results" changes `visible` state, not flights/sortBy.
+    fireEvent.click(screen.getByRole("button", { name: /Show \d+ more results/ }));
+    expect(sortSpy).toHaveBeenCalledTimes(callsAfterMount);
+
+    sortSpy.mockRestore();
   });
 });
 

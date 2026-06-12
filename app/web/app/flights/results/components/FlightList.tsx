@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Flight, SortBy } from "../lib/types";
 import { sortFlights } from "../lib/sortFlights";
@@ -19,7 +19,7 @@ export default function FlightList({ flights, passengers }: Props) {
   const [sortBy, setSortBy] = useState<SortBy>("best");
   const [visible, setVisible] = useState(PAGE_SIZE);
 
-  const sorted = sortFlights(flights, sortBy);
+  const sorted = useMemo(() => sortFlights(flights, sortBy), [flights, sortBy]);
   const shown = sorted.slice(0, visible);
   const hasMore = visible < sorted.length;
 

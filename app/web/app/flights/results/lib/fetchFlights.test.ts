@@ -107,6 +107,28 @@ describe("fetchFlights", () => {
     expect(result).toEqual([]);
   });
 
+  it("logs an error when the API responds with a non-ok status", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    mockFetch({}, false, 500);
+    await fetchFlights(BASE_PARAMS);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("500"));
+  });
+
+  it("logs an error when fetch throws a network error", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const networkError = new Error("Network error");
+    vi.spyOn(globalThis, "fetch").mockRejectedValueOnce(networkError);
+    await fetchFlights(BASE_PARAMS);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("fetchFlights"), networkError);
+  });
+
+  it("does not log an error for a legitimately empty results envelope", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    mockFetch({ flights: [] });
+    await fetchFlights(BASE_PARAMS);
+    expect(errorSpy).not.toHaveBeenCalled();
+  });
+
   // ── URL construction ────────────────────────────────────────────────────────
 
   it("calls fetch with origin, destination, and date params in the URL", async () => {

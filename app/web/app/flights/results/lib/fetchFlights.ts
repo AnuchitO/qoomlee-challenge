@@ -15,10 +15,14 @@ export async function fetchFlights(params: FetchParams): Promise<Flight[]> {
   const url = buildApiUrl(params);
   try {
     const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      console.error(`fetchFlights: API responded with status ${res.status}`);
+      return [];
+    }
     const data = await res.json();
     return Array.isArray(data) ? data : (data.flights ?? []);
-  } catch {
+  } catch (err) {
+    console.error("fetchFlights: network error", err);
     return [];
   }
 }

@@ -33,12 +33,14 @@ describe("useReviewCheckIn", () => {
     act(() => {
       result.current.handleConfirm();
     });
+
     expect(result.current.confirming).toBe(true);
     expect(mockPush).not.toHaveBeenCalled();
 
     act(() => {
       vi.advanceTimersByTime(1000);
     });
+
     expect(mockPush).toHaveBeenCalledWith("/passes/QM1234");
   });
 });

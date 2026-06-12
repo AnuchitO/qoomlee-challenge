@@ -46,12 +46,14 @@ describe("useChangeFlight", () => {
     act(() => {
       result.current.handleSelect("QQ107");
     });
+
     expect(result.current.confirming).toBe("QQ107");
     expect(mockPush).not.toHaveBeenCalled();
 
     act(() => {
       vi.advanceTimersByTime(1200);
     });
+
     expect(mockPush).toHaveBeenCalledWith("/bookings/QM1234");
   });
 });

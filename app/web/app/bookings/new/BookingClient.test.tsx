@@ -64,7 +64,9 @@ describe("BookingClient — passenger form", () => {
 
   it("shows Required errors for all empty fields on submit", () => {
     render(<BookingClient flight={flight} passengers={1} />);
+
     fireEvent.click(screen.getByRole("button", { name: /continue to payment/i }));
+
     expect(screen.getAllByText("Required")).toHaveLength(3); // firstName, lastName, phone
     expect(screen.getByText("Valid email required")).toBeInTheDocument();
   });
@@ -79,20 +81,26 @@ describe("BookingClient — passenger form", () => {
     fireEvent.change(screen.getByPlaceholderText("000 000 000"), {
       target: { value: "0812345678" },
     });
+
     fireEvent.click(screen.getByRole("button", { name: /continue to payment/i }));
+
     expect(screen.getByText("Valid email required")).toBeInTheDocument();
   });
 
   it("does not call router.push when form is invalid", () => {
     render(<BookingClient flight={flight} passengers={1} />);
+
     fireEvent.click(screen.getByRole("button", { name: /continue to payment/i }));
+
     expect(mockPush).not.toHaveBeenCalled();
   });
 
   it("calls router.push with /payment route when form is valid", () => {
     render(<BookingClient flight={flight} passengers={1} />);
     fillValidForm();
+
     fireEvent.click(screen.getByRole("button", { name: /continue to payment/i }));
+
     expect(mockPush).toHaveBeenCalledOnce();
     expect(mockPush).toHaveBeenCalledWith(expect.stringContaining("/payment"));
   });
@@ -100,7 +108,9 @@ describe("BookingClient — passenger form", () => {
   it("includes passenger data in the navigation URL", () => {
     render(<BookingClient flight={flight} passengers={1} />);
     fillValidForm();
+
     fireEvent.click(screen.getByRole("button", { name: /continue to payment/i }));
+
     const url = mockPush.mock.calls[0][0] as string;
     expect(url).toContain("firstName=John");
     expect(url).toContain("lastName=Doe");
@@ -110,7 +120,9 @@ describe("BookingClient — passenger form", () => {
   it("includes flight data in the navigation URL", () => {
     render(<BookingClient flight={flight} passengers={1} />);
     fillValidForm();
+
     fireEvent.click(screen.getByRole("button", { name: /continue to payment/i }));
+
     const url = mockPush.mock.calls[0][0] as string;
     expect(url).toContain("flightNumber=QQ101");
     expect(url).toContain("origin=BKK");

@@ -85,7 +85,9 @@ describe("PaymentClient — layout", () => {
 
   it("shows a coming-soon message when a non-card method is selected", () => {
     render(<PaymentClient {...BASE_PROPS} />);
+
     fireEvent.click(screen.getByRole("button", { name: "PromptPay" }));
+
     expect(screen.getByText(/PromptPay.*coming soon/i)).toBeInTheDocument();
     expect(screen.queryByPlaceholderText("0000 0000 0000 0000")).not.toBeInTheDocument();
   });
@@ -131,21 +133,27 @@ describe("PaymentClient — promo code", () => {
   it("applies QOOMFIRST promo and shows success banner", () => {
     render(<PaymentClient {...BASE_PROPS} />);
     fireEvent.change(screen.getByPlaceholderText("Promo code"), { target: { value: "QOOMFIRST" } });
+
     fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+
     expect(screen.getByText(/QOOMFIRST applied/i)).toBeInTheDocument();
   });
 
   it("shows the promo discount line in the summary after applying", () => {
     render(<PaymentClient {...BASE_PROPS} />);
     fireEvent.change(screen.getByPlaceholderText("Promo code"), { target: { value: "QOOMFIRST" } });
+
     fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+
     expect(screen.getByText("Promo Discount")).toBeInTheDocument();
   });
 
   it("reduces the total when promo is applied", () => {
     render(<PaymentClient {...BASE_PROPS} />);
     fireEvent.change(screen.getByPlaceholderText("Promo code"), { target: { value: "QOOMFIRST" } });
+
     fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+
     // total = 70500 - 50000 = 20500 → ฿205
     expect(screen.getByRole("button", { name: /pay.*205.*securely/i })).toBeInTheDocument();
   });
@@ -153,14 +161,18 @@ describe("PaymentClient — promo code", () => {
   it("shows an error for an invalid promo code", () => {
     render(<PaymentClient {...BASE_PROPS} />);
     fireEvent.change(screen.getByPlaceholderText("Promo code"), { target: { value: "BADCODE" } });
+
     fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+
     expect(screen.getByText("Invalid promo code")).toBeInTheDocument();
   });
 
   it("accepts promo code case-insensitively", () => {
     render(<PaymentClient {...BASE_PROPS} />);
     fireEvent.change(screen.getByPlaceholderText("Promo code"), { target: { value: "qoomfirst" } });
+
     fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+
     expect(screen.getByText(/QOOMFIRST applied/i)).toBeInTheDocument();
   });
 });
@@ -168,7 +180,9 @@ describe("PaymentClient — promo code", () => {
 describe("PaymentClient — card form validation", () => {
   it("shows Required error for empty cardholder name", () => {
     render(<PaymentClient {...BASE_PROPS} />);
+
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
+
     expect(screen.getByText("Required")).toBeInTheDocument();
   });
 
@@ -180,7 +194,9 @@ describe("PaymentClient — card form validation", () => {
     fireEvent.change(screen.getByPlaceholderText("0000 0000 0000 0000"), {
       target: { value: "1234" },
     });
+
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
+
     expect(screen.getByText("Enter a valid 16-digit card number")).toBeInTheDocument();
   });
 
@@ -193,7 +209,9 @@ describe("PaymentClient — card form validation", () => {
       target: { value: "1234567890123456" },
     });
     fireEvent.change(screen.getByPlaceholderText("MM/YY"), { target: { value: "12" } });
+
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
+
     expect(screen.getByText("Use MM/YY format")).toBeInTheDocument();
   });
 
@@ -206,7 +224,9 @@ describe("PaymentClient — card form validation", () => {
       target: { value: "1234567890123456" },
     });
     fireEvent.change(screen.getByPlaceholderText("MM/YY"), { target: { value: "1228" } });
+
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
+
     expect(screen.getByText("3 or 4 digits required")).toBeInTheDocument();
   });
 
@@ -220,13 +240,17 @@ describe("PaymentClient — card form validation", () => {
     });
     fireEvent.change(screen.getByPlaceholderText("MM/YY"), { target: { value: "1228" } });
     fireEvent.change(screen.getByPlaceholderText("•••"), { target: { value: "123" } });
+
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
+
     expect(screen.getByText("You must agree to the terms to proceed")).toBeInTheDocument();
   });
 
   it("does not navigate when form is invalid", () => {
     render(<PaymentClient {...BASE_PROPS} />);
+
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
+
     expect(mockPush).not.toHaveBeenCalled();
   });
 });
@@ -235,7 +259,9 @@ describe("PaymentClient — successful payment", () => {
   it("navigates to /bookings/confirmation on valid card submission", () => {
     render(<PaymentClient {...BASE_PROPS} />);
     fillValidCardForm();
+
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
+
     expect(mockPush).toHaveBeenCalledOnce();
     expect(mockPush.mock.calls[0][0]).toContain("/bookings/confirmation");
   });
@@ -243,14 +269,18 @@ describe("PaymentClient — successful payment", () => {
   it("includes a QM-prefixed booking reference in the URL", () => {
     render(<PaymentClient {...BASE_PROPS} />);
     fillValidCardForm();
+
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
+
     expect(mockPush.mock.calls[0][0]).toMatch(/ref=QM[A-Z0-9]{4}/);
   });
 
   it("includes passenger and flight data in the confirmation URL", () => {
     render(<PaymentClient {...BASE_PROPS} />);
     fillValidCardForm();
+
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
+
     const url = mockPush.mock.calls[0][0] as string;
     expect(url).toContain("flightNumber=QQ101");
     expect(url).toContain("firstName=John");
@@ -261,7 +291,9 @@ describe("PaymentClient — successful payment", () => {
   it("includes the total amount in the confirmation URL", () => {
     render(<PaymentClient {...BASE_PROPS} />);
     fillValidCardForm();
+
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
+
     const url = mockPush.mock.calls[0][0] as string;
     expect(url).toContain("totalMinor=70500");
   });
@@ -271,7 +303,9 @@ describe("PaymentClient — successful payment", () => {
     fireEvent.change(screen.getByPlaceholderText("Promo code"), { target: { value: "QOOMFIRST" } });
     fireEvent.click(screen.getByRole("button", { name: "Apply" }));
     fillValidCardForm();
+
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
+
     const url = mockPush.mock.calls[0][0] as string;
     expect(url).toContain("totalMinor=20500");
   });
@@ -281,7 +315,9 @@ describe("PaymentClient — card number formatting", () => {
   it("formats card number into groups of 4 as the user types", () => {
     render(<PaymentClient {...BASE_PROPS} />);
     const input = screen.getByPlaceholderText("0000 0000 0000 0000") as HTMLInputElement;
+
     fireEvent.change(input, { target: { value: "4111111111111111" } });
+
     expect(input.value).toBe("4111 1111 1111 1111");
   });
 });
@@ -290,7 +326,9 @@ describe("PaymentClient — expiry formatting", () => {
   it("auto-inserts slash after month digits", () => {
     render(<PaymentClient {...BASE_PROPS} />);
     const input = screen.getByPlaceholderText("MM/YY") as HTMLInputElement;
+
     fireEvent.change(input, { target: { value: "1228" } });
+
     expect(input.value).toBe("12/28");
   });
 });

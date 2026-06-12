@@ -32,6 +32,7 @@ describe("useVerifyEmail", () => {
     act(() => {
       vi.advanceTimersByTime(1000);
     });
+
     expect(result.current.countdown).toBe(59);
 
     for (let i = 0; i < 3; i++) {
@@ -39,6 +40,7 @@ describe("useVerifyEmail", () => {
         vi.advanceTimersByTime(1000);
       });
     }
+
     expect(result.current.countdown).toBe(56);
   });
 
@@ -50,6 +52,7 @@ describe("useVerifyEmail", () => {
         vi.advanceTimersByTime(1000);
       });
     }
+
     expect(result.current.countdown).toBe(0);
     expect(result.current.canResend).toBe(true);
   });
@@ -60,11 +63,13 @@ describe("useVerifyEmail", () => {
     act(() => {
       result.current.handleChange(0, "5");
     });
+
     expect(result.current.otp[0]).toBe("5");
 
     act(() => {
       result.current.handleChange(1, "ab");
     });
+
     expect(result.current.otp[1]).toBe("");
   });
 
@@ -92,6 +97,7 @@ describe("useVerifyEmail", () => {
     act(() => {
       result.current.handleChange(0, "1");
     });
+
     expect(result.current.canResend).toBe(true);
     expect(result.current.otp[0]).toBe("1");
 

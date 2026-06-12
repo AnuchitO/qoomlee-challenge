@@ -27,22 +27,27 @@ describe("AirportSelect", () => {
 
   it("renders the placeholder when no airport is selected", () => {
     render(<AirportSelect {...base} />);
+
     expect(screen.getByText("Select origin")).toBeInTheDocument();
   });
 
   it("renders city and code when an airport is selected", () => {
     render(<AirportSelect {...base} value="BKK" />);
+
     expect(screen.getByText("Bangkok (BKK)")).toBeInTheDocument();
   });
 
   it("renders the full airport name when an airport is selected", () => {
     render(<AirportSelect {...base} value="BKK" />);
+
     expect(screen.getByText("Suvarnabhumi Airport")).toBeInTheDocument();
   });
 
   it("applies error border styling when error prop is provided", () => {
     const { container } = render(<AirportSelect {...base} error="Required" />);
+
     const trigger = container.querySelector("button");
+
     expect(trigger?.className).toContain("border-error");
   });
 
@@ -50,20 +55,26 @@ describe("AirportSelect", () => {
 
   it("opens the dropdown when the trigger is clicked", async () => {
     render(<AirportSelect {...base} />);
+
     fireEvent.click(screen.getByText("Select origin"));
+
     await waitFor(() => expect(screen.getByText("Popular Cities or Airports")).toBeInTheDocument());
   });
 
   it("lists all airports in the dropdown", async () => {
     render(<AirportSelect {...base} />);
+
     fireEvent.click(screen.getByText("Select origin"));
+
     await waitFor(() => expect(screen.getByText("Suvarnabhumi Airport")).toBeInTheDocument());
     expect(screen.getByText("Singapore Changi Airport")).toBeInTheDocument();
   });
 
   it("excludes the airport matching excludeCode", async () => {
     render(<AirportSelect {...base} excludeCode="BKK" />);
+
     fireEvent.click(screen.getByText("Select origin"));
+
     await waitFor(() => expect(screen.getByText("Singapore Changi Airport")).toBeInTheDocument());
     expect(screen.queryByText("Suvarnabhumi Airport")).not.toBeInTheDocument();
   });
@@ -74,7 +85,9 @@ describe("AirportSelect", () => {
     render(<AirportSelect {...base} />);
     fireEvent.click(screen.getByText("Select origin"));
     const searchInput = await screen.findByPlaceholderText("Search airports or cities…");
+
     fireEvent.change(searchInput, { target: { value: "Singapore" } });
+
     await waitFor(() => expect(screen.getByText("Singapore Changi Airport")).toBeInTheDocument());
     expect(screen.queryByText("Suvarnabhumi Airport")).not.toBeInTheDocument();
   });
@@ -83,7 +96,9 @@ describe("AirportSelect", () => {
     render(<AirportSelect {...base} />);
     fireEvent.click(screen.getByText("Select origin"));
     const searchInput = await screen.findByPlaceholderText("Search airports or cities…");
+
     fireEvent.change(searchInput, { target: { value: "zzznomatch" } });
+
     await waitFor(() => expect(screen.getByText("No airports found")).toBeInTheDocument());
   });
 
@@ -94,7 +109,9 @@ describe("AirportSelect", () => {
     render(<AirportSelect {...base} onChange={onChange} />);
     fireEvent.click(screen.getByText("Select origin"));
     const row = await screen.findByText("Suvarnabhumi Airport");
+
     fireEvent.click(row.closest("button")!);
+
     expect(onChange).toHaveBeenCalledWith("BKK");
   });
 
@@ -102,7 +119,9 @@ describe("AirportSelect", () => {
     render(<AirportSelect {...base} />);
     fireEvent.click(screen.getByText("Select origin"));
     const row = await screen.findByText("Suvarnabhumi Airport");
+
     fireEvent.click(row.closest("button")!);
+
     await waitFor(() =>
       expect(screen.queryByText("Popular Cities or Airports")).not.toBeInTheDocument(),
     );
@@ -112,7 +131,9 @@ describe("AirportSelect", () => {
 
   it("renders without border classes when borderless prop is true", () => {
     const { container } = render(<AirportSelect {...base} borderless />);
+
     const trigger = container.querySelector("button");
+
     expect(trigger?.className).not.toContain("border");
   });
 
@@ -120,11 +141,14 @@ describe("AirportSelect", () => {
 
   it("does not recompute the airport list on re-renders unrelated to query or excludeCode", () => {
     const filterSpy = vi.spyOn(AIRPORTS, "filter");
+
     const { rerender } = render(<AirportSelect {...base} />);
+
     expect(filterSpy).toHaveBeenCalledTimes(1);
 
     // Re-render with a prop change that doesn't affect filtering.
     rerender(<AirportSelect {...base} placeholder="Select destination" />);
+
     expect(filterSpy).toHaveBeenCalledTimes(1);
 
     filterSpy.mockRestore();
@@ -142,6 +166,7 @@ describe("AirportSelect", () => {
     expect(controlsId).toBeTruthy();
 
     fireEvent.click(trigger);
+
     await waitFor(() => expect(trigger).toHaveAttribute("aria-expanded", "true"));
     expect(document.getElementById(controlsId!)).toBeTruthy();
   });
@@ -149,6 +174,7 @@ describe("AirportSelect", () => {
   it("closes the dropdown when Escape is pressed", async () => {
     render(<AirportSelect {...base} />);
     fireEvent.click(screen.getByText("Select origin"));
+
     await waitFor(() => expect(screen.getByText("Popular Cities or Airports")).toBeInTheDocument());
 
     fireEvent.keyDown(document, { key: "Escape" });

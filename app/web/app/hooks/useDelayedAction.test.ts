@@ -18,7 +18,9 @@ describe("useDelayedAction", () => {
     result.current(callback, 1000);
 
     expect(callback).not.toHaveBeenCalled();
+
     vi.advanceTimersByTime(1000);
+
     expect(callback).toHaveBeenCalledTimes(1);
   });
 
@@ -28,6 +30,7 @@ describe("useDelayedAction", () => {
 
     result.current(callback, 1000);
     unmount();
+
     vi.advanceTimersByTime(1000);
 
     expect(callback).not.toHaveBeenCalled();
@@ -40,6 +43,7 @@ describe("useDelayedAction", () => {
 
     result.current(first, 1000);
     result.current(second, 1000);
+
     vi.advanceTimersByTime(1000);
 
     expect(first).not.toHaveBeenCalled();

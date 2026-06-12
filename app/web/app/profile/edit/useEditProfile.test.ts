@@ -45,6 +45,7 @@ describe("useEditProfile", () => {
     act(() => {
       result.current.handleSave({ preventDefault } as unknown as React.FormEvent);
     });
+
     expect(preventDefault).toHaveBeenCalled();
     expect(result.current.saving).toBe(true);
     expect(mockBack).not.toHaveBeenCalled();
@@ -52,6 +53,7 @@ describe("useEditProfile", () => {
     act(() => {
       vi.advanceTimersByTime(800);
     });
+
     expect(result.current.saving).toBe(false);
     expect(mockBack).toHaveBeenCalled();
   });

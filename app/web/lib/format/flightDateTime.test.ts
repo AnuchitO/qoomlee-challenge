@@ -9,6 +9,7 @@ describe("formatFlightTime", () => {
       minute: "2-digit",
       hour12: false,
     });
+
     expect(formatFlightTime(iso)).toBe(expected);
   });
 });
@@ -21,6 +22,7 @@ describe("isNextDay", () => {
   it("returns true when arrival falls on a later local day than departure", () => {
     const departure = new Date(2026, 5, 15, 23, 0).toISOString();
     const arrival = new Date(2026, 5, 16, 1, 0).toISOString();
+
     expect(isNextDay(departure, arrival)).toBe(true);
   });
 });

@@ -20,17 +20,20 @@ beforeEach(() => {
 describe("DateRangePicker", () => {
   it("renders Departure and Return section labels", () => {
     render(<DateRangePicker {...base} />);
+
     expect(screen.getByText("Departure date")).toBeInTheDocument();
     expect(screen.getByText("Return Date")).toBeInTheDocument();
   });
 
   it("shows 'Add return' button when isReturnEnabled is false", () => {
     render(<DateRangePicker {...base} isReturnEnabled={false} />);
+
     expect(screen.getByText("Add return")).toBeInTheDocument();
   });
 
   it("hides 'Add return' and shows Return trigger when isReturnEnabled is true", () => {
     render(<DateRangePicker {...base} isReturnEnabled={true} />);
+
     expect(screen.queryByText("Add return")).not.toBeInTheDocument();
     expect(screen.getByTestId("return-trigger")).toBeInTheDocument();
   });
@@ -38,13 +41,17 @@ describe("DateRangePicker", () => {
   it("calls onAddReturn when 'Add return' is clicked", () => {
     const onAddReturn = vi.fn();
     render(<DateRangePicker {...base} onAddReturn={onAddReturn} />);
+
     fireEvent.click(screen.getByText("Add return"));
+
     expect(onAddReturn).toHaveBeenCalledOnce();
   });
 
   it("opens calendar when departure trigger is clicked", () => {
     render(<DateRangePicker {...base} />);
+
     fireEvent.click(screen.getByTestId("departure-trigger"));
+
     // calendar is open when day buttons (numbers) become visible
     const dayButtons = screen
       .getAllByRole("button")
@@ -57,7 +64,9 @@ describe("DateRangePicker", () => {
     // click the inner role=button inside the return trigger
     const returnTrigger = screen.getByTestId("return-trigger");
     const innerBtn = returnTrigger.querySelector('[role="button"]') ?? returnTrigger;
+
     fireEvent.click(innerBtn);
+
     const dayButtons = screen
       .getAllByRole("button")
       .filter((b) => /^\d{1,2}$/.test(b.textContent ?? ""));
@@ -67,9 +76,7 @@ describe("DateRangePicker", () => {
   it("calls onDepartureChange when a day is clicked in departure step", () => {
     const onDepartureChange = vi.fn();
     render(<DateRangePicker {...base} onDepartureChange={onDepartureChange} />);
-
     fireEvent.click(screen.getByTestId("departure-trigger"));
-
     // click first enabled day button (a number)
     const dayButtons = screen
       .getAllByRole("button")
@@ -87,7 +94,6 @@ describe("DateRangePicker", () => {
     const today = new Date();
     const dep = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
     const depISO = dep.toISOString().split("T")[0];
-
     render(
       <DateRangePicker
         {...base}
@@ -96,11 +102,9 @@ describe("DateRangePicker", () => {
         onReturnChange={onReturnChange}
       />,
     );
-
     const returnTrigger = screen.getByTestId("return-trigger");
     const innerBtn = returnTrigger.querySelector('[role="button"]') ?? returnTrigger;
     fireEvent.click(innerBtn);
-
     // find enabled day buttons with value > departure day
     const dayButtons = screen
       .getAllByRole("button")
@@ -114,6 +118,7 @@ describe("DateRangePicker", () => {
 
   it("shows departureError message", () => {
     render(<DateRangePicker {...base} departureError="Please select a departure date" />);
+
     expect(screen.getByText("Please select a departure date")).toBeInTheDocument();
   });
 
@@ -125,18 +130,23 @@ describe("DateRangePicker", () => {
         returnError="Please select a return date"
       />,
     );
+
     expect(screen.getByText("Please select a return date")).toBeInTheDocument();
   });
 
   it("applies boxMinHeight style to date triggers", () => {
     const { container } = render(<DateRangePicker {...base} boxMinHeight={70} />);
+
     const styledEl = container.querySelector("[style*='min-height']");
+
     expect(styledEl).toBeInTheDocument();
   });
 
   it("renders previous/next month navigation inside the open calendar", () => {
     render(<DateRangePicker {...base} />);
+
     fireEvent.click(screen.getByTestId("departure-trigger"));
+
     expect(screen.getByLabelText("Previous month")).toBeInTheDocument();
     expect(screen.getByLabelText("Next month")).toBeInTheDocument();
   });
@@ -144,7 +154,6 @@ describe("DateRangePicker", () => {
   it("navigates to next month when next arrow is clicked", () => {
     render(<DateRangePicker {...base} />);
     fireEvent.click(screen.getByTestId("departure-trigger"));
-
     const now = new Date();
     const nextMonthLabel = new Date(now.getFullYear(), now.getMonth() + 2).toLocaleDateString(
       "en-US",
@@ -173,6 +182,7 @@ describe("DateRangePicker — user journey: one-way trip", () => {
 
     // user taps the departure field
     fireEvent.click(screen.getByTestId("departure-trigger"));
+
     expect(enabledDays().length).toBeGreaterThan(0);
 
     // user taps a day
@@ -181,7 +191,6 @@ describe("DateRangePicker — user journey: one-way trip", () => {
     // date was registered
     expect(onDepartureChange).toHaveBeenCalledOnce();
     expect(onDepartureChange).toHaveBeenCalledWith(expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
-
     // calendar is gone
     expect(enabledDays()).toHaveLength(0);
   });
@@ -209,15 +218,15 @@ describe("DateRangePicker — user journey: round trip", () => {
     // step 1: open and pick departure
     fireEvent.click(screen.getByTestId("departure-trigger"));
     fireEvent.click(enabledDays()[0]);
-    expect(onDepartureChange).toHaveBeenCalledOnce();
 
+    expect(onDepartureChange).toHaveBeenCalledOnce();
     // calendar stays open for return step (still shows day buttons)
     expect(enabledDays().length).toBeGreaterThan(0);
 
     // step 2: pick return
     fireEvent.click(enabledDays()[0]);
-    expect(onReturnChange).toHaveBeenCalledOnce();
 
+    expect(onReturnChange).toHaveBeenCalledOnce();
     // calendar closes
     expect(enabledDays()).toHaveLength(0);
   });
@@ -258,6 +267,7 @@ describe("DateRangePicker — user journey: round trip", () => {
     );
 
     fireEvent.click(screen.getByLabelText("Clear return date"));
+
     expect(onReturnChange).toHaveBeenCalledWith(null);
   });
 });
@@ -286,6 +296,7 @@ describe("DateRangePicker — user journey: reverse flow (return before departur
     render(<DateRangePicker {...base} isReturnEnabled={true} />);
 
     openReturnTrigger();
+
     expect(enabledDays().length).toBeGreaterThan(0);
 
     pickLastEnabledAsReturn();
@@ -320,14 +331,15 @@ describe("DateRangePicker — user journey: reverse flow (return before departur
     // Step 1: open return trigger and pick the last visible day as return
     openReturnTrigger();
     pickLastEnabledAsReturn();
+
     expect(onReturnChange).toHaveBeenCalledOnce();
     expect(enabledDays().length).toBeGreaterThan(0); // still open in departure step
 
     // Step 2: pick first enabled day as departure (guaranteed before the return date)
     fireEvent.click(enabledDays()[0]);
+
     expect(onDepartureChange).toHaveBeenCalledOnce();
     expect(onDepartureChange).toHaveBeenCalledWith(expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
-
     // calendar closes automatically
     expect(enabledDays()).toHaveLength(0);
   });
@@ -337,7 +349,6 @@ describe("DateRangePicker — user journey: reverse flow (return before departur
     d.setDate(d.getDate() + 10);
     const returnISO = d.toISOString().split("T")[0];
     const returnDayStr = String(d.getDate());
-
     render(<DateRangePicker {...base} isReturnEnabled={true} returnDate={returnISO} />);
 
     // Open departure trigger — reverseMode is active because returnDate is set
@@ -354,7 +365,6 @@ describe("DateRangePicker — user journey: reverse flow (return before departur
     const d = new Date();
     d.setDate(d.getDate() + 10);
     const returnISO = d.toISOString().split("T")[0];
-
     const onDepartureChange = vi.fn();
     render(
       <DateRangePicker
@@ -367,8 +377,9 @@ describe("DateRangePicker — user journey: reverse flow (return before departur
 
     fireEvent.click(screen.getByTestId("departure-trigger"));
 
-    // The first enabled day is before the return — clicking it should fire onDepartureChange
     expect(enabledDays().length).toBeGreaterThan(0);
+
+    // The first enabled day is before the return — clicking it should fire onDepartureChange
     fireEvent.click(enabledDays()[0]);
 
     expect(onDepartureChange).toHaveBeenCalledOnce();
@@ -422,13 +433,13 @@ describe("DateRangePicker — user journey: Add return from one-way (return befo
     render(<DateRangePicker {...base} isReturnEnabled={false} onReturnChange={onReturnChange} />);
 
     fireEvent.click(screen.getByText("Add return"));
+
     expect(enabledDays().length).toBeGreaterThan(0);
 
     pickLastEnabledAsReturn();
 
     expect(onReturnChange).toHaveBeenCalledOnce();
     expect(onReturnChange).toHaveBeenCalledWith(expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
-
     // calendar must remain open so the user can pick departure next
     expect(enabledDays().length).toBeGreaterThan(0);
   });
@@ -447,13 +458,14 @@ describe("DateRangePicker — user journey: Add return from one-way (return befo
 
     fireEvent.click(screen.getByText("Add return"));
     pickLastEnabledAsReturn();
+
     expect(onReturnChange).toHaveBeenCalledOnce();
     expect(enabledDays().length).toBeGreaterThan(0); // still open in departure step
 
     fireEvent.click(enabledDays()[0]);
+
     expect(onDepartureChange).toHaveBeenCalledOnce();
     expect(onDepartureChange).toHaveBeenCalledWith(expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
-
     // calendar closes automatically
     expect(enabledDays()).toHaveLength(0);
   });
@@ -475,10 +487,9 @@ describe("DateRangePicker — regression: no range band on one-way trips", () =>
 
   it("does not render a band highlight when hovering after departure is already set", () => {
     render(<DateRangePicker {...base} isReturnEnabled={false} departureDate={tomorrow()} />);
-
     fireEvent.click(screen.getByTestId("departure-trigger"));
-
     const days = enabledDays();
+
     expect(days.length).toBeGreaterThan(1);
 
     // hover a later day than the selected departure date
@@ -490,12 +501,11 @@ describe("DateRangePicker — regression: no range band on one-way trips", () =>
 
   it("still renders a band highlight on round-trip when hovering a return candidate", () => {
     render(<DateRangePicker {...base} isReturnEnabled={true} departureDate={tomorrow()} />);
-
     // open return step
     const returnTrigger = screen.getByTestId("return-trigger");
     fireEvent.click(returnTrigger.querySelector('[role="button"]') ?? returnTrigger);
-
     const days = enabledDays();
+
     expect(days.length).toBeGreaterThan(1);
 
     fireEvent.mouseEnter(days[days.length - 1]);
@@ -524,7 +534,6 @@ describe("DateRangePicker — regression: stale returnDate must not affect one-w
   it("does not disable dates on/after the stale returnDate when isReturnEnabled is false", () => {
     const departureISO = addDaysISO(1);
     const returnISO = addDaysISO(10);
-
     render(
       <DateRangePicker
         {...base}
@@ -539,7 +548,6 @@ describe("DateRangePicker — regression: stale returnDate must not affect one-w
     const allDayButtons = screen
       .getAllByRole("button")
       .filter((b) => /^\d{1,2}$/.test(b.textContent ?? ""));
-
     // the stale return date itself must remain selectable
     const [, , d] = returnISO.split("-").map(Number);
     const returnDayBtn = allDayButtons.find((b) => b.textContent?.trim() === String(d));
@@ -549,7 +557,6 @@ describe("DateRangePicker — regression: stale returnDate must not affect one-w
   it("does not show the stale returnDate as a selected day when isReturnEnabled is false", () => {
     const departureISO = addDaysISO(1);
     const returnISO = addDaysISO(10);
-
     render(
       <DateRangePicker
         {...base}
@@ -565,7 +572,6 @@ describe("DateRangePicker — regression: stale returnDate must not affect one-w
     const returnDayBtn = screen
       .getAllByRole("button")
       .find((b) => b.textContent?.trim() === String(d));
-
     // selected days get the filled "bg-primary" circle class
     expect(returnDayBtn?.className).not.toMatch(/bg-primary(?!\/)/);
   });
@@ -574,7 +580,6 @@ describe("DateRangePicker — regression: stale returnDate must not affect one-w
     const onDepartureChange = vi.fn();
     const departureISO = addDaysISO(1);
     const returnISO = addDaysISO(10);
-
     render(
       <DateRangePicker
         {...base}
@@ -586,7 +591,6 @@ describe("DateRangePicker — regression: stale returnDate must not affect one-w
     );
 
     fireEvent.click(screen.getByTestId("departure-trigger"));
-
     const [, , d] = returnISO.split("-").map(Number);
     const returnDayBtn = screen
       .getAllByRole("button")
@@ -635,8 +639,8 @@ describe("DateRangePicker — regression: portal outside-click must not swallow 
   it("mousedown on a day button inside the portal does not close the calendar (desktop)", () => {
     render(<DateRangePicker {...base} />);
     fireEvent.click(screen.getByTestId("departure-trigger"));
-
     const days = enabledDays();
+
     expect(days.length).toBeGreaterThan(0);
 
     // mousedown is what the outside-click handler listens for.
@@ -663,6 +667,7 @@ describe("DateRangePicker — regression: portal outside-click must not swallow 
   it("clicking truly outside the trigger and panel closes the calendar (desktop)", () => {
     render(<DateRangePicker {...base} />);
     fireEvent.click(screen.getByTestId("departure-trigger"));
+
     expect(enabledDays().length).toBeGreaterThan(0);
 
     // mousedown on an element that is outside both wrapRef and panelRef
@@ -718,13 +723,13 @@ describe("DateRangePicker — memory: event listener cleanup", () => {
     // open the desktop calendar so the outside-click/scroll effect registers
     // its mousedown/scroll listeners
     fireEvent.click(screen.getByTestId("departure-trigger"));
+
     expect(enabledDays().length).toBeGreaterThan(0);
 
     unmount();
 
     const added = countByType([...windowAdd.mock.calls, ...docAdd.mock.calls]);
     const removed = countByType([...windowRemove.mock.calls, ...docRemove.mock.calls]);
-
     expect(removed).toEqual(added);
   });
 
@@ -753,8 +758,8 @@ describe("DateRangePicker — memory: event listener cleanup", () => {
 
   it("removes the window resize listener registered on mount", () => {
     const { unmount } = render(<DateRangePicker {...base} />);
-
     const addedResize = windowAdd.mock.calls.filter(([type]) => type === "resize").length;
+
     expect(addedResize).toBeGreaterThan(0);
 
     unmount();

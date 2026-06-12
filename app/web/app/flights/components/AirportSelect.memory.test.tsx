@@ -24,8 +24,8 @@ describe("AirportSelect — memory: closeSheet timer cleanup", () => {
   it("cancels the pending sheet-visibility animation frame when closed before it fires", () => {
     const rafSpy = vi.spyOn(globalThis, "requestAnimationFrame");
     const cafSpy = vi.spyOn(globalThis, "cancelAnimationFrame");
-
     const { unmount } = render(<AirportSelect {...base} />);
+
     fireEvent.click(screen.getByText("Select origin"));
 
     expect(rafSpy).toHaveBeenCalled();
@@ -42,9 +42,10 @@ describe("AirportSelect — memory: closeSheet timer cleanup", () => {
     fireEvent.click(screen.getByText("Select origin"));
     // Flush the open-effect's focus timeouts + the slide-up animation frame.
     vi.advanceTimersByTime(400);
-
     const backdrop = document.querySelector(".bg-black\\/40") as HTMLElement;
+
     expect(backdrop).toBeTruthy();
+
     fireEvent.click(backdrop);
 
     // closeSheet schedules a 280ms timeout to finish closing.

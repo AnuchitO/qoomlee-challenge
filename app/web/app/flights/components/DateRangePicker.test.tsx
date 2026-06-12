@@ -403,6 +403,202 @@ describe("DateRangePicker — user journey: reverse flow (return before departur
   });
 });
 
+// ── User journey: "Add return" from one-way, return picked before departure ───
+//
+// On first load the trip type defaults to one-way (isReturnEnabled=false).
+// Clicking "+ Add return" opens the calendar at the return step. If no
+// departure date is selected yet, the calendar must behave like the round-trip
+// reverse flow: stay open after the return date is picked and switch to the
+// departure step, instead of closing immediately.
+
+describe("DateRangePicker — user journey: Add return from one-way (return before departure)", () => {
+  const pickLastEnabledAsReturn = () => {
+    const days = enabledDays();
+    fireEvent.click(days[days.length - 1]);
+  };
+
+  it("stays open and switches to departure step after picking return via 'Add return'", () => {
+    const onReturnChange = vi.fn();
+    render(<DateRangePicker {...base} isReturnEnabled={false} onReturnChange={onReturnChange} />);
+
+    fireEvent.click(screen.getByText("Add return"));
+    expect(enabledDays().length).toBeGreaterThan(0);
+
+    pickLastEnabledAsReturn();
+
+    expect(onReturnChange).toHaveBeenCalledOnce();
+    expect(onReturnChange).toHaveBeenCalledWith(expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
+
+    // calendar must remain open so the user can pick departure next
+    expect(enabledDays().length).toBeGreaterThan(0);
+  });
+
+  it("fires onDepartureChange and closes the calendar when departure is picked after return", () => {
+    const onDepartureChange = vi.fn();
+    const onReturnChange = vi.fn();
+    render(
+      <DateRangePicker
+        {...base}
+        isReturnEnabled={false}
+        onDepartureChange={onDepartureChange}
+        onReturnChange={onReturnChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByText("Add return"));
+    pickLastEnabledAsReturn();
+    expect(onReturnChange).toHaveBeenCalledOnce();
+    expect(enabledDays().length).toBeGreaterThan(0); // still open in departure step
+
+    fireEvent.click(enabledDays()[0]);
+    expect(onDepartureChange).toHaveBeenCalledOnce();
+    expect(onDepartureChange).toHaveBeenCalledWith(expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
+
+    // calendar closes automatically
+    expect(enabledDays()).toHaveLength(0);
+  });
+});
+
+// ── Regression: no range band on one-way trips ────────────────────────────────
+//
+// Bug: in one-way mode (isReturnEnabled=false), reopening the departure
+// calendar after a date was already picked and hovering a later date showed
+// a range "band" highlight between the selected date and the hovered date —
+// implying a return-date selection that doesn't exist on a one-way trip.
+
+describe("DateRangePicker — regression: no range band on one-way trips", () => {
+  const tomorrow = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split("T")[0];
+  };
+
+  it("does not render a band highlight when hovering after departure is already set", () => {
+    render(<DateRangePicker {...base} isReturnEnabled={false} departureDate={tomorrow()} />);
+
+    fireEvent.click(screen.getByTestId("departure-trigger"));
+
+    const days = enabledDays();
+    expect(days.length).toBeGreaterThan(1);
+
+    // hover a later day than the selected departure date
+    fireEvent.mouseEnter(days[days.length - 1]);
+
+    const bandEls = document.querySelectorAll(".bg-primary\\/15");
+    expect(bandEls.length).toBe(0);
+  });
+
+  it("still renders a band highlight on round-trip when hovering a return candidate", () => {
+    render(<DateRangePicker {...base} isReturnEnabled={true} departureDate={tomorrow()} />);
+
+    // open return step
+    const returnTrigger = screen.getByTestId("return-trigger");
+    fireEvent.click(returnTrigger.querySelector('[role="button"]') ?? returnTrigger);
+
+    const days = enabledDays();
+    expect(days.length).toBeGreaterThan(1);
+
+    fireEvent.mouseEnter(days[days.length - 1]);
+
+    const bandEls = document.querySelectorAll(".bg-primary\\/15");
+    expect(bandEls.length).toBeGreaterThan(0);
+  });
+});
+
+// ── Regression: stale returnDate must not affect one-way departure picking ────
+//
+// Bug: user picks departure + return on a round trip, then switches to
+// one-way. The parent keeps the old `returnDate` in state (so switching back
+// to round trip restores it), but DateRangePicker is now rendered with
+// isReturnEnabled=false. Reopening the departure calendar showed the stale
+// return date as a selected/grayed-out day and blocked all dates on/after it
+// — even though one-way has no return-date concept.
+
+describe("DateRangePicker — regression: stale returnDate must not affect one-way", () => {
+  const addDaysISO = (n: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + n);
+    return d.toISOString().split("T")[0];
+  };
+
+  it("does not disable dates on/after the stale returnDate when isReturnEnabled is false", () => {
+    const departureISO = addDaysISO(1);
+    const returnISO = addDaysISO(10);
+
+    render(
+      <DateRangePicker
+        {...base}
+        isReturnEnabled={false}
+        departureDate={departureISO}
+        returnDate={returnISO}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId("departure-trigger"));
+
+    const allDayButtons = screen
+      .getAllByRole("button")
+      .filter((b) => /^\d{1,2}$/.test(b.textContent ?? ""));
+
+    // the stale return date itself must remain selectable
+    const [, , d] = returnISO.split("-").map(Number);
+    const returnDayBtn = allDayButtons.find((b) => b.textContent?.trim() === String(d));
+    expect(returnDayBtn?.hasAttribute("disabled")).toBe(false);
+  });
+
+  it("does not show the stale returnDate as a selected day when isReturnEnabled is false", () => {
+    const departureISO = addDaysISO(1);
+    const returnISO = addDaysISO(10);
+
+    render(
+      <DateRangePicker
+        {...base}
+        isReturnEnabled={false}
+        departureDate={departureISO}
+        returnDate={returnISO}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId("departure-trigger"));
+
+    const [, , d] = returnISO.split("-").map(Number);
+    const returnDayBtn = screen
+      .getAllByRole("button")
+      .find((b) => b.textContent?.trim() === String(d));
+
+    // selected days get the filled "bg-primary" circle class
+    expect(returnDayBtn?.className).not.toMatch(/bg-primary(?!\/)/);
+  });
+
+  it("allows picking a departure date after the stale returnDate when isReturnEnabled is false", () => {
+    const onDepartureChange = vi.fn();
+    const departureISO = addDaysISO(1);
+    const returnISO = addDaysISO(10);
+
+    render(
+      <DateRangePicker
+        {...base}
+        isReturnEnabled={false}
+        departureDate={departureISO}
+        returnDate={returnISO}
+        onDepartureChange={onDepartureChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId("departure-trigger"));
+
+    const [, , d] = returnISO.split("-").map(Number);
+    const returnDayBtn = screen
+      .getAllByRole("button")
+      .find((b) => b.textContent?.trim() === String(d));
+
+    fireEvent.click(returnDayBtn!);
+
+    expect(onDepartureChange).toHaveBeenCalledOnce();
+    expect(onDepartureChange).toHaveBeenCalledWith(returnISO);
+  });
+});
+
 // ── Regression: portal outside-click handler ─────────────────────────────────
 //
 // Bug: after switching the desktop panel to createPortal(…, document.body),

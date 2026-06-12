@@ -609,6 +609,15 @@ api.GET("/bookings/:ref", ...)
 - **Given** I hover over a date while the range band is active
   **When** the pointer moves
   **Then** a light band previews the range from the anchor date to the hovered date with rounded pill caps at each end
+- **Given** I am on a one-way trip and click "+ Add return" with no departure date set
+  **When** I pick a return date
+  **Then** the calendar stays open and switches to the departure step so I can pick departure next without reopening, and picking departure then closes the calendar
+- **Given** I am on a one-way trip
+  **When** I open the departure calendar and hover over a date after the selected departure date
+  **Then** no range band highlight is shown, since one-way has no return date to range to
+- **Given** I picked a departure and return date on a round trip and then switch to one-way
+  **When** I reopen the departure calendar
+  **Then** the stale return date is not shown as selected, does not disable any dates on/after it, and any date can be picked as the new departure
 
 **Test Cases**
 
@@ -618,10 +627,16 @@ api.GET("/bookings/:ref", ...)
 | Journey | Round-trip: pick departure → calendar stays open → pick return → calendar closes |
 | Journey | Reverse flow: open return trigger with no departure → pick return → calendar stays open → pick departure → calendar closes |
 | Journey | Opening return trigger with departure already set → pick return → calendar closes |
+| Journey | "+ Add return" from one-way with no departure set → pick return → calendar stays open → pick departure → calendar closes |
 | Unit | `onReturnChange` fires with ISO date when return is picked first |
 | Unit | `onDepartureChange` fires and calendar closes when departure is picked after return in reverse flow |
 | Unit | Dates on/after committed return are disabled in departure step (reverse mode) |
 | Unit | Normal round-trip and one-way flows are unaffected by reverse-flow logic |
+| Regression | No range band rendered when hovering in one-way mode, even with a departure date already set |
+| Regression | Range band still renders on round-trip when hovering a return candidate |
+| Regression | Stale `returnDate` from a previous round-trip selection does not disable dates on/after it once switched to one-way |
+| Regression | Stale `returnDate` is not rendered as a selected day once switched to one-way |
+| Regression | A date on/after the stale `returnDate` can be picked as the new departure date in one-way mode |
 
 ---
 

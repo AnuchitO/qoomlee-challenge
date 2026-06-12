@@ -49,6 +49,7 @@ interface MonthGridProps {
   end: string | null;
   hover: string | null;
   step: "departure" | "return";
+  isReturnEnabled: boolean;
   focusedIso: string | null;
   onDay: (iso: string) => void;
   onHover: (iso: string | null) => void;
@@ -62,6 +63,7 @@ function MonthGrid({
   end,
   hover,
   step,
+  isReturnEnabled,
   focusedIso,
   onDay,
   onHover,
@@ -78,10 +80,11 @@ function MonthGrid({
   // extends from the hovered/selected departure candidate towards the fixed
   // return date.  In normal mode it extends from the fixed departure towards
   // the hovered/selected return candidate.
-  const reverseMode = step === "departure" && end !== null;
+  const reverseMode = isReturnEnabled && step === "departure" && end !== null;
   const effectiveBandStart = reverseMode ? (hover ?? start) : start;
   const effectiveBandEnd = reverseMode ? end : (hover ?? end);
   const bandValid =
+    isReturnEnabled &&
     effectiveBandStart !== null &&
     effectiveBandEnd !== null &&
     effectiveBandStart < effectiveBandEnd;
@@ -125,7 +128,7 @@ function MonthGrid({
           const isRowEnd = col === SUN_IDX;
 
           const isStart = iso === start;
-          const isEnd = iso === end;
+          const isEnd = isReturnEnabled && iso === end;
           const isSelected = isStart || isEnd;
           const isToday = iso === today;
           const isFocused = iso === focusedIso;
@@ -529,6 +532,7 @@ export default function DateRangePicker({
             end={returnDate}
             hover={hover}
             step={step}
+            isReturnEnabled={isReturnEnabled}
             focusedIso={focusedIso}
             onDay={handleDay}
             onHover={setHover}
@@ -544,6 +548,7 @@ export default function DateRangePicker({
             end={returnDate}
             hover={hover}
             step={step}
+            isReturnEnabled={isReturnEnabled}
             focusedIso={focusedIso}
             onDay={handleDay}
             onHover={setHover}
@@ -654,6 +659,7 @@ export default function DateRangePicker({
               computePos(); // fix: compute position before portal opens
               onAddReturn?.();
               setStep("return");
+              setReturnFirst(!departureDate);
               setFocusedIso(departureDate ?? today);
               setOpen(true);
               if (departureDate) {

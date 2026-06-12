@@ -671,3 +671,95 @@ describe("DateRangePicker — regression: portal outside-click must not swallow 
     expect(enabledDays()).toHaveLength(0);
   });
 });
+
+// ── Memory: window/document listeners must not leak ───────────────────────────
+//
+// The component registers a "resize" listener on mount, and "mousedown" /
+// "scroll" listeners while the desktop panel is open. Each must be removed
+// with a matching removeEventListener — otherwise every mount/open cycle
+// leaves dangling listeners holding references to stale component instances.
+
+// Only the listener types this component registers — other libraries
+// (jsdom, testing-library) add their own window/document listeners that
+// aren't this component's responsibility to clean up.
+const TRACKED_TYPES = new Set(["resize", "mousedown", "scroll"]);
+
+const countByType = (calls: unknown[][]) =>
+  calls.reduce<Record<string, number>>((acc, [type]) => {
+    const key = String(type);
+    if (!TRACKED_TYPES.has(key)) return acc;
+    acc[key] = (acc[key] ?? 0) + 1;
+    return acc;
+  }, {});
+
+describe("DateRangePicker — memory: event listener cleanup", () => {
+  let windowAdd: ReturnType<typeof vi.spyOn>;
+  let windowRemove: ReturnType<typeof vi.spyOn>;
+  let docAdd: ReturnType<typeof vi.spyOn>;
+  let docRemove: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    windowAdd = vi.spyOn(window, "addEventListener");
+    windowRemove = vi.spyOn(window, "removeEventListener");
+    docAdd = vi.spyOn(document, "addEventListener");
+    docRemove = vi.spyOn(document, "removeEventListener");
+  });
+
+  afterEach(() => {
+    windowAdd.mockRestore();
+    windowRemove.mockRestore();
+    docAdd.mockRestore();
+    docRemove.mockRestore();
+  });
+
+  it("removes every listener it added once unmounted, even with the calendar open", () => {
+    const { unmount } = render(<DateRangePicker {...base} />);
+
+    // open the desktop calendar so the outside-click/scroll effect registers
+    // its mousedown/scroll listeners
+    fireEvent.click(screen.getByTestId("departure-trigger"));
+    expect(enabledDays().length).toBeGreaterThan(0);
+
+    unmount();
+
+    const added = countByType([...windowAdd.mock.calls, ...docAdd.mock.calls]);
+    const removed = countByType([...windowRemove.mock.calls, ...docRemove.mock.calls]);
+
+    expect(removed).toEqual(added);
+  });
+
+  it("does not accumulate mousedown/scroll listeners across repeated open/close cycles", () => {
+    render(<DateRangePicker {...base} />);
+
+    for (let i = 0; i < 3; i++) {
+      fireEvent.click(screen.getByTestId("departure-trigger"));
+      expect(enabledDays().length).toBeGreaterThan(0);
+      // close by picking a day
+      fireEvent.click(enabledDays()[0]);
+      expect(enabledDays()).toHaveLength(0);
+    }
+
+    const addedMousedown = windowAdd.mock.calls
+      .concat(docAdd.mock.calls)
+      .filter(([type]) => type === "mousedown").length;
+    const removedMousedown = windowRemove.mock.calls
+      .concat(docRemove.mock.calls)
+      .filter(([type]) => type === "mousedown").length;
+
+    // every "mousedown" listener registered while open must be torn down
+    // again when the calendar closes
+    expect(removedMousedown).toBe(addedMousedown);
+  });
+
+  it("removes the window resize listener registered on mount", () => {
+    const { unmount } = render(<DateRangePicker {...base} />);
+
+    const addedResize = windowAdd.mock.calls.filter(([type]) => type === "resize").length;
+    expect(addedResize).toBeGreaterThan(0);
+
+    unmount();
+
+    const removedResize = windowRemove.mock.calls.filter(([type]) => type === "resize").length;
+    expect(removedResize).toBe(addedResize);
+  });
+});

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { mockDepartures as DEPARTURES, type FlightStatus } from "@/lib/mock/flights";
 
 export const STATUS_CONFIG: Record<
@@ -35,11 +35,15 @@ export function useFlightStatusSearch() {
   const [query, setQuery] = useState("");
   const [searched, setSearched] = useState(false);
 
-  const filtered = DEPARTURES.filter(
-    (f) =>
-      !searched ||
-      f.flightNumber.toLowerCase().includes(query.toLowerCase()) ||
-      f.destination.toLowerCase().includes(query.toLowerCase()),
+  const filtered = useMemo(
+    () =>
+      DEPARTURES.filter(
+        (f) =>
+          !searched ||
+          f.flightNumber.toLowerCase().includes(query.toLowerCase()) ||
+          f.destination.toLowerCase().includes(query.toLowerCase()),
+      ),
+    [query, searched],
   );
 
   function handleQueryChange(value: string) {

@@ -1,14 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { useDelayedAction } from "@/app/hooks/useDelayedAction";
 
 export default function CopyPNR({ value }: { value: string }) {
   const [copied, setCopied] = useState(false);
+  const schedule = useDelayedAction();
 
   async function handleCopy() {
     await navigator.clipboard.writeText(value);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    schedule(() => setCopied(false), 2000);
   }
 
   return (

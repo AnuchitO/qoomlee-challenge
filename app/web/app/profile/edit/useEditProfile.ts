@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useDelayedAction } from "@/app/hooks/useDelayedAction";
 
 export interface EditProfileForm {
   fullName: string;
@@ -22,6 +23,8 @@ export function useEditProfile() {
     passportExpiry: "2030-12-31",
   });
 
+  const schedule = useDelayedAction();
+
   const set =
     (k: keyof EditProfileForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
       setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -29,7 +32,7 @@ export function useEditProfile() {
   function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    setTimeout(() => {
+    schedule(() => {
       setSaving(false);
       router.back();
     }, 800);

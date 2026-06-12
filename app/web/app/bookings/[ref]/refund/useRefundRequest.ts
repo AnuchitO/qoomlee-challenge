@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useDelayedAction } from "@/app/hooks/useDelayedAction";
 
 export const REFUND_REASONS = [
   "Flight plans changed",
@@ -16,6 +17,7 @@ export function useRefundRequest() {
   const [reason, setReason] = useState("");
   const [details, setDetails] = useState("");
   const [confirming, setConfirming] = useState(false);
+  const schedule = useDelayedAction();
 
   function handleDetailsChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     setDetails(e.target.value);
@@ -24,7 +26,7 @@ export function useRefundRequest() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setConfirming(true);
-    setTimeout(() => {
+    schedule(() => {
       router.push(`/bookings/${ref}`);
     }, 1500);
   }

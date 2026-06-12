@@ -263,7 +263,7 @@ describe("PaymentClient — successful payment", () => {
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
 
     expect(mockPush).toHaveBeenCalledOnce();
-    expect(mockPush.mock.calls[0][0]).toContain("/bookings/confirmation");
+    expect(mockPush.mock.calls[0]![0]).toContain("/bookings/confirmation");
   });
 
   it("includes a QM-prefixed booking reference in the URL", () => {
@@ -272,7 +272,7 @@ describe("PaymentClient — successful payment", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
 
-    expect(mockPush.mock.calls[0][0]).toMatch(/ref=QM[A-Z0-9]{4}/);
+    expect(mockPush.mock.calls[0]![0]).toMatch(/ref=QM[A-Z0-9]{4}/);
   });
 
   it("includes passenger and flight data in the confirmation URL", () => {
@@ -281,7 +281,7 @@ describe("PaymentClient — successful payment", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
 
-    const url = mockPush.mock.calls[0][0] as string;
+    const url = mockPush.mock.calls[0]![0] as string;
     expect(url).toContain("flightNumber=QQ101");
     expect(url).toContain("firstName=John");
     expect(url).toContain("lastName=Doe");
@@ -294,7 +294,7 @@ describe("PaymentClient — successful payment", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
 
-    const url = mockPush.mock.calls[0][0] as string;
+    const url = mockPush.mock.calls[0]![0] as string;
     expect(url).toContain("totalMinor=70500");
   });
 
@@ -306,7 +306,7 @@ describe("PaymentClient — successful payment", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
 
-    const url = mockPush.mock.calls[0][0] as string;
+    const url = mockPush.mock.calls[0]![0] as string;
     expect(url).toContain("totalMinor=20500");
   });
 });

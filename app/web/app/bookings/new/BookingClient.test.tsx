@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import BookingClient from "./BookingClient";
+import type { Flight } from "@/lib/types/flight";
 
 const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({
@@ -11,7 +12,7 @@ vi.mock("next/navigation", () => ({
 // basePriceMinor=10000 → ฿100 per person
 // taxes = round(10000 * 0.15) = 1500 → ฿15
 // total = 11500 → ฿115
-const flight = {
+const flight: Flight = {
   id: 1,
   flightNumber: "QQ101",
   origin: "BKK",
@@ -111,7 +112,7 @@ describe("BookingClient — passenger form", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /continue to payment/i }));
 
-    const url = mockPush.mock.calls[0][0] as string;
+    const url = mockPush.mock.calls[0]![0] as string;
     expect(url).toContain("firstName=John");
     expect(url).toContain("lastName=Doe");
     expect(url).toContain("email=john%40example.com");
@@ -123,7 +124,7 @@ describe("BookingClient — passenger form", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /continue to payment/i }));
 
-    const url = mockPush.mock.calls[0][0] as string;
+    const url = mockPush.mock.calls[0]![0] as string;
     expect(url).toContain("flightNumber=QQ101");
     expect(url).toContain("origin=BKK");
     expect(url).toContain("destination=SIN");

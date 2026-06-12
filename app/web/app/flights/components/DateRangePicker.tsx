@@ -11,7 +11,8 @@ const todayISO = () => {
 };
 
 const parseISO = (iso: string): [number, number, number] => {
-  const [y, m, d] = iso.split("-").map(Number);
+  // iso is always "YYYY-MM-DD"
+  const [y, m, d] = iso.split("-").map(Number) as [number, number, number];
   return [y, m - 1, d];
 };
 

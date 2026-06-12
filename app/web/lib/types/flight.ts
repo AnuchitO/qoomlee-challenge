@@ -1,3 +1,7 @@
+// Statuses the qoomlee API can return; flight search only returns SCHEDULED
+// (see API_SPECS.md and flight/search_repository.go).
+export type FlightStatus = "SCHEDULED" | "DELAYED" | "CANCELLED";
+
 export interface Flight {
   id: number;
   flightNumber: string;
@@ -8,6 +12,6 @@ export interface Flight {
   basePriceMinor: number;
   currency: string;
   availableSeats: number;
-  status: string;
+  status: FlightStatus;
   durationMinutes: number;
 }

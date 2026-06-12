@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import { mockDepartures as DEPARTURES, type FlightStatus } from "@/lib/mock/flights";
+import { mockDepartures as DEPARTURES, type FlightBoardStatus } from "@/lib/mock/flights";
 
 export const STATUS_CONFIG: Record<
-  FlightStatus,
+  FlightBoardStatus,
   { label: string; bg: string; text: string; icon: string }
 > = {
   "on-time": {

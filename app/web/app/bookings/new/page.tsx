@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import TopAppBar from "../../components/TopAppBar";
 import FlightSummaryCard from "./components/FlightSummaryCard";
 import BookingClient from "./BookingClient";
+import type { Flight } from "@/lib/types/flight";
 
 export const metadata: Metadata = {
   title: "Book Your Flight · Qoomlee",
@@ -19,7 +20,7 @@ export default async function BookingPage({
 
   const departureTime = str(p.departureTime, new Date().toISOString());
 
-  const flight = {
+  const flight: Flight = {
     id: Number(str(p.flightId, "0")),
     flightNumber: str(p.flightNumber, "—"),
     origin: str(p.origin, "—"),

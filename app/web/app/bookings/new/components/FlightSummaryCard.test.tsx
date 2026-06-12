@@ -1,8 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import FlightSummaryCard from "./FlightSummaryCard";
+import type { Flight } from "@/lib/types/flight";
 
-const base = {
+const base: Flight = {
   id: 1,
   flightNumber: "QQ101",
   origin: "BKK",

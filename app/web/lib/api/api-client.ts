@@ -1,6 +1,5 @@
 import { AppError, NetworkError, ApiError, ValidationError } from "../errors/AppError";
 import { Flight } from "../types/flight";
-import { isValidFlight, safeParseArray } from "../types/safe-types";
 
 interface ApiResponse<T> {
   data: T;
@@ -76,7 +75,7 @@ class ApiClient {
 export const flightsApiClient = new ApiClient("/api");
 
 // Enhanced flight fetching with proper error handling
-export async function fetchFlightsSafe(
+export async function fetchFlightsWithValidation(
   origin: string,
   destination: string,
   departure: string,
@@ -96,7 +95,26 @@ export async function fetchFlightsSafe(
 
     const response = await flightsApiClient.get<{ flights: unknown[] }>(`/flights?${params}`);
 
-    return safeParseArray(response.flights, isValidFlight);
+    // Local flight validation
+    function isValidFlight(value: unknown): value is Flight {
+      if (typeof value !== "object" || value === null) return false;
+      const f = value as Record<string, unknown>;
+      return (
+        typeof f.id === "number" &&
+        typeof f.flightNumber === "string" &&
+        typeof f.origin === "string" &&
+        typeof f.destination === "string" &&
+        typeof f.departureTime === "string" &&
+        typeof f.arrivalTime === "string" &&
+        typeof f.basePriceMinor === "number" &&
+        typeof f.currency === "string" &&
+        typeof f.availableSeats === "number" &&
+        typeof f.status === "string" &&
+        typeof f.durationMinutes === "number"
+      );
+    }
+
+    return response.flights.filter(isValidFlight);
   } catch (error) {
     if (error instanceof AppError) {
       throw error;

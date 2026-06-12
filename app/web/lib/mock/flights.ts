@@ -1,4 +1,4 @@
-export type FlightStatus = "on-time" | "delayed" | "cancelled" | "landed";
+export type FlightBoardStatus = "on-time" | "delayed" | "cancelled" | "landed";
 
 export interface FlightStatusCard {
   flightNumber: string;
@@ -6,7 +6,7 @@ export interface FlightStatusCard {
   destination: string;
   departure: string;
   arrival: string;
-  status: FlightStatus;
+  status: FlightBoardStatus;
   delay?: string;
   gate?: string;
   terminal?: string;

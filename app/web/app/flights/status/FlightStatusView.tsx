@@ -1,7 +1,7 @@
 import TopAppBar from "../../components/TopAppBar";
 import BottomNav from "../../components/BottomNav";
 import FlightRoute from "../../components/FlightRoute";
-import type { FlightStatusCard, FlightStatus } from "@/lib/mock/flights";
+import type { FlightStatusCard, FlightBoardStatus } from "@/lib/mock/flights";
 import { STATUS_CONFIG } from "./useFlightStatusSearch";
 
 interface FlightStatusViewProps {
@@ -13,7 +13,7 @@ interface FlightStatusViewProps {
   departures: FlightStatusCard[];
 }
 
-function StatusBadge({ status }: { status: FlightStatus }) {
+function StatusBadge({ status }: { status: FlightBoardStatus }) {
   const cfg = STATUS_CONFIG[status];
   return (
     <span

@@ -18,7 +18,7 @@ export function formatSearchSummary(params: SummaryParams): string {
   const cabinLabel = CABIN_LABELS[params.cabin] ?? params.cabin;
 
   // Parse YYYY-MM-DD as UTC to avoid timezone-shifted day
-  const [year, month, day] = params.departure.split("-").map(Number);
+  const [year, month, day] = params.departure.split("-").map(Number) as [number, number, number];
   const date = new Date(Date.UTC(year, month - 1, day));
   const dateLabel = date
     .toLocaleDateString("en-US", {

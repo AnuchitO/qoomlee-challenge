@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach, type MockInstance } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import DateRangePicker from "./DateRangePicker";
 
@@ -82,7 +82,7 @@ describe("DateRangePicker", () => {
       .getAllByRole("button")
       .filter((b) => /^\d{1,2}$/.test(b.textContent ?? "") && !b.hasAttribute("disabled"));
 
-    fireEvent.click(dayButtons[0]);
+    fireEvent.click(dayButtons[0]!);
 
     expect(onDepartureChange).toHaveBeenCalledOnce();
     expect(onDepartureChange).toHaveBeenCalledWith(expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
@@ -93,7 +93,7 @@ describe("DateRangePicker", () => {
     // Pre-set a departure date so the return step is valid
     const today = new Date();
     const dep = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-    const depISO = dep.toISOString().split("T")[0];
+    const depISO = dep.toISOString().split("T")[0]!;
     render(
       <DateRangePicker
         {...base}
@@ -110,7 +110,7 @@ describe("DateRangePicker", () => {
       .getAllByRole("button")
       .filter((b) => /^\d{1,2}$/.test(b.textContent ?? "") && !b.hasAttribute("disabled"));
 
-    fireEvent.click(dayButtons[0]);
+    fireEvent.click(dayButtons[0]!);
 
     expect(onReturnChange).toHaveBeenCalledOnce();
     expect(onReturnChange).toHaveBeenCalledWith(expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
@@ -186,7 +186,7 @@ describe("DateRangePicker — user journey: one-way trip", () => {
     expect(enabledDays().length).toBeGreaterThan(0);
 
     // user taps a day
-    fireEvent.click(enabledDays()[0]);
+    fireEvent.click(enabledDays()[0]!);
 
     // date was registered
     expect(onDepartureChange).toHaveBeenCalledOnce();
@@ -200,7 +200,7 @@ describe("DateRangePicker — user journey: round trip", () => {
   const tomorrow = () => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
-    return d.toISOString().split("T")[0];
+    return d.toISOString().split("T")[0]!;
   };
 
   it("user picks departure then return — both callbacks fire and calendar closes after return", () => {
@@ -217,14 +217,14 @@ describe("DateRangePicker — user journey: round trip", () => {
 
     // step 1: open and pick departure
     fireEvent.click(screen.getByTestId("departure-trigger"));
-    fireEvent.click(enabledDays()[0]);
+    fireEvent.click(enabledDays()[0]!);
 
     expect(onDepartureChange).toHaveBeenCalledOnce();
     // calendar stays open for return step (still shows day buttons)
     expect(enabledDays().length).toBeGreaterThan(0);
 
     // step 2: pick return
-    fireEvent.click(enabledDays()[0]);
+    fireEvent.click(enabledDays()[0]!);
 
     expect(onReturnChange).toHaveBeenCalledOnce();
     // calendar closes
@@ -247,7 +247,7 @@ describe("DateRangePicker — user journey: round trip", () => {
     fireEvent.click(returnTrigger.querySelector('[role="button"]') ?? returnTrigger);
 
     // picks a return day
-    fireEvent.click(enabledDays()[0]);
+    fireEvent.click(enabledDays()[0]!);
 
     expect(onReturnChange).toHaveBeenCalledOnce();
     expect(onReturnChange).toHaveBeenCalledWith(expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
@@ -289,7 +289,7 @@ describe("DateRangePicker — user journey: reverse flow (return before departur
   // room (enabled days before it) for the departure selection.
   const pickLastEnabledAsReturn = () => {
     const days = enabledDays();
-    fireEvent.click(days[days.length - 1]);
+    fireEvent.click(days[days.length - 1]!);
   };
 
   it("calendar stays open after return is picked when no departure is set yet", () => {
@@ -336,7 +336,7 @@ describe("DateRangePicker — user journey: reverse flow (return before departur
     expect(enabledDays().length).toBeGreaterThan(0); // still open in departure step
 
     // Step 2: pick first enabled day as departure (guaranteed before the return date)
-    fireEvent.click(enabledDays()[0]);
+    fireEvent.click(enabledDays()[0]!);
 
     expect(onDepartureChange).toHaveBeenCalledOnce();
     expect(onDepartureChange).toHaveBeenCalledWith(expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
@@ -347,7 +347,7 @@ describe("DateRangePicker — user journey: reverse flow (return before departur
   it("disables dates on/after the committed return date when selecting departure", () => {
     const d = new Date();
     d.setDate(d.getDate() + 10);
-    const returnISO = d.toISOString().split("T")[0];
+    const returnISO = d.toISOString().split("T")[0]!;
     const returnDayStr = String(d.getDate());
     render(<DateRangePicker {...base} isReturnEnabled={true} returnDate={returnISO} />);
 
@@ -364,7 +364,7 @@ describe("DateRangePicker — user journey: reverse flow (return before departur
   it("enabled days before the return date can still be clicked in departure step", () => {
     const d = new Date();
     d.setDate(d.getDate() + 10);
-    const returnISO = d.toISOString().split("T")[0];
+    const returnISO = d.toISOString().split("T")[0]!;
     const onDepartureChange = vi.fn();
     render(
       <DateRangePicker
@@ -380,7 +380,7 @@ describe("DateRangePicker — user journey: reverse flow (return before departur
     expect(enabledDays().length).toBeGreaterThan(0);
 
     // The first enabled day is before the return — clicking it should fire onDepartureChange
-    fireEvent.click(enabledDays()[0]);
+    fireEvent.click(enabledDays()[0]!);
 
     expect(onDepartureChange).toHaveBeenCalledOnce();
   });
@@ -393,7 +393,7 @@ describe("DateRangePicker — user journey: reverse flow (return before departur
 
     // Normal flow: no returnDate set, pick departure → should stay open for return
     fireEvent.click(screen.getByTestId("departure-trigger"));
-    fireEvent.click(enabledDays()[0]);
+    fireEvent.click(enabledDays()[0]!);
 
     expect(onDepartureChange).toHaveBeenCalledOnce();
     // calendar stays open (advanced to return step)
@@ -407,7 +407,7 @@ describe("DateRangePicker — user journey: reverse flow (return before departur
     );
 
     fireEvent.click(screen.getByTestId("departure-trigger"));
-    fireEvent.click(enabledDays()[0]);
+    fireEvent.click(enabledDays()[0]!);
 
     expect(onDepartureChange).toHaveBeenCalledOnce();
     expect(enabledDays()).toHaveLength(0); // closed immediately for one-way
@@ -425,7 +425,7 @@ describe("DateRangePicker — user journey: reverse flow (return before departur
 describe("DateRangePicker — user journey: Add return from one-way (return before departure)", () => {
   const pickLastEnabledAsReturn = () => {
     const days = enabledDays();
-    fireEvent.click(days[days.length - 1]);
+    fireEvent.click(days[days.length - 1]!);
   };
 
   it("stays open and switches to departure step after picking return via 'Add return'", () => {
@@ -462,7 +462,7 @@ describe("DateRangePicker — user journey: Add return from one-way (return befo
     expect(onReturnChange).toHaveBeenCalledOnce();
     expect(enabledDays().length).toBeGreaterThan(0); // still open in departure step
 
-    fireEvent.click(enabledDays()[0]);
+    fireEvent.click(enabledDays()[0]!);
 
     expect(onDepartureChange).toHaveBeenCalledOnce();
     expect(onDepartureChange).toHaveBeenCalledWith(expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
@@ -482,7 +482,7 @@ describe("DateRangePicker — regression: no range band on one-way trips", () =>
   const tomorrow = () => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
-    return d.toISOString().split("T")[0];
+    return d.toISOString().split("T")[0]!;
   };
 
   it("does not render a band highlight when hovering after departure is already set", () => {
@@ -493,7 +493,7 @@ describe("DateRangePicker — regression: no range band on one-way trips", () =>
     expect(days.length).toBeGreaterThan(1);
 
     // hover a later day than the selected departure date
-    fireEvent.mouseEnter(days[days.length - 1]);
+    fireEvent.mouseEnter(days[days.length - 1]!);
 
     const bandEls = document.querySelectorAll(".bg-primary\\/15");
     expect(bandEls.length).toBe(0);
@@ -508,7 +508,7 @@ describe("DateRangePicker — regression: no range band on one-way trips", () =>
 
     expect(days.length).toBeGreaterThan(1);
 
-    fireEvent.mouseEnter(days[days.length - 1]);
+    fireEvent.mouseEnter(days[days.length - 1]!);
 
     const bandEls = document.querySelectorAll(".bg-primary\\/15");
     expect(bandEls.length).toBeGreaterThan(0);
@@ -528,7 +528,7 @@ describe("DateRangePicker — regression: stale returnDate must not affect one-w
   const addDaysISO = (n: number) => {
     const d = new Date();
     d.setDate(d.getDate() + n);
-    return d.toISOString().split("T")[0];
+    return d.toISOString().split("T")[0]!;
   };
 
   it("does not disable dates on/after the stale returnDate when isReturnEnabled is false", () => {
@@ -549,7 +549,7 @@ describe("DateRangePicker — regression: stale returnDate must not affect one-w
       .getAllByRole("button")
       .filter((b) => /^\d{1,2}$/.test(b.textContent ?? ""));
     // the stale return date itself must remain selectable
-    const [, , d] = returnISO.split("-").map(Number);
+    const [, , d] = returnISO.split("-").map(Number) as [number, number, number];
     const returnDayBtn = allDayButtons.find((b) => b.textContent?.trim() === String(d));
     expect(returnDayBtn?.hasAttribute("disabled")).toBe(false);
   });
@@ -568,7 +568,7 @@ describe("DateRangePicker — regression: stale returnDate must not affect one-w
 
     fireEvent.click(screen.getByTestId("departure-trigger"));
 
-    const [, , d] = returnISO.split("-").map(Number);
+    const [, , d] = returnISO.split("-").map(Number) as [number, number, number];
     const returnDayBtn = screen
       .getAllByRole("button")
       .find((b) => b.textContent?.trim() === String(d));
@@ -591,7 +591,7 @@ describe("DateRangePicker — regression: stale returnDate must not affect one-w
     );
 
     fireEvent.click(screen.getByTestId("departure-trigger"));
-    const [, , d] = returnISO.split("-").map(Number);
+    const [, , d] = returnISO.split("-").map(Number) as [number, number, number];
     const returnDayBtn = screen
       .getAllByRole("button")
       .find((b) => b.textContent?.trim() === String(d));
@@ -646,7 +646,7 @@ describe("DateRangePicker — regression: portal outside-click must not swallow 
     // mousedown is what the outside-click handler listens for.
     // Before the fix it would close the calendar here, making the
     // subsequent click land on nothing and onDepartureChange never fire.
-    fireEvent.mouseDown(days[0]);
+    fireEvent.mouseDown(days[0]!);
 
     // calendar must still be open
     expect(enabledDays().length).toBeGreaterThan(0);
@@ -657,7 +657,7 @@ describe("DateRangePicker — regression: portal outside-click must not swallow 
     render(<DateRangePicker {...base} onDepartureChange={onDepartureChange} />);
 
     fireEvent.click(screen.getByTestId("departure-trigger"));
-    fireEvent.click(enabledDays()[0]);
+    fireEvent.click(enabledDays()[0]!);
 
     // Without panelRef the handler closed the calendar on mousedown,
     // so onClick never fired and this count would be 0.
@@ -698,10 +698,10 @@ const countByType = (calls: unknown[][]) =>
   }, {});
 
 describe("DateRangePicker — memory: event listener cleanup", () => {
-  let windowAdd: ReturnType<typeof vi.spyOn>;
-  let windowRemove: ReturnType<typeof vi.spyOn>;
-  let docAdd: ReturnType<typeof vi.spyOn>;
-  let docRemove: ReturnType<typeof vi.spyOn>;
+  let windowAdd: MockInstance<typeof window.addEventListener>;
+  let windowRemove: MockInstance<typeof window.removeEventListener>;
+  let docAdd: MockInstance<typeof document.addEventListener>;
+  let docRemove: MockInstance<typeof document.removeEventListener>;
 
   beforeEach(() => {
     windowAdd = vi.spyOn(window, "addEventListener");
@@ -740,7 +740,7 @@ describe("DateRangePicker — memory: event listener cleanup", () => {
       fireEvent.click(screen.getByTestId("departure-trigger"));
       expect(enabledDays().length).toBeGreaterThan(0);
       // close by picking a day
-      fireEvent.click(enabledDays()[0]);
+      fireEvent.click(enabledDays()[0]!);
       expect(enabledDays()).toHaveLength(0);
     }
 

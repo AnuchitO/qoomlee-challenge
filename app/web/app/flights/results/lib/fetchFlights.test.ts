@@ -97,8 +97,8 @@ describe("fetchFlights", () => {
     const result = await fetchFlights(BASE_PARAMS);
 
     expect(result).toHaveLength(2);
-    expect(result[0].flightNumber).toBe("QQ101");
-    expect(result[1].flightNumber).toBe("QQ102");
+    expect(result[0]!.flightNumber).toBe("QQ101");
+    expect(result[1]!.flightNumber).toBe("QQ102");
   });
 
   // ── error handling ──────────────────────────────────────────────────────────
@@ -162,7 +162,7 @@ describe("fetchFlights", () => {
 
     await fetchFlights(BASE_PARAMS);
 
-    const url = spy.mock.calls[0][0] as string;
+    const url = spy.mock.calls[0]![0] as string;
     expect(url).toContain("origin=BKK");
     expect(url).toContain("destination=SIN");
     expect(url).toContain("date=2026-10-24");
@@ -174,7 +174,7 @@ describe("fetchFlights", () => {
 
     await fetchFlights(BASE_PARAMS);
 
-    const init = spy.mock.calls[0][1] as RequestInit;
+    const init = spy.mock.calls[0]![1] as RequestInit;
     expect(init?.cache).toBe("no-store");
   });
 });

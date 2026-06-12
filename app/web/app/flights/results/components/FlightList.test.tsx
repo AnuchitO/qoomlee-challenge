@@ -83,7 +83,7 @@ describe("FlightList — Select → booking URL contract", () => {
     fireEvent.click(screen.getByRole("button", { name: /select/i }));
 
     expect(mockPush).toHaveBeenCalledOnce();
-    expect(mockPush.mock.calls[0][0]).toContain("/bookings/new");
+    expect(mockPush.mock.calls[0]![0]).toContain("/bookings/new");
   });
 
   it("includes flightId in the booking URL", () => {
@@ -91,7 +91,7 @@ describe("FlightList — Select → booking URL contract", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /select/i }));
 
-    expect(mockPush.mock.calls[0][0]).toContain("flightId=42");
+    expect(mockPush.mock.calls[0]![0]).toContain("flightId=42");
   });
 
   it("includes flightNumber in the booking URL", () => {
@@ -99,7 +99,7 @@ describe("FlightList — Select → booking URL contract", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /select/i }));
 
-    expect(mockPush.mock.calls[0][0]).toContain("flightNumber=QQ999");
+    expect(mockPush.mock.calls[0]![0]).toContain("flightNumber=QQ999");
   });
 
   it("includes origin in the booking URL", () => {
@@ -107,7 +107,7 @@ describe("FlightList — Select → booking URL contract", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /select/i }));
 
-    expect(mockPush.mock.calls[0][0]).toContain("origin=BKK");
+    expect(mockPush.mock.calls[0]![0]).toContain("origin=BKK");
   });
 
   it("includes destination in the booking URL", () => {
@@ -115,7 +115,7 @@ describe("FlightList — Select → booking URL contract", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /select/i }));
 
-    expect(mockPush.mock.calls[0][0]).toContain("destination=NRT");
+    expect(mockPush.mock.calls[0]![0]).toContain("destination=NRT");
   });
 
   it("includes encoded departureTime in the booking URL", () => {
@@ -128,8 +128,8 @@ describe("FlightList — Select → booking URL contract", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /select/i }));
 
-    expect(mockPush.mock.calls[0][0]).toContain("departureTime=");
-    expect(mockPush.mock.calls[0][0]).toContain(encodeURIComponent("2026-10-24T08:00:00Z"));
+    expect(mockPush.mock.calls[0]![0]).toContain("departureTime=");
+    expect(mockPush.mock.calls[0]![0]).toContain(encodeURIComponent("2026-10-24T08:00:00Z"));
   });
 
   it("includes price (basePriceMinor) in the booking URL", () => {
@@ -137,7 +137,7 @@ describe("FlightList — Select → booking URL contract", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /select/i }));
 
-    expect(mockPush.mock.calls[0][0]).toContain("price=990000");
+    expect(mockPush.mock.calls[0]![0]).toContain("price=990000");
   });
 
   it("includes currency in the booking URL", () => {
@@ -145,7 +145,7 @@ describe("FlightList — Select → booking URL contract", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /select/i }));
 
-    expect(mockPush.mock.calls[0][0]).toContain("currency=THB");
+    expect(mockPush.mock.calls[0]![0]).toContain("currency=THB");
   });
 
   it("passes the passenger count to the booking URL", () => {
@@ -153,7 +153,7 @@ describe("FlightList — Select → booking URL contract", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /select/i }));
 
-    expect(mockPush.mock.calls[0][0]).toContain("passengers=3");
+    expect(mockPush.mock.calls[0]![0]).toContain("passengers=3");
   });
 
   it("uses the clicked flight's data, not another flight's", () => {
@@ -173,9 +173,9 @@ describe("FlightList — Select → booking URL contract", () => {
     render(<FlightList flights={[f1, f2]} passengers={1} />);
     const selectButtons = screen.getAllByRole("button", { name: /select/i });
 
-    fireEvent.click(selectButtons[1]); // click second card (f2)
+    fireEvent.click(selectButtons[1]!); // click second card (f2)
 
-    const url = mockPush.mock.calls[0][0] as string;
+    const url = mockPush.mock.calls[0]![0] as string;
     expect(url).toContain("flightId=2");
     expect(url).toContain("flightNumber=QQ202");
     expect(url).toContain("price=720000");

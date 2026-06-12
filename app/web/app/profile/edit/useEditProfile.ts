@@ -1,27 +1,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDelayedAction } from "@/app/hooks/useDelayedAction";
+import { getProfile, type ProfileData } from "@/lib/mock/profile";
 
-export interface EditProfileForm {
-  fullName: string;
-  email: string;
-  phone: string;
-  nationality: string;
-  passportNumber: string;
-  passportExpiry: string;
-}
+export type EditProfileForm = ProfileData;
 
 export function useEditProfile() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState<EditProfileForm>({
-    fullName: "Jonathan Doe",
-    email: "jonathan.doe@email.com",
-    phone: "+66 81 234 5678",
-    nationality: "Thai",
-    passportNumber: "AA123456",
-    passportExpiry: "2030-12-31",
-  });
+  const [form, setForm] = useState<EditProfileForm>(getProfile());
 
   const schedule = useDelayedAction();
 

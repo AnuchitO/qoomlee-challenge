@@ -99,3 +99,8 @@ export const mockFlightAlternatives: FlightAlternative[] = [
     diff: "฿2,500 cheaper",
   },
 ];
+
+export function getFlightAlternatives(ref: string): FlightAlternative[] {
+  void ref;
+  return mockFlightAlternatives;
+}

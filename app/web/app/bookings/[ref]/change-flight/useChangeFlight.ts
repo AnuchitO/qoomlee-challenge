@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { mockFlightAlternatives as ALTERNATIVES } from "@/lib/mock/flights";
+import { getFlightAlternatives } from "@/lib/mock/flights";
 import { useDelayedAction } from "@/app/hooks/useDelayedAction";
 
 export function useChangeFlight() {
@@ -23,7 +23,7 @@ export function useChangeFlight() {
 
   return {
     ref,
-    alternatives: ALTERNATIVES,
+    alternatives: getFlightAlternatives(ref),
     selectedDate,
     handleDateChange,
     confirming,

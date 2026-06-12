@@ -18,3 +18,8 @@ export const mockReviewPassengers: Passenger[] = [
   { id: "1", name: "Jonathan S. Doe", seat: "14A", gate: "F12", cabin: "Economy", bags: 1 },
   { id: "2", name: "Sarah M. Doe", seat: "14B", gate: "F12", cabin: "Economy", bags: 0 },
 ];
+
+export function getReviewPassengers(ref: string): Passenger[] {
+  void ref;
+  return mockReviewPassengers;
+}

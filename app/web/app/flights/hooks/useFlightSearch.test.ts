@@ -86,7 +86,11 @@ describe("useFlightSearch", () => {
       result.current.setReturnDate("2026-06-22");
     });
 
-    expect(result.current.validate()).toBe(true);
+    let valid = false;
+    act(() => {
+      valid = result.current.validate();
+    });
+    expect(valid).toBe(true);
     expect(result.current.errors).toEqual({});
   });
 
@@ -100,7 +104,11 @@ describe("useFlightSearch", () => {
       result.current.setDepartureDate("2026-06-15");
     });
 
-    expect(result.current.validate()).toBe(true);
+    let valid = false;
+    act(() => {
+      valid = result.current.validate();
+    });
+    expect(valid).toBe(true);
     expect(result.current.errors.returnDate).toBeUndefined();
   });
 
@@ -114,7 +122,11 @@ describe("useFlightSearch", () => {
       result.current.setDepartureDate("2026-06-15");
     });
 
-    expect(result.current.validate()).toBe(false);
+    let valid = true;
+    act(() => {
+      valid = result.current.validate();
+    });
+    expect(valid).toBe(false);
     expect(result.current.errors.origin).toBeDefined();
   });
 
@@ -126,7 +138,11 @@ describe("useFlightSearch", () => {
       result.current.setDepartureDate("2026-06-15");
     });
 
-    expect(result.current.validate()).toBe(false);
+    let valid = true;
+    act(() => {
+      valid = result.current.validate();
+    });
+    expect(valid).toBe(false);
     expect(result.current.errors.destination).toBeDefined();
   });
 
@@ -139,7 +155,11 @@ describe("useFlightSearch", () => {
       result.current.setDepartureDate("2026-06-15");
     });
 
-    expect(result.current.validate()).toBe(false);
+    let valid = true;
+    act(() => {
+      valid = result.current.validate();
+    });
+    expect(valid).toBe(false);
     expect(result.current.errors.destination).toBeDefined();
   });
 
@@ -151,7 +171,11 @@ describe("useFlightSearch", () => {
       result.current.setDestination("SIN");
     });
 
-    expect(result.current.validate()).toBe(false);
+    let valid = true;
+    act(() => {
+      valid = result.current.validate();
+    });
+    expect(valid).toBe(false);
     expect(result.current.errors.departureDate).toBeDefined();
   });
 
@@ -166,7 +190,11 @@ describe("useFlightSearch", () => {
       // returnDate intentionally left null
     });
 
-    expect(result.current.validate()).toBe(false);
+    let valid = true;
+    act(() => {
+      valid = result.current.validate();
+    });
+    expect(valid).toBe(false);
     expect(result.current.errors.returnDate).toBeDefined();
   });
 
@@ -181,7 +209,33 @@ describe("useFlightSearch", () => {
       result.current.setReturnDate("2026-06-15"); // earlier than departure
     });
 
-    expect(result.current.validate()).toBe(false);
+    let valid = true;
+    act(() => {
+      valid = result.current.validate();
+    });
+    expect(valid).toBe(false);
     expect(result.current.errors.returnDate).toBeDefined();
+  });
+
+  // ── errors as real state ────────────────────────────────────────────────────
+
+  it("clears previously set errors once the form becomes valid and validate() is called again", () => {
+    const { result } = renderHook(() => useFlightSearch());
+
+    act(() => {
+      result.current.validate();
+    });
+    expect(result.current.errors.origin).toBeDefined();
+
+    act(() => {
+      result.current.setOrigin("BKK");
+      result.current.setDestination("SIN");
+      result.current.setDepartureDate("2026-06-15");
+    });
+
+    act(() => {
+      result.current.validate();
+    });
+    expect(result.current.errors).toEqual({});
   });
 });

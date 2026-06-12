@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 export type TripType = "round" | "oneway";
 export type CabinClass = "economy" | "business" | "first";
@@ -73,10 +73,7 @@ export function useFlightSearch(): UseFlightSearch {
     cabinClass: "economy",
   });
 
-  // Ref for synchronous reads (unit tests); tick forces a re-render so the UI
-  // actually displays the error messages after validate() is called.
-  const errorsRef = useRef<ValidationErrors>({});
-  const [, setErrorsTick] = useState(0);
+  const [errors, setErrors] = useState<ValidationErrors>({});
 
   const setTripType = (tripType: TripType) => setState((s) => ({ ...s, tripType }));
 
@@ -103,8 +100,7 @@ export function useFlightSearch(): UseFlightSearch {
 
   const validate = (): boolean => {
     const errs = computeErrors(state);
-    errorsRef.current = errs;
-    setErrorsTick((t) => t + 1);
+    setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
@@ -123,9 +119,7 @@ export function useFlightSearch(): UseFlightSearch {
 
   return {
     state,
-    get errors() {
-      return errorsRef.current;
-    },
+    errors,
     setTripType,
     setOrigin,
     setDestination,

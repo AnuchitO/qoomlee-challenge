@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import AirportSelect from "./AirportSelect";
+import { AIRPORTS } from "../data/airports";
 
 // Suppress the portal so only the desktop dropdown is exercised in tests.
 // The portal is mobile-only UI (bottom sheet) and would duplicate all list
@@ -113,5 +114,19 @@ describe("AirportSelect", () => {
     const { container } = render(<AirportSelect {...base} borderless />);
     const trigger = container.querySelector("button");
     expect(trigger?.className).not.toContain("border");
+  });
+
+  // ── performance ─────────────────────────────────────────────────────────────
+
+  it("does not recompute the airport list on re-renders unrelated to query or excludeCode", () => {
+    const filterSpy = vi.spyOn(AIRPORTS, "filter");
+    const { rerender } = render(<AirportSelect {...base} />);
+    expect(filterSpy).toHaveBeenCalledTimes(1);
+
+    // Re-render with a prop change that doesn't affect filtering.
+    rerender(<AirportSelect {...base} placeholder="Select destination" />);
+    expect(filterSpy).toHaveBeenCalledTimes(1);
+
+    filterSpy.mockRestore();
   });
 });

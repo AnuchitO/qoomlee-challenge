@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AIRPORTS, Airport, findAirport } from "../data/airports";
 import { useDelayedAction } from "@/app/hooks/useDelayedAction";
@@ -37,17 +37,21 @@ export default function AirportSelect({
 
   const selected = value ? findAirport(value) : undefined;
 
-  const filtered = AIRPORTS.filter((a) => {
-    if (a.code === excludeCode) return false;
-    if (!query) return true;
-    const q = query.toLowerCase();
-    return (
-      a.code.toLowerCase().includes(q) ||
-      a.name.toLowerCase().includes(q) ||
-      a.city.toLowerCase().includes(q) ||
-      a.country.toLowerCase().includes(q)
-    );
-  });
+  const filtered = useMemo(
+    () =>
+      AIRPORTS.filter((a) => {
+        if (a.code === excludeCode) return false;
+        if (!query) return true;
+        const q = query.toLowerCase();
+        return (
+          a.code.toLowerCase().includes(q) ||
+          a.name.toLowerCase().includes(q) ||
+          a.city.toLowerCase().includes(q) ||
+          a.country.toLowerCase().includes(q)
+        );
+      }),
+    [query, excludeCode],
+  );
 
   // Close desktop dropdown on outside click.
   // Must also allow clicks inside the portal sheet (sheetRef) since it lives

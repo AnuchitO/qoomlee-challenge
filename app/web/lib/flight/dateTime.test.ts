@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatFlightTime, isNextDay, formatDepartureDateTime } from "./flightDateTime";
+import { formatFlightTime, isNextDay, formatDepartureDateTime } from "./dateTime";
 
 describe("formatFlightTime", () => {
   it("formats an ISO timestamp as 24-hour HH:MM in the local timezone", () => {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getReviewPassengers } from "@/lib/mock/passenger";
+import { getReviewPassengers } from "@/lib/checkin/mockPassengers";
 import { useDelayedAction } from "@/app/hooks/useDelayedAction";
 
 export function useReviewCheckIn() {

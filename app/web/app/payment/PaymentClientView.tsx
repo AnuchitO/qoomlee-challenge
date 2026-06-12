@@ -1,5 +1,5 @@
 import ProgressStepper from "./components/ProgressStepper";
-import { formatTHB } from "@/lib/currency/currency";
+import { formatTHB } from "@/lib/currency/format";
 import {
   formatCountdown,
   formatDeparture,

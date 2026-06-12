@@ -1,6 +1,6 @@
-import { Flight } from "../types/flight";
-import { formatTime, calculateDuration, formatDuration } from "./date-utils";
-import { formatPrice } from "./price-utils";
+import { Flight } from "./types";
+import { formatTime, calculateDuration, formatDuration } from "../date/utils";
+import { formatPrice } from "../currency/price";
 
 /**
  * Utility functions for handling flight-related operations

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import FlightRoute from "../../../components/FlightRoute";
-import type { mockFlightAlternatives } from "@/lib/mock/flights";
+import type { mockFlightAlternatives } from "@/lib/flight/mock";
 
 interface ChangeFlightViewProps {
   ref: string;

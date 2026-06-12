@@ -1,5 +1,5 @@
 import { AppError, NetworkError, ApiError, ValidationError } from "../errors/AppError";
-import { Flight } from "../types/flight";
+import { Flight } from "../flight/types";
 
 interface ApiResponse<T> {
   data: T;

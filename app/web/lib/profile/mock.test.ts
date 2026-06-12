@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getProfile } from "./profile";
+import { getProfile } from "./mock";
 
 describe("getProfile", () => {
   it("returns the current user's profile data", () => {

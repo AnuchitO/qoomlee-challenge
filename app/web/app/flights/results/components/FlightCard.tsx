@@ -3,8 +3,8 @@
 import type { Flight } from "../lib/types";
 import { formatDuration } from "../lib/formatSearchSummary";
 import FlightRoute from "../../../components/FlightRoute";
-import { formatTHB } from "@/lib/currency/currency";
-import { formatFlightTime, isNextDay } from "@/lib/format/flightDateTime";
+import { formatTHB } from "@/lib/currency/format";
+import { formatFlightTime, isNextDay } from "@/lib/flight/dateTime";
 
 interface Props {
   flight: Flight;

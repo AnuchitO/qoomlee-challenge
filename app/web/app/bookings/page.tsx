@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import TopAppBar from "../components/TopAppBar";
 import BottomNav from "../components/BottomNav";
-import { mockBookings as BOOKINGS } from "@/lib/mock/bookings";
+import { mockBookings as BOOKINGS } from "@/lib/booking/mock";
 
 export const metadata: Metadata = {
   title: "My Bookings · Qoomlee",

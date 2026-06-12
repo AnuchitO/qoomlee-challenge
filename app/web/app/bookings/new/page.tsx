@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import TopAppBar from "../../components/TopAppBar";
 import FlightSummaryCard from "./components/FlightSummaryCard";
 import BookingClient from "./BookingClient";
-import type { Flight } from "@/lib/types/flight";
+import type { Flight } from "@/lib/flight/types";
 
 export const metadata: Metadata = {
   title: "Book Your Flight · Qoomlee",

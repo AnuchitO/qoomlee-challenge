@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import TopAppBar from "../../components/TopAppBar";
-import { formatTHB } from "@/lib/currency/currency";
+import { formatTHB } from "@/lib/currency/format";
 import CopyPNR from "./CopyPNR";
 
 export const metadata: Metadata = {

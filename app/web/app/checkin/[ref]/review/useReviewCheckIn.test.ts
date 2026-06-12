@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useReviewCheckIn } from "./useReviewCheckIn";
-import { mockReviewPassengers } from "@/lib/mock/passenger";
+import { mockReviewPassengers } from "@/lib/checkin/mockPassengers";
 
 const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({

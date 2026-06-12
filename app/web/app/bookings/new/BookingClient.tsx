@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Flight } from "@/lib/types/flight";
-import { formatTHB } from "@/lib/currency/currency";
+import type { Flight } from "@/lib/flight/types";
+import { formatTHB } from "@/lib/currency/format";
 
 const UPGRADE_PRICE_MINOR = 29900;
 

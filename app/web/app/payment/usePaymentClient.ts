@@ -5,7 +5,7 @@ import {
   formatExpiry,
   formatCvv,
   validateCardFields,
-} from "@/lib/forms/cardFormatting";
+} from "@/lib/payment/cardFormatting";
 
 export function formatDeparture(iso: string): string {
   const d = new Date(iso);

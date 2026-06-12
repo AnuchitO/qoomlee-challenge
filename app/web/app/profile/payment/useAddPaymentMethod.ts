@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { formatCardNumber, formatExpiry, formatCvv } from "@/lib/forms/cardFormatting";
+import { formatCardNumber, formatExpiry, formatCvv } from "@/lib/payment/cardFormatting";
 
 export interface PaymentMethodForm {
   cardName: string;

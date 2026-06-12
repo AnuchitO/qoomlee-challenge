@@ -1,7 +1,7 @@
 import { findAirport } from "../../../flights/data/airports";
 import FlightRoute from "../../../components/FlightRoute";
-import type { Flight } from "@/lib/types/flight";
-import { formatDepartureDateTime } from "@/lib/format/flightDateTime";
+import type { Flight } from "@/lib/flight/types";
+import { formatDepartureDateTime } from "@/lib/flight/dateTime";
 
 export default function FlightSummaryCard({ flight }: { flight: Flight }) {
   const originAirport = findAirport(flight.origin);

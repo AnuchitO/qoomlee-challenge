@@ -1,4 +1,4 @@
-import { CardFormFields } from "../forms/cardFormatting";
+import { CardFormFields } from "./cardFormatting";
 
 export interface ValidationResult<T> {
   value: T;

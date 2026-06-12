@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDelayedAction } from "@/app/hooks/useDelayedAction";
-import { getProfile, type ProfileData } from "@/lib/mock/profile";
+import { getProfile, type ProfileData } from "@/lib/profile/mock";
 
 export type EditProfileForm = ProfileData;
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Passenger } from "@/lib/mock/passenger";
+import type { Passenger } from "@/lib/checkin/mockPassengers";
 
 interface SelectPassengersViewProps {
   passengers: Passenger[];

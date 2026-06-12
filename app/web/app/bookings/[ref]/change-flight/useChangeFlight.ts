@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getFlightAlternatives } from "@/lib/mock/flights";
+import { getFlightAlternatives } from "@/lib/flight/mock";
 import { useDelayedAction } from "@/app/hooks/useDelayedAction";
 
 export function useChangeFlight() {

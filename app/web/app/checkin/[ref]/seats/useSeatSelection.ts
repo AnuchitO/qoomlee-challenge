@@ -5,7 +5,7 @@ import {
   SEAT_ROWS_ECONOMY,
   SEAT_COLUMNS,
   mockTakenSeats,
-} from "@/lib/mock/seats";
+} from "@/lib/checkin/mockSeats";
 
 export const ROWS_BUSINESS = SEAT_ROWS_BUSINESS;
 export const ROWS_ECONOMY = SEAT_ROWS_ECONOMY;

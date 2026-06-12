@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { mockCheckinPassengers as MOCK_PASSENGERS } from "@/lib/mock/passenger";
+import { mockCheckinPassengers as MOCK_PASSENGERS } from "@/lib/checkin/mockPassengers";
 
 export function useSelectPassengers() {
   const { ref } = useParams<{ ref: string }>();

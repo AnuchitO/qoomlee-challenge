@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AIRPORTS, Airport, findAirport } from "../data/airports";
+import { useDelayedAction } from "@/app/hooks/useDelayedAction";
 
 interface Props {
   value: string;
@@ -80,9 +81,11 @@ export default function AirportSelect({
     };
   }, [open]);
 
+  const scheduleClose = useDelayedAction();
+
   const closeSheet = () => {
     setSheetVisible(false);
-    setTimeout(() => {
+    scheduleClose(() => {
       setOpen(false);
       setQuery("");
     }, 280);

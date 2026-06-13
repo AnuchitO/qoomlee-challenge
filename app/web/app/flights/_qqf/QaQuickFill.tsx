@@ -8,7 +8,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import type { FlightSearchState } from "../hooks/useFlightSearch";
-import { searchScenarios } from "../_internal/searchScenarios";
+import { searchScenarios } from "./searchScenarios";
 
 interface QaQuickFillProps {
   onApplyScenario: (scenario: FlightSearchState) => void;

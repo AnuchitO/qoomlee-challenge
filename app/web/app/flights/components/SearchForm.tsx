@@ -7,7 +7,7 @@ import TripTypeToggle from "./TripTypeToggle";
 import DateRangePicker from "./DateRangePicker";
 import PassengerSelector from "./PassengerSelector";
 import AirportSelect from "./AirportSelect";
-import QaQuickFill from "./QaQuickFill";
+import QaQuickFill from "../_qqf/QaQuickFill";
 
 const swapSvg = (
   <svg

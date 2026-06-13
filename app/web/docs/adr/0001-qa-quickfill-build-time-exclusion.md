@@ -8,14 +8,18 @@ constant-false expression and Terser/webpack dead-code-eliminate both the branch
 the `QaQuickFill` module — it does not appear in any shipped `.js` bundle (server or
 client).
 
-This elimination follows the whole module graph, not just the component: `searchScenarios.ts`
-(`app/flights/_qqf/searchScenarios.ts`) is imported only by `QaQuickFill.tsx`, so once
-that import becomes unreachable, `searchScenarios.ts` is dropped too — confirmed by grepping
-a production build's `.next/server` and `.next/static` for scenario labels and route codes
-(e.g. "No results · HKG", "roundtrip-group-economy") with zero matches. All QQF-only code
-lives under `app/flights/_qqf/` (a Next.js private folder, excluded from routing); any
-future file added there follows the same rule as long as it's reachable only through
-`QaQuickFill`'s import chain — no separate gating is needed per file.
+This elimination follows the whole module graph, not just the component: each page's
+scenario file (e.g. `app/flights/_qqf/searchScenarios.ts`) is imported only by that
+page's `QaQuickFill.tsx`, so once that import becomes unreachable, the scenario file
+is dropped too — confirmed by grepping a production build's `.next/server` and
+`.next/static` for scenario labels and route codes (e.g. "No results · HKG",
+"roundtrip-group-economy") with zero matches. The same gate is applied independently
+on the flight search, booking, and payment pages, each with its own `app/<page>/_qqf/`
+folder (a Next.js private folder, excluded from routing) containing that page's
+`QaQuickFill.tsx` and scenario file. They share a generic `QaQuickFill` UI
+(`app/components/_qqf/QuickFillWidget.tsx`), which stays unreachable in production
+because every importer is gated — no separate gating is needed per file, as long as
+a file is reachable only through a gated `QaQuickFill`'s import chain.
 
 **Caveat**: the eliminated source still appears in `.js.map` source map files in
 `.next/server/chunks/ssr/`. This is acceptable as long as source maps aren't shipped

@@ -12,6 +12,14 @@ const eslintConfig = defineConfig([
       ...security.configs.recommended.rules,
       "no-eval": "error",
       "no-implied-eval": "error",
+      "no-console": "error",
+    },
+  },
+  {
+    // The logger wrapper is the single allowed place to call console.*.
+    files: ["lib/logger/logger.ts"],
+    rules: {
+      "no-console": "off",
     },
   },
   // Override default ignores of eslint-config-next.

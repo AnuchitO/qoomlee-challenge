@@ -2,6 +2,8 @@
  * Utility functions for handling dates and times in the flight application
  */
 
+import { logger } from "@/lib/logger/logger";
+
 /**
  * Formats an ISO date string to a readable format
  * @param isoDateString - Date string in ISO format
@@ -17,7 +19,7 @@ export function formatDate(isoDateString: string): string {
       year: "numeric",
     });
   } catch (error) {
-    console.error("Error formatting date:", error);
+    logger.error("Error formatting date", { error });
     return isoDateString; // Return original if formatting fails
   }
 }
@@ -36,7 +38,7 @@ export function formatTime(isoTimeString: string): string {
       hour12: true,
     });
   } catch (error) {
-    console.error("Error formatting time:", error);
+    logger.error("Error formatting time", { error });
     return isoTimeString; // Return original if formatting fails
   }
 }
@@ -58,7 +60,7 @@ export function calculateDuration(startTime: string, endTime: string): string {
 
     return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
   } catch (error) {
-    console.error("Error calculating duration:", error);
+    logger.error("Error calculating duration", { error });
     return "00:00"; // Return default if calculation fails
   }
 }
@@ -92,7 +94,7 @@ export function isPastDate(dateString: string): boolean {
     const now = new Date();
     return date < now;
   } catch (error) {
-    console.error("Error checking if date is past:", error);
+    logger.error("Error checking if date is past", { error });
     return false; // Return false if check fails
   }
 }

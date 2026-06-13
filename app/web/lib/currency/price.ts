@@ -2,6 +2,8 @@
  * Utility functions for handling price formatting in the flight application
  */
 
+import { logger } from "@/lib/logger/logger";
+
 /**
  * Formats a price in minor units (cents) to a human-readable format
  * @param priceMinor - Price in minor units (e.g., cents)
@@ -21,7 +23,7 @@ export function formatPrice(priceMinor: number, currency: string = "USD"): strin
       maximumFractionDigits: 2,
     }).format(majorUnitPrice);
   } catch (error) {
-    console.error("Error formatting price:", error);
+    logger.error("Error formatting price", { error });
     // Fallback: return basic formatted string
     const majorUnitPrice = priceMinor / 100;
     return `${currency} ${majorUnitPrice.toFixed(2)}`;
@@ -61,7 +63,7 @@ export function formatPriceAbbreviated(priceMinor: number, currency: string = "U
 
     return `${currency} ${formattedAmount}`;
   } catch (error) {
-    console.error("Error formatting abbreviated price:", error);
+    logger.error("Error formatting abbreviated price", { error });
     const majorUnitPrice = priceMinor / 100;
     return `${currency} ${Math.round(majorUnitPrice).toLocaleString()}`;
   }

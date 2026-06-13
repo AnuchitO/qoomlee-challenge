@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import BottomNav from "../../components/BottomNav";
 import ResultsHeader from "./components/ResultsHeader";
 import FlightList from "./components/FlightList";
-import { fetchFlights } from "./lib/fetchFlights";
-import { formatSearchSummary } from "./lib/formatSearchSummary";
+import { fetchFlights } from "./_internal/fetchFlights";
+import { formatSearchSummary } from "./_internal/formatSearchSummary";
 
 interface SearchParams {
   origin?: string;

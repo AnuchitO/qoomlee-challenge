@@ -1,7 +1,7 @@
 "use client";
 
-import type { Flight } from "../lib/types";
-import { formatDuration } from "../lib/formatSearchSummary";
+import type { Flight } from "../_internal/types";
+import { formatDuration } from "../_internal/formatSearchSummary";
 import FlightRoute from "../../../components/FlightRoute";
 import { formatTHB } from "@/lib/currency/format";
 import { formatFlightTime, isNextDay } from "@/lib/flight/dateTime";

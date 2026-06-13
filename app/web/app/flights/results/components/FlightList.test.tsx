@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import FlightList from "./FlightList";
-import type { Flight } from "../lib/types";
-import * as sortFlightsModule from "../lib/sortFlights";
+import type { Flight } from "../_internal/types";
+import * as sortFlightsModule from "../_internal/sortFlights";
 
 const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({

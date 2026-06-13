@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { SortBy } from "../lib/types";
+import type { SortBy } from "../_internal/types";
 
 const FILTERS: { label: string; value: SortBy }[] = [
   { label: "Best", value: "best" },

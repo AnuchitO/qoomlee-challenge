@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Flight, SortBy } from "../lib/types";
-import { sortFlights } from "../lib/sortFlights";
+import type { Flight, SortBy } from "../_internal/types";
+import { sortFlights } from "../_internal/sortFlights";
 import FilterChips from "./FilterChips";
 import FlightCard from "./FlightCard";
 

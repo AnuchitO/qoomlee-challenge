@@ -6,6 +6,7 @@ import {
   formatCvv,
   validateCardFields,
 } from "@/lib/payment/cardFormatting";
+import type { CardDetails } from "./_qqf/cardScenarios";
 
 export function formatDeparture(iso: string): string {
   const d = new Date(iso);
@@ -148,6 +149,21 @@ export function usePaymentClient({
     if (e.target.checked) setErrors((prev) => ({ ...prev, terms: undefined }));
   }
 
+  const applyScenario = (details: CardDetails) => {
+    setCardName(details.cardName);
+    setCardNumber(formatCardNumber(details.cardNumber));
+    setExpiry(formatExpiry(details.expiry));
+    setCvv(formatCvv(details.cvv));
+    setAgreed(details.agreed);
+    setErrors({});
+
+    if (details.promoCode) {
+      setPromoInput(details.promoCode);
+      setPromoApplied(details.promoCode.toUpperCase() === VALID_PROMO);
+      setPromoError("");
+    }
+  };
+
   // pricing
   const baseFareMinor = basePriceMinor * passengers;
   const taxMinor = Math.round(baseFareMinor * 0.15);
@@ -209,6 +225,7 @@ export function usePaymentClient({
     handleSaveCardChange,
     handleSameAddressToggle,
     handleAgreedChange,
+    applyScenario,
     baseFareMinor,
     taxMinor,
     discountMinor,

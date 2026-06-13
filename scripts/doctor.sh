@@ -133,6 +133,13 @@ else
   hint "Install: brew install hadolint"
 fi
 
+if command -v graphify >/dev/null 2>&1; then
+  ok "graphify installed"
+else
+  warn "graphify not found"
+  hint "Install: pip install graphify  then  graphify install"
+fi
+
 # ── Pre-commit hooks ─────────────────────────────────────────────────────
 section "Pre-commit hooks"
 if command -v pre-commit >/dev/null 2>&1; then

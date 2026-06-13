@@ -35,6 +35,7 @@ export interface UseFlightSearch {
   swapAirports: () => void;
   validate: () => boolean;
   buildSearchUrl: () => string;
+  applyScenario: (scenario: FlightSearchState) => void;
 }
 
 function computeErrors(state: FlightSearchState): ValidationErrors {
@@ -104,6 +105,11 @@ export function useFlightSearch(): UseFlightSearch {
     return Object.keys(errs).length === 0;
   };
 
+  const applyScenario = (scenario: FlightSearchState) => {
+    setState(scenario);
+    setErrors({});
+  };
+
   const buildSearchUrl = (): string => {
     const parts: string[] = [
       `origin=${encodeURIComponent(state.origin)}`,
@@ -130,5 +136,6 @@ export function useFlightSearch(): UseFlightSearch {
     swapAirports,
     validate,
     buildSearchUrl,
+    applyScenario,
   };
 }

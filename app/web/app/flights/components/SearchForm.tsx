@@ -7,6 +7,7 @@ import TripTypeToggle from "./TripTypeToggle";
 import DateRangePicker from "./DateRangePicker";
 import PassengerSelector from "./PassengerSelector";
 import AirportSelect from "./AirportSelect";
+import QaQuickFill from "./QaQuickFill";
 
 const swapSvg = (
   <svg
@@ -36,6 +37,7 @@ export default function SearchForm() {
     swapAirports,
     validate,
     buildSearchUrl,
+    applyScenario,
   } = useFlightSearch();
 
   const handleSearch = () => {
@@ -313,6 +315,10 @@ export default function SearchForm() {
           </button>
         </div>
       </div>
+
+      {process.env.NEXT_PUBLIC_ENABLE_TEST_SCENARIOS === "true" && (
+        <QaQuickFill onApplyScenario={applyScenario} />
+      )}
     </section>
   );
 }

@@ -1,5 +1,8 @@
 import type { Flight } from "./types";
 import { buildApiUrl } from "./buildApiUrl";
+import { ok, err, type Result } from "@/lib/result/types";
+import { logger } from "@/lib/logger/logger";
+import { HttpError } from "@/lib/api/errors";
 
 interface FetchParams {
   origin: string;
@@ -8,10 +11,9 @@ interface FetchParams {
   passengers: string;
 }
 
-export async function fetchFlights(params: FetchParams): Promise<Flight[]> {
+export async function fetchFlights(params: FetchParams): Promise<Result<Flight[], HttpError>> {
   if (!params.origin || !params.destination || !params.departure) {
-    // Return empty array to maintain backward compatibility with existing tests
-    return [];
+    return ok([]);
   }
 
   const url = buildApiUrl(params);
@@ -20,8 +22,9 @@ export async function fetchFlights(params: FetchParams): Promise<Flight[]> {
     const res = await fetch(url, { cache: "no-store" });
 
     if (!res.ok) {
-      console.error(`fetchFlights: API responded with status ${res.status}`);
-      return [];
+      const message = `API responded with status ${res.status}`;
+      logger.error(`fetchFlights: ${message}`, { status: res.status });
+      return err(HttpError.badStatus(res.status, message));
     }
 
     const data = await res.json();
@@ -59,9 +62,10 @@ export async function fetchFlights(params: FetchParams): Promise<Flight[]> {
       );
     }
 
-    return flightsData.filter(isFlight);
-  } catch (err) {
-    console.error("fetchFlights: network error", err);
-    return [];
+    return ok(flightsData.filter(isFlight));
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    logger.error("fetchFlights: network error", { error: e });
+    return err(HttpError.networkError(message));
   }
 }

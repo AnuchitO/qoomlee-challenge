@@ -32,7 +32,7 @@ export default async function ResultsPage({
 }) {
   const params = await searchParams;
 
-  const flights = await fetchFlights({
+  const flightsResult = await fetchFlights({
     origin: params.origin ?? "",
     destination: params.destination ?? "",
     departure: params.departure ?? "",
@@ -56,7 +56,17 @@ export default async function ResultsPage({
     <>
       <ResultsHeader summary={summary} />
       <main className="max-w-screen-md mx-auto px-container-margin-mobile pt-md pb-28">
-        <FlightList flights={flights} passengers={passengers} />
+        {flightsResult.ok ? (
+          <FlightList flights={flightsResult.value} passengers={passengers} />
+        ) : (
+          <div className="py-xxl flex flex-col items-center gap-md text-on-surface-variant">
+            <span className="material-symbols-outlined text-[48px]">error</span>
+            <p className="text-body-md">Something went wrong loading flights.</p>
+            <a href="" className="text-primary text-label-md underline">
+              Try again
+            </a>
+          </div>
+        )}
       </main>
       <BottomNav />
     </>

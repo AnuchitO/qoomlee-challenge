@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { fetchFlights } from "./fetchFlights";
+import { HttpError } from "@/lib/api/errors";
 import type { Flight } from "./types";
 
 const BASE_PARAMS = {
@@ -37,30 +38,30 @@ afterEach(() => {
 describe("fetchFlights", () => {
   // ── missing params ──────────────────────────────────────────────────────────
 
-  it("returns [] without calling fetch when origin is missing", async () => {
+  it("returns ok([]) without calling fetch when origin is missing", async () => {
     const spy = vi.spyOn(globalThis, "fetch");
 
     const result = await fetchFlights({ ...BASE_PARAMS, origin: "" });
 
-    expect(result).toEqual([]);
+    expect(result).toEqual({ ok: true, value: [] });
     expect(spy).not.toHaveBeenCalled();
   });
 
-  it("returns [] without calling fetch when destination is missing", async () => {
+  it("returns ok([]) without calling fetch when destination is missing", async () => {
     const spy = vi.spyOn(globalThis, "fetch");
 
     const result = await fetchFlights({ ...BASE_PARAMS, destination: "" });
 
-    expect(result).toEqual([]);
+    expect(result).toEqual({ ok: true, value: [] });
     expect(spy).not.toHaveBeenCalled();
   });
 
-  it("returns [] without calling fetch when departure is missing", async () => {
+  it("returns ok([]) without calling fetch when departure is missing", async () => {
     const spy = vi.spyOn(globalThis, "fetch");
 
     const result = await fetchFlights({ ...BASE_PARAMS, departure: "" });
 
-    expect(result).toEqual([]);
+    expect(result).toEqual({ ok: true, value: [] });
     expect(spy).not.toHaveBeenCalled();
   });
 
@@ -71,7 +72,7 @@ describe("fetchFlights", () => {
 
     const result = await fetchFlights(BASE_PARAMS);
 
-    expect(result).toEqual([mockFlight]);
+    expect(result).toEqual({ ok: true, value: [mockFlight] });
   });
 
   it("returns flights from a direct array response", async () => {
@@ -79,15 +80,15 @@ describe("fetchFlights", () => {
 
     const result = await fetchFlights(BASE_PARAMS);
 
-    expect(result).toEqual([mockFlight]);
+    expect(result).toEqual({ ok: true, value: [mockFlight] });
   });
 
-  it("returns [] when the envelope has an empty flights array", async () => {
+  it("returns ok([]) when the envelope has an empty flights array", async () => {
     mockFetch({ flights: [] });
 
     const result = await fetchFlights(BASE_PARAMS);
 
-    expect(result).toEqual([]);
+    expect(result).toEqual({ ok: true, value: [] });
   });
 
   it("returns multiple flights", async () => {
@@ -96,35 +97,46 @@ describe("fetchFlights", () => {
 
     const result = await fetchFlights(BASE_PARAMS);
 
-    expect(result).toHaveLength(2);
-    expect(result[0]!.flightNumber).toBe("QQ101");
-    expect(result[1]!.flightNumber).toBe("QQ102");
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("expected ok result");
+    expect(result.value).toHaveLength(2);
+    expect(result.value[0]!.flightNumber).toBe("QQ101");
+    expect(result.value[1]!.flightNumber).toBe("QQ102");
   });
 
   // ── error handling ──────────────────────────────────────────────────────────
 
-  it("returns [] when the API responds with a non-ok status", async () => {
+  it("returns err(BAD_STATUS) with status and message when the API responds with a non-ok status", async () => {
     mockFetch({}, false, 500);
 
     const result = await fetchFlights(BASE_PARAMS);
 
-    expect(result).toEqual([]);
+    expect(result).toEqual({
+      ok: false,
+      error: HttpError.badStatus(500, "API responded with status 500"),
+    });
   });
 
-  it("returns [] when the API responds with 404", async () => {
+  it("returns err(BAD_STATUS) with status and message when the API responds with 404", async () => {
     mockFetch({ error: "Not found" }, false, 404);
 
     const result = await fetchFlights(BASE_PARAMS);
 
-    expect(result).toEqual([]);
+    expect(result).toEqual({
+      ok: false,
+      error: HttpError.badStatus(404, "API responded with status 404"),
+    });
   });
 
-  it("returns [] when fetch throws a network error", async () => {
+  it("returns err(NETWORK_ERROR) with the underlying error message when fetch throws", async () => {
     vi.spyOn(globalThis, "fetch").mockRejectedValueOnce(new Error("Network error"));
 
     const result = await fetchFlights(BASE_PARAMS);
 
-    expect(result).toEqual([]);
+    expect(result).toEqual({
+      ok: false,
+      error: HttpError.networkError("Network error"),
+    });
   });
 
   it("logs an error when the API responds with a non-ok status", async () => {
@@ -133,7 +145,7 @@ describe("fetchFlights", () => {
 
     await fetchFlights(BASE_PARAMS);
 
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("500"));
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("500"), { status: 500 });
   });
 
   it("logs an error when fetch throws a network error", async () => {
@@ -143,7 +155,9 @@ describe("fetchFlights", () => {
 
     await fetchFlights(BASE_PARAMS);
 
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("fetchFlights"), networkError);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("fetchFlights"), {
+      error: networkError,
+    });
   });
 
   it("does not log an error for a legitimately empty results envelope", async () => {

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Flight } from "@/lib/flight/types";
 import { formatTHB } from "@/lib/currency/format";
+import QaQuickFill from "./_qqf/QaQuickFill";
+import type { PassengerDetails } from "./_qqf/passengerScenarios";
 
 const UPGRADE_PRICE_MINOR = 29900;
 
@@ -42,6 +44,14 @@ export default function BookingClient({ flight, passengers }: Props) {
     if (!phone.trim()) e.phone = "Required";
     setErrors(e);
     return Object.keys(e).length === 0;
+  };
+
+  const applyScenario = (details: PassengerDetails) => {
+    setFirstName(details.firstName);
+    setLastName(details.lastName);
+    setEmail(details.email);
+    setPhone(details.phone);
+    setErrors({});
   };
 
   const handleContinue = () => {
@@ -189,6 +199,10 @@ export default function BookingClient({ flight, passengers }: Props) {
           </button>
         </div>
       </div>
+
+      {process.env.NEXT_PUBLIC_ENABLE_TEST_SCENARIOS === "true" && (
+        <QaQuickFill onApplyScenario={applyScenario} />
+      )}
     </>
   );
 }

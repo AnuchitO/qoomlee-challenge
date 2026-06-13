@@ -145,7 +145,10 @@ describe("fetchFlights", () => {
 
     await fetchFlights(BASE_PARAMS);
 
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("500"), { status: 500 });
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("500"),
+      expect.objectContaining({ status: 500 }),
+    );
   });
 
   it("logs an error when fetch throws a network error", async () => {
@@ -155,9 +158,10 @@ describe("fetchFlights", () => {
 
     await fetchFlights(BASE_PARAMS);
 
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("fetchFlights"), {
-      error: networkError,
-    });
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("httpClient"),
+      expect.objectContaining({ error: networkError }),
+    );
   });
 
   it("does not log an error for a legitimately empty results envelope", async () => {

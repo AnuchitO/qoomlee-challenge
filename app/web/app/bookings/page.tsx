@@ -24,7 +24,7 @@ export default function BookingsPage() {
         {BOOKINGS.map((booking) => (
           <Link
             key={booking.ref}
-            href={`/bookings/${booking.ref}`}
+            href={`/bookings/detail?ref=${booking.ref}`}
             className="block bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm hover:shadow-md hover:border-primary/30 transition-all active:scale-[0.99] overflow-hidden group"
           >
             {/* Card header */}

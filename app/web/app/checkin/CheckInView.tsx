@@ -84,7 +84,7 @@ export function CheckInView({
             </div>
 
             <Link
-              href={`/checkin/${bookingRef || "QM92Z4"}/passengers`}
+              href={`/checkin/detail/passengers?ref=${bookingRef || "QM92Z4"}`}
               className="block w-full h-14 bg-primary text-on-primary text-label-md rounded-xl shadow-sm hover:opacity-90 active:scale-95 transition-all duration-150 flex items-center justify-center"
             >
               Start Check-in

@@ -97,7 +97,7 @@ export default function PassesPage() {
                 Tap to expand full pass
               </button>
               <Link
-                href={`/passes/${pass.ref}`}
+                href={`/passes/detail?ref=${pass.ref}`}
                 className="text-label-md text-primary flex items-center gap-xs hover:underline"
               >
                 View

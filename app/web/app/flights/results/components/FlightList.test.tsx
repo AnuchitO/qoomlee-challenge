@@ -156,6 +156,16 @@ describe("FlightList — Select → booking URL contract", () => {
     expect(mockPush.mock.calls[0]![0]).toContain("passengers=3");
   });
 
+  it("does not include step params when no step is provided (one-way)", () => {
+    render(<FlightList flights={[makeFlight()]} passengers={1} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /select/i }));
+
+    const url = mockPush.mock.calls[0]![0] as string;
+    expect(url).not.toContain("outboundFlightId");
+    expect(url).not.toContain("step=");
+  });
+
   it("uses the clicked flight's data, not another flight's", () => {
     // durationMinutes differs so "best" sort is deterministic: f1 (120 min) first, f2 (300 min) second
     const f1 = makeFlight({
@@ -179,5 +189,141 @@ describe("FlightList — Select → booking URL contract", () => {
     expect(url).toContain("flightId=2");
     expect(url).toContain("flightNumber=QQ202");
     expect(url).toContain("price=720000");
+  });
+});
+
+describe("FlightList — round-trip: outbound step", () => {
+  const returnStepParams = {
+    origin: "BKK",
+    destination: "SIN",
+    departure: "2026-06-20",
+    cabin: "economy",
+  };
+
+  it("navigates to /flights/results with step=return when an outbound flight is selected", () => {
+    render(
+      <FlightList
+        flights={[
+          makeFlight({
+            id: 1,
+            flightNumber: "QM101",
+            origin: "BKK",
+            destination: "SIN",
+            departureTime: "2026-06-15T08:00:00Z",
+            basePriceMinor: 420000,
+            currency: "THB",
+          }),
+        ]}
+        passengers={1}
+        step="outbound"
+        returnStepParams={returnStepParams}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /select/i }));
+
+    const url = mockPush.mock.calls[0]![0] as string;
+    expect(url).toContain("/flights/results?");
+    expect(url).toContain("step=return");
+  });
+
+  it("swaps origin and destination for the return search", () => {
+    render(
+      <FlightList
+        flights={[makeFlight({ origin: "BKK", destination: "SIN" })]}
+        passengers={1}
+        step="outbound"
+        returnStepParams={returnStepParams}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /select/i }));
+
+    const url = mockPush.mock.calls[0]![0] as string;
+    expect(url).toContain("origin=SIN");
+    expect(url).toContain("destination=BKK");
+    expect(url).toContain("departure=2026-06-20");
+  });
+
+  it("carries the selected outbound flight's details forward", () => {
+    render(
+      <FlightList
+        flights={[
+          makeFlight({
+            id: 1,
+            flightNumber: "QM101",
+            origin: "BKK",
+            destination: "SIN",
+            departureTime: "2026-06-15T08:00:00Z",
+            basePriceMinor: 420000,
+            currency: "THB",
+          }),
+        ]}
+        passengers={2}
+        step="outbound"
+        returnStepParams={returnStepParams}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /select/i }));
+
+    const url = mockPush.mock.calls[0]![0] as string;
+    expect(url).toContain("outboundFlightId=1");
+    expect(url).toContain("outboundFlightNumber=QM101");
+    expect(url).toContain("outboundOrigin=BKK");
+    expect(url).toContain("outboundDestination=SIN");
+    expect(url).toContain(encodeURIComponent("2026-06-15T08:00:00Z"));
+    expect(url).toContain("outboundPrice=420000");
+    expect(url).toContain("outboundCurrency=THB");
+    expect(url).toContain("passengers=2");
+    expect(url).toContain("cabin=economy");
+  });
+});
+
+describe("FlightList — round-trip: return step", () => {
+  const outboundParams = {
+    outboundFlightId: "1",
+    outboundFlightNumber: "QM101",
+    outboundOrigin: "BKK",
+    outboundDestination: "SIN",
+    outboundDepartureTime: "2026-06-15T08:00:00Z",
+    outboundPrice: "420000",
+    outboundCurrency: "THB",
+  };
+
+  it("navigates to /bookings/new with both legs when a return flight is selected", () => {
+    render(
+      <FlightList
+        flights={[
+          makeFlight({
+            id: 2,
+            flightNumber: "QM202",
+            origin: "SIN",
+            destination: "BKK",
+            departureTime: "2026-06-20T08:00:00Z",
+            basePriceMinor: 390000,
+            currency: "THB",
+          }),
+        ]}
+        passengers={1}
+        step="return"
+        outboundParams={outboundParams}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /select/i }));
+
+    const url = mockPush.mock.calls[0]![0] as string;
+    expect(url).toContain("/bookings/new?");
+    expect(url).toContain("outboundFlightId=1");
+    expect(url).toContain("outboundFlightNumber=QM101");
+    expect(url).toContain("returnFlightId=2");
+    expect(url).toContain("returnFlightNumber=QM202");
+    expect(url).toContain("returnOrigin=SIN");
+    expect(url).toContain("returnDestination=BKK");
+    expect(url).toContain(encodeURIComponent("2026-06-20T08:00:00Z"));
+    expect(url).toContain("returnPrice=390000");
+    expect(url).toContain("currency=THB");
+    expect(url).toContain("passengers=1");
   });
 });

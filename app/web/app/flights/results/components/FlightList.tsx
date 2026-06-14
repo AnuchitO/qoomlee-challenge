@@ -9,12 +9,28 @@ import FlightCard from "./FlightCard";
 
 const PAGE_SIZE = 5;
 
+interface ReturnStepParams {
+  origin: string;
+  destination: string;
+  departure: string;
+  cabin: string;
+}
+
 interface Props {
   flights: Flight[];
   passengers: number;
+  step?: "outbound" | "return";
+  returnStepParams?: ReturnStepParams;
+  outboundParams?: Record<string, string>;
 }
 
-export default function FlightList({ flights, passengers }: Props) {
+export default function FlightList({
+  flights,
+  passengers,
+  step,
+  returnStepParams,
+  outboundParams,
+}: Props) {
   const router = useRouter();
   const [sortBy, setSortBy] = useState<SortBy>("best");
   const [visible, setVisible] = useState(PAGE_SIZE);
@@ -24,6 +40,42 @@ export default function FlightList({ flights, passengers }: Props) {
   const hasMore = visible < sorted.length;
 
   const handleSelect = (flight: Flight) => {
+    if (step === "outbound" && returnStepParams) {
+      const params = new URLSearchParams({
+        origin: returnStepParams.destination,
+        destination: returnStepParams.origin,
+        departure: returnStepParams.departure,
+        step: "return",
+        outboundFlightId: String(flight.id),
+        outboundFlightNumber: flight.flightNumber,
+        outboundOrigin: flight.origin,
+        outboundDestination: flight.destination,
+        outboundDepartureTime: flight.departureTime,
+        outboundPrice: String(flight.basePriceMinor),
+        outboundCurrency: flight.currency,
+        passengers: String(passengers),
+        cabin: returnStepParams.cabin,
+      });
+      router.push(`/flights/results?${params.toString()}`);
+      return;
+    }
+
+    if (step === "return" && outboundParams) {
+      const params = new URLSearchParams({
+        ...outboundParams,
+        returnFlightId: String(flight.id),
+        returnFlightNumber: flight.flightNumber,
+        returnOrigin: flight.origin,
+        returnDestination: flight.destination,
+        returnDepartureTime: flight.departureTime,
+        returnPrice: String(flight.basePriceMinor),
+        currency: flight.currency,
+        passengers: String(passengers),
+      });
+      router.push(`/bookings/new?${params.toString()}`);
+      return;
+    }
+
     const params = new URLSearchParams({
       flightId: String(flight.id),
       flightNumber: flight.flightNumber,

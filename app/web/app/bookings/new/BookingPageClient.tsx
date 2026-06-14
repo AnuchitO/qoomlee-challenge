@@ -13,19 +13,51 @@ export default function BookingPageClient() {
 
   const departureTime = str("departureTime", new Date().toISOString());
 
-  const flight: Flight = {
-    id: Number(str("flightId", "0")),
-    flightNumber: str("flightNumber", "—"),
-    origin: str("origin", "—"),
-    destination: str("destination", "—"),
-    departureTime,
-    arrivalTime: departureTime,
-    basePriceMinor: Number(str("price", "0")),
-    currency: str("currency", "USD"),
-    availableSeats: 0,
-    status: "SCHEDULED",
-    durationMinutes: 0,
-  };
+  const isRoundTrip = !!str("returnFlightId");
+
+  const flight: Flight = isRoundTrip
+    ? {
+        id: Number(str("outboundFlightId", "0")),
+        flightNumber: str("outboundFlightNumber", "—"),
+        origin: str("outboundOrigin", "—"),
+        destination: str("outboundDestination", "—"),
+        departureTime: str("outboundDepartureTime", departureTime),
+        arrivalTime: str("outboundDepartureTime", departureTime),
+        basePriceMinor: Number(str("outboundPrice", "0")),
+        currency: str("outboundCurrency", "USD"),
+        availableSeats: 0,
+        status: "SCHEDULED",
+        durationMinutes: 0,
+      }
+    : {
+        id: Number(str("flightId", "0")),
+        flightNumber: str("flightNumber", "—"),
+        origin: str("origin", "—"),
+        destination: str("destination", "—"),
+        departureTime,
+        arrivalTime: departureTime,
+        basePriceMinor: Number(str("price", "0")),
+        currency: str("currency", "USD"),
+        availableSeats: 0,
+        status: "SCHEDULED",
+        durationMinutes: 0,
+      };
+
+  const returnFlight: Flight | undefined = isRoundTrip
+    ? {
+        id: Number(str("returnFlightId", "0")),
+        flightNumber: str("returnFlightNumber", "—"),
+        origin: str("returnOrigin", "—"),
+        destination: str("returnDestination", "—"),
+        departureTime: str("returnDepartureTime", departureTime),
+        arrivalTime: str("returnDepartureTime", departureTime),
+        basePriceMinor: Number(str("returnPrice", "0")),
+        currency: str("currency", "USD"),
+        availableSeats: 0,
+        status: "SCHEDULED",
+        durationMinutes: 0,
+      }
+    : undefined;
 
   const passengers = Math.max(1, Number(str("passengers", "1")));
 
@@ -51,7 +83,8 @@ export default function BookingPageClient() {
         {/* Content — overlaps hero by 24px */}
         <div className="max-w-screen-sm mx-auto px-container-margin-mobile md:px-container-margin-desktop -mt-6 relative z-20 space-y-md pb-md">
           <FlightSummaryCard flight={flight} />
-          <BookingClient flight={flight} passengers={passengers} />
+          {returnFlight && <FlightSummaryCard flight={returnFlight} />}
+          <BookingClient flight={flight} returnFlight={returnFlight} passengers={passengers} />
         </div>
       </main>
     </>

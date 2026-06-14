@@ -11,6 +11,7 @@ const UPGRADE_PRICE_MINOR = 29900;
 
 interface Props {
   flight: Flight;
+  returnFlight?: Flight;
   passengers: number;
 }
 
@@ -24,7 +25,7 @@ interface FormErrors {
 const inputBase =
   "w-full border rounded-xl px-md py-3 bg-surface-bright text-body-md placeholder:text-outline focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors";
 
-export default function BookingClient({ flight, passengers }: Props) {
+export default function BookingClient({ flight, returnFlight, passengers }: Props) {
   const router = useRouter();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -32,7 +33,7 @@ export default function BookingClient({ flight, passengers }: Props) {
   const [phone, setPhone] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
 
-  const baseFareTotal = flight.basePriceMinor * passengers;
+  const baseFareTotal = (flight.basePriceMinor + (returnFlight?.basePriceMinor ?? 0)) * passengers;
   const taxTotal = Math.round(baseFareTotal * 0.15);
   const grandTotal = baseFareTotal + taxTotal;
 
@@ -70,6 +71,14 @@ export default function BookingClient({ flight, passengers }: Props) {
       email,
       phone,
     });
+    if (returnFlight) {
+      params.set("returnFlightId", String(returnFlight.id));
+      params.set("returnFlightNumber", returnFlight.flightNumber);
+      params.set("returnOrigin", returnFlight.origin);
+      params.set("returnDestination", returnFlight.destination);
+      params.set("returnDepartureTime", returnFlight.departureTime);
+      params.set("returnPrice", String(returnFlight.basePriceMinor));
+    }
     router.push(`/payment?${params.toString()}`);
   };
 

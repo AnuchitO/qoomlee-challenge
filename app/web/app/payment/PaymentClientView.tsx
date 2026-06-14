@@ -88,6 +88,11 @@ export function PaymentClientView({
   handlePay,
   goBack,
 }: PaymentClientViewProps) {
+  const enableAltPaymentMethods = process.env.NEXT_PUBLIC_ENABLE_ALT_PAYMENT_METHODS === "true";
+  const visiblePaymentMethods = enableAltPaymentMethods
+    ? PAYMENT_METHODS
+    : PAYMENT_METHODS.filter(({ id }) => id === "card");
+
   return (
     <div className="min-h-screen bg-background pb-40">
       {/* Header */}
@@ -201,21 +206,23 @@ export function PaymentClientView({
             Payment Method
           </p>
 
-          <div className="flex border border-outline-variant rounded-xl overflow-hidden">
-            {PAYMENT_METHODS.map(({ id, label }) => (
-              <button
-                key={id}
-                onClick={() => setActiveMethod(id)}
-                className={`flex-1 py-2 text-label-md transition-colors ${
-                  activeMethod === id
-                    ? "bg-primary text-on-primary"
-                    : "bg-surface-bright text-on-surface-variant hover:bg-surface-container-high"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          {visiblePaymentMethods.length > 1 && (
+            <div className="flex border border-outline-variant rounded-xl overflow-hidden">
+              {visiblePaymentMethods.map(({ id, label }) => (
+                <button
+                  key={id}
+                  onClick={() => setActiveMethod(id)}
+                  className={`flex-1 py-2 text-label-md transition-colors ${
+                    activeMethod === id
+                      ? "bg-primary text-on-primary"
+                      : "bg-surface-bright text-on-surface-variant hover:bg-surface-container-high"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
 
           {activeMethod === "card" && (
             <div className="space-y-md">

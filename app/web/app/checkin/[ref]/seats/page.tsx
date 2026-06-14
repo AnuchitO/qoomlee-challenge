@@ -1,9 +1,11 @@
-"use client";
+import SeatSelectionPageClient from "./SeatSelectionPageClient";
 
-import { useSeatSelection } from "./useSeatSelection";
-import { SeatSelectionView } from "./SeatSelectionView";
+export const dynamicParams = false;
+
+export async function generateStaticParams() {
+  return [{ ref: "QM92Z4" }, { ref: "QM92Z5" }];
+}
 
 export default function SeatSelectionPage() {
-  const props = useSeatSelection();
-  return <SeatSelectionView {...props} />;
+  return <SeatSelectionPageClient />;
 }

@@ -1,9 +1,11 @@
-"use client";
+import SelectPassengersPageClient from "./SelectPassengersPageClient";
 
-import { useSelectPassengers } from "./useSelectPassengers";
-import { SelectPassengersView } from "./SelectPassengersView";
+export const dynamicParams = false;
+
+export async function generateStaticParams() {
+  return [{ ref: "QM92Z4" }, { ref: "QM92Z5" }];
+}
 
 export default function SelectPassengersPage() {
-  const props = useSelectPassengers();
-  return <SelectPassengersView {...props} />;
+  return <SelectPassengersPageClient />;
 }

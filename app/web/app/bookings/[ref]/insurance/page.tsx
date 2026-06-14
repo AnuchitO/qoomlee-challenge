@@ -1,9 +1,11 @@
-"use client";
+import TravelInsurancePageClient from "./TravelInsurancePageClient";
 
-import { useTravelInsurance } from "./useTravelInsurance";
-import { TravelInsuranceView } from "./TravelInsuranceView";
+export const dynamicParams = false;
+
+export async function generateStaticParams() {
+  return [{ ref: "QL-88291" }, { ref: "QL-77150" }];
+}
 
 export default function TravelInsurancePage() {
-  const props = useTravelInsurance();
-  return <TravelInsuranceView {...props} />;
+  return <TravelInsurancePageClient />;
 }

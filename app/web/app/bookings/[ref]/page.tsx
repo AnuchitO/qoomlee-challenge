@@ -8,6 +8,12 @@ export const metadata: Metadata = {
   title: "Manage Booking · Qoomlee",
 };
 
+export const dynamicParams = false;
+
+export async function generateStaticParams() {
+  return [{ ref: "QL-88291" }, { ref: "QL-77150" }];
+}
+
 interface Props {
   params: Promise<{ ref: string }>;
 }

@@ -55,6 +55,12 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  output: "export",
+  trailingSlash: true,
+  images: {
+    unoptimized: true,
+  },
+
   // Remove the X-Powered-By: Next.js fingerprinting header
   poweredByHeader: false,
 

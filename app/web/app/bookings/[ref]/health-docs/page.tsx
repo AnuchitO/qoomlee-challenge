@@ -1,9 +1,11 @@
-"use client";
+import HealthDocumentsPageClient from "./HealthDocumentsPageClient";
 
-import { useHealthDocuments } from "./useHealthDocuments";
-import { HealthDocumentsView } from "./HealthDocumentsView";
+export const dynamicParams = false;
+
+export async function generateStaticParams() {
+  return [{ ref: "QL-88291" }, { ref: "QL-77150" }];
+}
 
 export default function HealthDocumentsPage() {
-  const props = useHealthDocuments();
-  return <HealthDocumentsView {...props} />;
+  return <HealthDocumentsPageClient />;
 }

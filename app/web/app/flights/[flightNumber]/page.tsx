@@ -5,6 +5,20 @@ export const metadata: Metadata = {
   title: "Flight Details · Qoomlee",
 };
 
+export const dynamicParams = false;
+
+export async function generateStaticParams() {
+  return [
+    { flightNumber: "QQ101" },
+    { flightNumber: "QQ203" },
+    { flightNumber: "QQ305" },
+    { flightNumber: "QQ407" },
+    { flightNumber: "QQ105" },
+    { flightNumber: "QQ107" },
+    { flightNumber: "QQ109" },
+  ];
+}
+
 const AMENITIES = [
   { icon: "wifi", label: "Wi-Fi", available: true },
   { icon: "power", label: "USB Power", available: true },

@@ -1,9 +1,11 @@
-"use client";
+import ReviewCheckInPageClient from "./ReviewCheckInPageClient";
 
-import { useReviewCheckIn } from "./useReviewCheckIn";
-import { ReviewCheckInView } from "./ReviewCheckInView";
+export const dynamicParams = false;
+
+export async function generateStaticParams() {
+  return [{ ref: "QM92Z4" }, { ref: "QM92Z5" }];
+}
 
 export default function ReviewCheckInPage() {
-  const props = useReviewCheckIn();
-  return <ReviewCheckInView {...props} />;
+  return <ReviewCheckInPageClient />;
 }

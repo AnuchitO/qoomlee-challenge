@@ -8,6 +8,7 @@ import FlightList from "./components/FlightList";
 import { fetchFlights } from "./_internal/fetchFlights";
 import { formatSearchSummary } from "./_internal/formatSearchSummary";
 import type { Flight } from "./_internal/types";
+import { FlightListSkeleton } from "./_skeleton/FlightListSkeleton";
 
 export default function ResultsPageClient() {
   const searchParams = useSearchParams();
@@ -65,7 +66,9 @@ export default function ResultsPageClient() {
               Try again
             </a>
           </div>
-        ) : flights === null ? null : (
+        ) : flights === null ? (
+          <FlightListSkeleton />
+        ) : (
           <FlightList flights={flights} passengers={passengers} />
         )}
       </main>

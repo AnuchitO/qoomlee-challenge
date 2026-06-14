@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Flight } from "@/lib/flight/types";
 import { formatTHB } from "@/lib/currency/format";
+import { loadPassengerDetails, savePassengerDetails } from "@/lib/booking/passengerDetailsStorage";
 import QaQuickFill from "./_qqf/QaQuickFill";
 import type { PassengerDetails } from "./_qqf/passengerScenarios";
 
@@ -27,11 +28,17 @@ const inputBase =
 
 export default function BookingClient({ flight, returnFlight, passengers }: Props) {
   const router = useRouter();
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  // Restore passenger details if the user navigated back from the payment page
+  const [firstName, setFirstName] = useState(() => loadPassengerDetails()?.firstName ?? "");
+  const [lastName, setLastName] = useState(() => loadPassengerDetails()?.lastName ?? "");
+  const [email, setEmail] = useState(() => loadPassengerDetails()?.email ?? "");
+  const [phone, setPhone] = useState(() => loadPassengerDetails()?.phone ?? "");
   const [errors, setErrors] = useState<FormErrors>({});
+
+  // Persist passenger details so they survive navigation to/from the payment page
+  useEffect(() => {
+    savePassengerDetails({ firstName, lastName, email, phone });
+  }, [firstName, lastName, email, phone]);
 
   const baseFareTotal = (flight.basePriceMinor + (returnFlight?.basePriceMinor ?? 0)) * passengers;
   const taxTotal = Math.round(baseFareTotal * 0.15);

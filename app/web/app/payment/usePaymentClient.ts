@@ -6,6 +6,7 @@ import {
   formatCvv,
   validateCardFields,
 } from "@/lib/payment/cardFormatting";
+import { clearPassengerDetails } from "@/lib/booking/passengerDetailsStorage";
 import type { CardDetails } from "./_qqf/cardScenarios";
 
 export function formatDeparture(iso: string): string {
@@ -178,6 +179,8 @@ export function usePaymentClient({
       setErrors(e);
       if (Object.keys(e).length > 0) return;
     }
+
+    clearPassengerDetails();
 
     const ref = generateBookingRef();
     const params = new URLSearchParams({

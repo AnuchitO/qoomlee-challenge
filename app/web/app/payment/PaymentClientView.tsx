@@ -1,4 +1,3 @@
-import ProgressStepper from "./components/ProgressStepper";
 import { formatTHB } from "@/lib/currency/format";
 import {
   formatCountdown,
@@ -107,9 +106,6 @@ export function PaymentClientView({
       </header>
 
       <div className="max-w-screen-sm mx-auto px-container-margin-mobile py-md space-y-md">
-        {/* Step progress */}
-        <ProgressStepper />
-
         {/* Booking summary */}
         <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-md">
           <div className="flex justify-between items-center mb-sm">
@@ -378,19 +374,7 @@ export function PaymentClientView({
               fees apply thereafter.
             </p>
           </div>
-        </div>
-      </div>
 
-      {/* Sticky pay button */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 px-container-margin-mobile pb-6 pt-3 bg-background/90 backdrop-blur-sm">
-        <div className="max-w-screen-sm mx-auto space-y-xs">
-          <button
-            onClick={handlePay}
-            className="w-full bg-primary text-on-primary py-4 rounded-xl text-headline-md shadow-md active:scale-95 transition-transform flex items-center justify-center gap-sm"
-          >
-            <span className="material-symbols-outlined text-[20px]">lock</span>
-            Pay {formatTHB(totalMinor / 100)} Securely
-          </button>
           <p className="text-center text-label-sm text-on-surface-variant flex items-center justify-center gap-md">
             <span className="flex items-center gap-xs">
               <span className="material-symbols-outlined text-[14px]">verified_user</span>
@@ -401,6 +385,19 @@ export function PaymentClientView({
               PCI DSS compliant
             </span>
           </p>
+        </div>
+      </div>
+
+      {/* Sticky pay button */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 px-container-margin-mobile md:px-container-margin-desktop pb-6 pt-3 bg-background/90 backdrop-blur-sm">
+        <div className="max-w-screen-sm mx-auto">
+          <button
+            onClick={handlePay}
+            className="w-full bg-primary text-on-primary py-4 rounded-xl text-headline-md shadow-md active:scale-95 transition-transform flex items-center justify-center gap-sm"
+          >
+            <span className="material-symbols-outlined text-[20px]">lock</span>
+            Pay {formatTHB(totalMinor / 100)} Securely
+          </button>
         </div>
       </div>
     </div>

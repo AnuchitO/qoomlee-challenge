@@ -245,4 +245,19 @@ func TestServiceCharge(t *testing.T) {
 		assert.EqualError(t, err, "db timeout")
 		assert.Nil(t, p)
 	})
+
+	// QML-043: a lapsed seat hold must never be charged
+	t.Run("EXPIRED booking returns ErrBookingExpired without calling Omise", func(t *testing.T) {
+		bc := &mockBookingClient{booking: &BookingDetail{
+			BookingRef: "QM7X2K", Status: "EXPIRED",
+			TotalAmountMinor: 350000, Currency: "THB",
+		}}
+		om := &mockOmiser{result: successCharge}
+		svc := NewService(bc, om, &mockRepository{})
+
+		p, err := svc.Charge(context.Background(), validReq)
+
+		assert.ErrorIs(t, err, ErrBookingExpired)
+		assert.Nil(t, p)
+	})
 }

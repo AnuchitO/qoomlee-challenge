@@ -83,6 +83,8 @@ func (h *Handler) Charge(c *gin.Context) {
 	if err != nil {
 		var pfe *FailedError
 		switch {
+		case errors.Is(err, ErrBookingExpired):
+			c.JSON(http.StatusConflict, gin.H{"error": "booking_expired"})
 		case errors.Is(err, ErrAlreadyPaid):
 			c.JSON(http.StatusConflict, apiErr("ALREADY_PAID", "booking "+req.BookingRef+" has already been paid"))
 		case errors.Is(err, ErrAmountMismatch):

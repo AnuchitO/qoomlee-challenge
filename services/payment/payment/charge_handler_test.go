@@ -143,4 +143,11 @@ func TestChargeHandler(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 		assertErrCode(t, w, "INTERNAL_ERROR")
 	})
+
+	t.Run("expired booking returns 409 booking_expired", func(t *testing.T) {
+		svc := &mockService{err: ErrBookingExpired}
+		w := doCharge(newTestHandler(svc), validBody)
+		assert.Equal(t, http.StatusConflict, w.Code)
+		assertErrCode(t, w, "booking_expired")
+	})
 }

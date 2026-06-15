@@ -6,7 +6,10 @@ import (
 	"time"
 )
 
-const statusSucceeded = "SUCCEEDED"
+const (
+	statusSucceeded = "SUCCEEDED"
+	statusExpired   = "EXPIRED"
+)
 
 // BookingClient fetches and updates bookings on qoomlee-service.
 type BookingClient interface {
@@ -59,6 +62,10 @@ func (s *service) Charge(ctx context.Context, req ChargeRequest) (*Payment, erro
 	booking, err := s.bookingClient.GetBooking(ctx, req.BookingRef)
 	if err != nil {
 		return nil, err
+	}
+
+	if booking.Status == statusExpired {
+		return nil, ErrBookingExpired
 	}
 
 	if booking.Status == statusConfirmed {

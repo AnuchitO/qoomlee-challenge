@@ -14,6 +14,9 @@ var (
 	ErrAmountMismatch = errors.New("amount does not match booking total")
 	// ErrNotFound is returned when no payment record exists for a booking.
 	ErrNotFound = errors.New("payment not found")
+	// ErrBookingExpired is returned when a charge is attempted for a booking
+	// whose seat hold has expired.
+	ErrBookingExpired = errors.New("booking expired")
 )
 
 // ReceiptResponse is the response body for GET /api/payments/:bookingRef.

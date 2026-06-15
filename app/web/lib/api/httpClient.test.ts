@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { getJson } from "./httpClient";
+import { getJson, postJson } from "./httpClient";
 import { HttpError } from "./errors";
 
 const mockFetch = (body: unknown, ok = true, status = 200) =>
@@ -86,5 +86,70 @@ describe("getJson", () => {
       expect.stringContaining("httpClient"),
       expect.objectContaining({ error: networkError }),
     );
+  });
+});
+
+describe("postJson", () => {
+  it("returns ok(data) when the response is ok", async () => {
+    mockFetch({ bookingRef: "QM7X2K" }, true, 201);
+
+    const result = await postJson<{ bookingRef: string }>("https://example.com/api/bookings", {
+      flightId: 1,
+    });
+
+    expect(result).toEqual({ ok: true, value: { bookingRef: "QM7X2K" } });
+  });
+
+  it("sends a JSON body with Content-Type and method POST", async () => {
+    const spy = mockFetch({});
+
+    await postJson("https://example.com/api/bookings", { flightId: 1 });
+
+    const init = spy.mock.calls[0]![1] as RequestInit;
+    expect(init.method).toBe("POST");
+    expect(init.headers).toEqual(expect.objectContaining({ "Content-Type": "application/json" }));
+    expect(init.body).toBe(JSON.stringify({ flightId: 1 }));
+  });
+
+  it("merges caller-provided headers (e.g. Authorization)", async () => {
+    const spy = mockFetch({});
+
+    await postJson(
+      "https://example.com/api/bookings",
+      { flightId: 1 },
+      {
+        headers: { Authorization: "Bearer session-token" },
+      },
+    );
+
+    const init = spy.mock.calls[0]![1] as RequestInit;
+    expect(init.headers).toEqual(
+      expect.objectContaining({
+        "Content-Type": "application/json",
+        Authorization: "Bearer session-token",
+      }),
+    );
+  });
+
+  it("returns err(BAD_STATUS) when the response is not ok", async () => {
+    mockFetch({}, false, 409);
+
+    const result = await postJson("https://example.com/api/bookings", {});
+
+    expect(result).toEqual({
+      ok: false,
+      error: HttpError.badStatus(409, "API responded with status 409"),
+    });
+  });
+
+  it("returns err(NETWORK_ERROR) when fetch throws", async () => {
+    vi.spyOn(globalThis, "fetch").mockRejectedValueOnce(new Error("Network error"));
+
+    const result = await postJson("https://example.com/api/bookings", {});
+
+    expect(result).toEqual({
+      ok: false,
+      error: HttpError.networkError("Network error"),
+    });
   });
 });

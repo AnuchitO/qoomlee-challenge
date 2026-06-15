@@ -9,6 +9,7 @@ export default function PaymentPageClient() {
 
   return (
     <PaymentClient
+      bookingRef={str("ref")}
       flightNumber={str("flightNumber", "—")}
       origin={str("origin", "—")}
       destination={str("destination", "—")}

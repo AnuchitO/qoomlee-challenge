@@ -121,7 +121,7 @@
 | QML-041 | Record Seat-Hold Expiry at Booking Creation | qoomlee-service | ✅ Done |
 | QML-042 | Lazily Expire Stale Pending Bookings on Read | qoomlee-service | ✅ Done |
 | QML-043 | Reject Confirmation & Charges for Expired Bookings | both services | ✅ Done |
-| QML-044 | Server-Derived Payment Countdown | web | ⬜ Todo |
+| QML-044 | Server-Derived Payment Countdown | web | ✅ Done |
 | QML-045 | Handle Expiry Mid-Submit | web | ⬜ Todo |
 | QML-046 | "My Bookings" Backed by Real Data | web + qoomlee-service | ⬜ Todo |
 
@@ -1339,7 +1339,7 @@ api.GET("/bookings/:ref", ...)
 
 ---
 
-### QML-044 — Server-Derived Payment Countdown · ⬜ Todo
+### QML-044 — Server-Derived Payment Countdown · ✅ Done
 
 > As a passenger, I want the payment countdown to reflect my real server-side seat hold so that refreshing the page doesn't reset my time, and so I'm told clearly if my hold has expired.
 

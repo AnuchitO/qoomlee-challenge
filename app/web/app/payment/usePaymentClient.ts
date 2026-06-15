@@ -7,6 +7,8 @@ import {
   validateCardFields,
 } from "@/lib/payment/cardFormatting";
 import { clearPassengerDetails } from "@/lib/booking/passengerDetailsStorage";
+import { getJson } from "@/lib/api/httpClient";
+import { authHeaders } from "@/lib/session/sessionToken";
 import type { CardDetails } from "./_qqf/cardScenarios";
 
 export function formatDeparture(iso: string): string {
@@ -45,7 +47,15 @@ export const PAYMENT_METHODS: { id: PaymentMethod; label: string }[] = [
   { id: "other", label: "Other" },
 ];
 
+export type BookingState = "loading" | "ready" | "expired";
+
+interface BookingResponse {
+  status: string;
+  expiresAt?: string;
+}
+
 export interface PaymentClientProps {
+  bookingRef: string;
   flightNumber: string;
   origin: string;
   destination: string;
@@ -68,6 +78,7 @@ export interface CardErrors {
 }
 
 export function usePaymentClient({
+  bookingRef,
   flightNumber,
   origin,
   destination,
@@ -81,12 +92,59 @@ export function usePaymentClient({
 }: PaymentClientProps) {
   const router = useRouter();
 
-  // countdown — 15 minutes
-  const [secondsLeft, setSecondsLeft] = useState(900);
+  // booking lookup — seeds the countdown and gates the form
+  const [bookingState, setBookingState] = useState<BookingState>("loading");
+  const [secondsLeft, setSecondsLeft] = useState(0);
+
   useEffect(() => {
+    if (!bookingRef) {
+      router.replace("/bookings/new");
+      return;
+    }
+
+    let cancelled = false;
+    const apiBase = process.env.NEXT_PUBLIC_QOOMLEE_API_URL ?? "http://localhost:8082";
+
+    getJson<BookingResponse>(`${apiBase}/api/bookings/${bookingRef}`, {
+      headers: authHeaders(),
+    }).then((result) => {
+      if (cancelled) return;
+
+      if (!result.ok) {
+        router.replace("/bookings/new");
+        return;
+      }
+
+      const booking = result.value;
+
+      if (booking.status === "CONFIRMED") {
+        router.replace(`/bookings/confirmation?ref=${bookingRef}`);
+        return;
+      }
+
+      if (booking.status === "EXPIRED") {
+        setBookingState("expired");
+        return;
+      }
+
+      const secs = booking.expiresAt
+        ? Math.max(0, Math.round((Date.parse(booking.expiresAt) - Date.now()) / 1000))
+        : 0;
+      setSecondsLeft(secs);
+      setBookingState("ready");
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [bookingRef, router]);
+
+  // countdown tick
+  useEffect(() => {
+    if (bookingState !== "ready") return;
     const id = setInterval(() => setSecondsLeft((s) => Math.max(0, s - 1)), 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [bookingState]);
 
   // promo
   const [promoInput, setPromoInput] = useState("");
@@ -199,6 +257,7 @@ export function usePaymentClient({
   };
 
   return {
+    bookingState,
     flightNumber,
     origin,
     destination,

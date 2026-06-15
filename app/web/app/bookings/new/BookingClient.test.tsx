@@ -1,11 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import BookingClient from "./BookingClient";
 import type { Flight } from "@/lib/flight/types";
+import { postJson } from "@/lib/api/httpClient";
+import { ok, err } from "@/lib/result/types";
+import { HttpError } from "@/lib/api/errors";
 
 const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
+}));
+
+vi.mock("@/lib/api/httpClient", () => ({
+  postJson: vi.fn(),
 }));
 
 // flight with simple price so math is easy to verify:
@@ -37,6 +44,10 @@ const fillValidForm = () => {
 
 beforeEach(() => {
   mockPush.mockClear();
+  vi.mocked(postJson).mockReset();
+  vi.mocked(postJson).mockResolvedValue(
+    ok({ bookingId: 1, bookingRef: "QM7X2K", expiresAt: "2026-06-14T12:30:00Z" }),
+  );
 });
 
 describe("BookingClient — passenger form", () => {
@@ -96,38 +107,79 @@ describe("BookingClient — passenger form", () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it("calls router.push with /payment route when form is valid", () => {
+  it("calls router.push with /payment route when form is valid", async () => {
     render(<BookingClient flight={flight} passengers={1} />);
     fillValidForm();
 
     fireEvent.click(screen.getByRole("button", { name: /continue to payment/i }));
 
-    expect(mockPush).toHaveBeenCalledOnce();
+    await waitFor(() => expect(mockPush).toHaveBeenCalledOnce());
     expect(mockPush).toHaveBeenCalledWith(expect.stringContaining("/payment"));
   });
 
-  it("includes passenger data in the navigation URL", () => {
+  it("includes passenger data in the navigation URL", async () => {
     render(<BookingClient flight={flight} passengers={1} />);
     fillValidForm();
 
     fireEvent.click(screen.getByRole("button", { name: /continue to payment/i }));
 
+    await waitFor(() => expect(mockPush).toHaveBeenCalledOnce());
     const url = mockPush.mock.calls[0]![0] as string;
     expect(url).toContain("firstName=John");
     expect(url).toContain("lastName=Doe");
     expect(url).toContain("email=john%40example.com");
   });
 
-  it("includes flight data in the navigation URL", () => {
+  it("includes flight data in the navigation URL", async () => {
     render(<BookingClient flight={flight} passengers={1} />);
     fillValidForm();
 
     fireEvent.click(screen.getByRole("button", { name: /continue to payment/i }));
 
+    await waitFor(() => expect(mockPush).toHaveBeenCalledOnce());
     const url = mockPush.mock.calls[0]![0] as string;
     expect(url).toContain("flightNumber=QQ101");
     expect(url).toContain("origin=BKK");
     expect(url).toContain("destination=SIN");
+  });
+
+  it("posts the booking to /api/bookings and includes the returned ref in the navigation URL", async () => {
+    render(<BookingClient flight={flight} passengers={1} />);
+    fillValidForm();
+
+    fireEvent.click(screen.getByRole("button", { name: /continue to payment/i }));
+
+    await waitFor(() => expect(mockPush).toHaveBeenCalledOnce());
+
+    expect(postJson).toHaveBeenCalledWith(
+      expect.stringContaining("/api/bookings"),
+      expect.objectContaining({
+        flightId: flight.id,
+        passenger: expect.objectContaining({
+          firstName: "John",
+          lastName: "Doe",
+          email: "john@example.com",
+        }),
+      }),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: expect.any(String) }),
+      }),
+    );
+
+    const url = mockPush.mock.calls[0]![0] as string;
+    expect(url).toContain("ref=QM7X2K");
+  });
+
+  it("shows an error and does not navigate when booking creation fails", async () => {
+    vi.mocked(postJson).mockResolvedValue(err(HttpError.badStatus(409, "no seats available")));
+
+    render(<BookingClient flight={flight} passengers={1} />);
+    fillValidForm();
+
+    fireEvent.click(screen.getByRole("button", { name: /continue to payment/i }));
+
+    await waitFor(() => expect(screen.getByText(/something went wrong/i)).toBeInTheDocument());
+    expect(mockPush).not.toHaveBeenCalled();
   });
 });
 

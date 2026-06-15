@@ -5,8 +5,16 @@ import { useRouter } from "next/navigation";
 import type { Flight } from "@/lib/flight/types";
 import { formatTHB } from "@/lib/currency/format";
 import { loadPassengerDetails, savePassengerDetails } from "@/lib/booking/passengerDetailsStorage";
+import { postJson } from "@/lib/api/httpClient";
+import { authHeaders } from "@/lib/session/sessionToken";
 import QaQuickFill from "./_qqf/QaQuickFill";
 import type { PassengerDetails } from "./_qqf/passengerScenarios";
+
+interface CreateBookingResponse {
+  bookingId: number;
+  bookingRef: string;
+  expiresAt?: string;
+}
 
 const UPGRADE_PRICE_MINOR = 29900;
 
@@ -34,6 +42,8 @@ export default function BookingClient({ flight, returnFlight, passengers }: Prop
   const [email, setEmail] = useState(() => loadPassengerDetails()?.email ?? "");
   const [phone, setPhone] = useState(() => loadPassengerDetails()?.phone ?? "");
   const [errors, setErrors] = useState<FormErrors>({});
+  const [submitError, setSubmitError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   // Persist passenger details so they survive navigation to/from the payment page
   useEffect(() => {
@@ -62,9 +72,31 @@ export default function BookingClient({ flight, returnFlight, passengers }: Prop
     setErrors({});
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!validate()) return;
+
+    setSubmitError("");
+    setSubmitting(true);
+
+    const apiBase = process.env.NEXT_PUBLIC_QOOMLEE_API_URL ?? "http://localhost:8082";
+    const result = await postJson<CreateBookingResponse>(
+      `${apiBase}/api/bookings`,
+      {
+        flightId: flight.id,
+        passenger: { firstName, lastName, email, phone },
+      },
+      { headers: authHeaders() },
+    );
+
+    setSubmitting(false);
+
+    if (!result.ok) {
+      setSubmitError("Something went wrong creating your booking. Please try again.");
+      return;
+    }
+
     const params = new URLSearchParams({
+      ref: result.value.bookingRef,
       flightId: String(flight.id),
       flightNumber: flight.flightNumber,
       origin: flight.origin,
@@ -204,11 +236,17 @@ export default function BookingClient({ flight, returnFlight, passengers }: Prop
 
       {/* Sticky Continue button */}
       <div className="fixed bottom-0 left-0 right-0 z-50 px-container-margin-mobile md:px-container-margin-desktop pb-6 pt-3 bg-background/90 backdrop-blur-sm">
-        <div className="max-w-screen-sm mx-auto">
+        <div className="max-w-screen-sm mx-auto space-y-xs">
+          {submitError && (
+            <p className="text-label-sm text-error text-center" role="alert">
+              {submitError}
+            </p>
+          )}
           <button
             type="button"
             onClick={handleContinue}
-            className="w-full bg-primary text-on-primary py-4 rounded-xl text-headline-md shadow-md active:scale-95 transition-transform flex items-center justify-center gap-sm"
+            disabled={submitting}
+            className="w-full bg-primary text-on-primary py-4 rounded-xl text-headline-md shadow-md active:scale-95 transition-transform flex items-center justify-center gap-sm disabled:opacity-60"
           >
             Continue to Payment
             <span className="material-symbols-outlined text-[20px]">arrow_forward</span>

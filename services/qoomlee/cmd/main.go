@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
@@ -41,6 +42,8 @@ func main() {
 	if port == "" {
 		port = "8082"
 	}
+
+	allowedOrigins := strings.Split(os.Getenv("ALLOWED_ORIGINS"), ",")
 
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
@@ -82,7 +85,13 @@ func main() {
 	logger := slog.Default()
 
 	r := gin.New()
-	r.Use(gin.Recovery(), middleware.SecurityHeaders(), middleware.CorrelationID(), middleware.RequestLogger(logger))
+	r.Use(
+		gin.Recovery(),
+		middleware.SecurityHeaders(),
+		middleware.CORS(allowedOrigins),
+		middleware.CorrelationID(),
+		middleware.RequestLogger(logger),
+	)
 
 	// Health probes — no auth
 	r.GET("/health/live", func(c *gin.Context) {

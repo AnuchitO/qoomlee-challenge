@@ -118,9 +118,9 @@
 ### EPIC: Booking Expiry & Status (Cross-cutting)
 | # | Story | Service | Status |
 |---|-------|---------|--------|
-| QML-041 | Record Seat-Hold Expiry at Booking Creation | qoomlee-service | ⬜ Todo |
-| QML-042 | Lazily Expire Stale Pending Bookings on Read | qoomlee-service | ⬜ Todo |
-| QML-043 | Reject Confirmation & Charges for Expired Bookings | both services | ⬜ Todo |
+| QML-041 | Record Seat-Hold Expiry at Booking Creation | qoomlee-service | ✅ Done |
+| QML-042 | Lazily Expire Stale Pending Bookings on Read | qoomlee-service | ✅ Done |
+| QML-043 | Reject Confirmation & Charges for Expired Bookings | both services | ✅ Done |
 | QML-044 | Server-Derived Payment Countdown | web | ⬜ Todo |
 | QML-045 | Handle Expiry Mid-Submit | web | ⬜ Todo |
 | QML-046 | "My Bookings" Backed by Real Data | web + qoomlee-service | ⬜ Todo |
@@ -1248,7 +1248,7 @@ api.GET("/bookings/:ref", ...)
 
 ---
 
-### QML-041 — Record Seat-Hold Expiry at Booking Creation · ⬜ Todo
+### QML-041 — Record Seat-Hold Expiry at Booking Creation · ✅ Done
 
 > As the booking service, I want to record when a booking's seat hold expires so that the hold is not tied to client-side state.
 
@@ -1278,7 +1278,7 @@ api.GET("/bookings/:ref", ...)
 
 ---
 
-### QML-042 — Lazily Expire Stale Pending Bookings on Read · ⬜ Todo
+### QML-042 — Lazily Expire Stale Pending Bookings on Read · ✅ Done
 
 > As the booking service, when anything reads a `PENDING` booking past its `expires_at`, I want to flip it to `EXPIRED` and release the seat so abandoned holds don't block other passengers.
 
@@ -1309,7 +1309,7 @@ api.GET("/bookings/:ref", ...)
 
 ---
 
-### QML-043 — Reject Confirmation & Charges for Expired Bookings · ⬜ Todo
+### QML-043 — Reject Confirmation & Charges for Expired Bookings · ✅ Done
 
 > As the platform, I want a lapsed seat hold to never be confirmed or charged so that an expired booking cannot become a paid one.
 

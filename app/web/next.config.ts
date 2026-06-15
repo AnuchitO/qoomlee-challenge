@@ -7,9 +7,10 @@ const scriptSrc = isDev
   ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
   : "script-src 'self' 'unsafe-inline'";
 
-// connect-src needs ws:// for Next.js dev HMR; not needed in production
+// connect-src needs ws:// for Next.js dev HMR and http:// for the local
+// qoomlee-service API (NEXT_PUBLIC_QOOMLEE_API_URL); not needed in production
 const connectSrc = isDev
-  ? "connect-src 'self' ws://localhost:* wss://localhost:*"
+  ? "connect-src 'self' http://localhost:* ws://localhost:* wss://localhost:*"
   : "connect-src 'self'";
 
 const csp = [

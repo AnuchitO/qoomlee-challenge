@@ -1,34 +1,3 @@
-export interface Booking {
-  ref: string;
-  route: string;
-  date: string;
-  flightNumber: string;
-  status: "confirmed" | "pending" | "cancelled";
-  passengers: number;
-  totalPaid: string;
-}
-
-export const mockBookings: Booking[] = [
-  {
-    ref: "QL-88291",
-    route: "BKK — SYD",
-    date: "Mon, 20 May 2024",
-    flightNumber: "QQ101",
-    status: "confirmed",
-    passengers: 2,
-    totalPaid: "฿18,900",
-  },
-  {
-    ref: "QL-77150",
-    route: "SYD — BKK",
-    date: "Fri, 24 May 2024",
-    flightNumber: "QQ102",
-    status: "confirmed",
-    passengers: 2,
-    totalPaid: "฿17,650",
-  },
-];
-
 export interface BoardingPass {
   ref: string;
   passenger: string;

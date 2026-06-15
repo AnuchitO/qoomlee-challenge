@@ -3,7 +3,7 @@ import Link from "next/link";
 import TopAppBar from "../components/TopAppBar";
 import BottomNav from "../components/BottomNav";
 import FlightRoute from "../components/FlightRoute";
-import { mockBoardingPasses as PASSES } from "@/lib/booking/mock";
+import { mockBoardingPasses as PASSES } from "@/lib/booking/boardingPassMock";
 
 export const metadata: Metadata = {
   title: "Boarding Passes · Qoomlee",

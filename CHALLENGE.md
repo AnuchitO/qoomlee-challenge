@@ -123,7 +123,7 @@
 | QML-043 | Reject Confirmation & Charges for Expired Bookings | both services | ✅ Done |
 | QML-044 | Server-Derived Payment Countdown | web | ✅ Done |
 | QML-045 | Handle Expiry Mid-Submit | web | ✅ Done |
-| QML-046 | "My Bookings" Backed by Real Data | web + qoomlee-service | ⬜ Todo |
+| QML-046 | "My Bookings" Backed by Real Data | web + qoomlee-service | ✅ Done |
 
 ---
 
@@ -1392,7 +1392,7 @@ api.GET("/bookings/:ref", ...)
 
 ---
 
-### QML-046 — "My Bookings" Backed by Real Data · ⬜ Todo
+### QML-046 — "My Bookings" Backed by Real Data · ✅ Done
 
 > As a passenger, I want to see all my bookings — including pending holds with their time remaining and expired holds — in one place, backed by real data.
 

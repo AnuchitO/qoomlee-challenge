@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,9 +18,12 @@ import (
 type mockService struct {
 	booking *Booking
 	err     error
+
+	gotCreateReq CreateRequest
 }
 
-func (m *mockService) Create(_ context.Context, _ CreateRequest) (*Booking, error) {
+func (m *mockService) Create(_ context.Context, req CreateRequest) (*Booking, error) {
+	m.gotCreateReq = req
 	return m.booking, m.err
 }
 
@@ -44,6 +48,20 @@ func doCreate(h *Handler, body any) *httptest.ResponseRecorder {
 	b, _ := json.Marshal(body)
 	c.Request = httptest.NewRequest(http.MethodPost, "/api/bookings", bytes.NewReader(b))
 	c.Request.Header.Set("Content-Type", "application/json")
+	h.Create(c)
+	return w
+}
+
+// doCreateAs is like doCreate but sets JWT claims with the given subject,
+// as the JWTAuth middleware would for an authenticated request.
+func doCreateAs(h *Handler, body any, sub string) *httptest.ResponseRecorder {
+	gin.SetMode(gin.TestMode)
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	b, _ := json.Marshal(body)
+	c.Request = httptest.NewRequest(http.MethodPost, "/api/bookings", bytes.NewReader(b))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Set("claims", jwt.MapClaims{"sub": sub})
 	h.Create(c)
 	return w
 }

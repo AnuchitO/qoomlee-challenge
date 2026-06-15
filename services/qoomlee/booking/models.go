@@ -42,8 +42,9 @@ type Booking struct {
 	TotalAmount      string        `json:"totalAmount"` // formatted, e.g. "3500.00"
 	Currency         string        `json:"currency"`
 	CreatedAt        time.Time     `json:"createdAt"`
-	PaymentProvider  *string       `json:"paymentProvider"`  // nil when PENDING
-	ProviderChargeID *string       `json:"providerChargeId"` // nil when PENDING
+	PaymentProvider  *string       `json:"paymentProvider"`     // nil when PENDING
+	ProviderChargeID *string       `json:"providerChargeId"`    // nil when PENDING
+	ExpiresAt        *time.Time    `json:"expiresAt,omitempty"` // seat-hold deadline; nil once CONFIRMED/EXPIRED
 	Passenger        Passenger     `json:"passenger"`
 	Flight           FlightSummary `json:"flight"`
 }
@@ -52,6 +53,7 @@ type Booking struct {
 type CreateRequest struct {
 	FlightID  int64     `json:"flightId"`
 	Passenger Passenger `json:"passenger"`
+	UserSub   string    `json:"-"` // JWT sub claim of the caller; not part of the request body
 }
 
 // UpdateStatusRequest is the decoded body of PUT /api/bookings/:ref/status.

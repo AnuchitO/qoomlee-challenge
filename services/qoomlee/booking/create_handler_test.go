@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -30,6 +31,27 @@ func TestCreateBooking(t *testing.T) {
 		require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 		assert.Equal(t, "QM7X2K", resp["bookingRef"])
 		assert.EqualValues(t, 1, resp["bookingId"])
+	})
+
+	t.Run("forwards user_sub from JWT claims and returns expiresAt", func(t *testing.T) {
+		expiresAt := time.Date(2026, 6, 14, 12, 30, 0, 0, time.UTC)
+		svc := &mockService{
+			booking: &Booking{ID: 1, BookingRef: "QM7X2K", ExpiresAt: &expiresAt},
+		}
+		body := map[string]any{
+			"flightId": 1,
+			"passenger": map[string]any{
+				"firstName": "John", "lastName": "Doe", "email": "john@example.com",
+			},
+		}
+		w := doCreateAs(newTestHandler(svc), body, "user-123")
+
+		assert.Equal(t, http.StatusCreated, w.Code)
+		assert.Equal(t, "user-123", svc.gotCreateReq.UserSub)
+
+		var resp map[string]any
+		require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+		assert.Equal(t, expiresAt.Format(time.RFC3339), resp["expiresAt"])
 	})
 
 	t.Run("missing flightId", func(t *testing.T) {

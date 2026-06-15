@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -52,8 +51,8 @@ func doCreate(h *Handler, body any) *httptest.ResponseRecorder {
 	return w
 }
 
-// doCreateAs is like doCreate but sets JWT claims with the given subject,
-// as the JWTAuth middleware would for an authenticated request.
+// doCreateAs is like doCreate but sets the opaque session token as the
+// SessionAuth middleware would for an authenticated request.
 func doCreateAs(h *Handler, body any, sub string) *httptest.ResponseRecorder {
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -61,7 +60,7 @@ func doCreateAs(h *Handler, body any, sub string) *httptest.ResponseRecorder {
 	b, _ := json.Marshal(body)
 	c.Request = httptest.NewRequest(http.MethodPost, "/api/bookings", bytes.NewReader(b))
 	c.Request.Header.Set("Content-Type", "application/json")
-	c.Set("claims", jwt.MapClaims{"sub": sub})
+	c.Set("userSub", sub)
 	h.Create(c)
 	return w
 }

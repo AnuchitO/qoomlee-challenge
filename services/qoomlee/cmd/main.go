@@ -1,11 +1,7 @@
 package main
 
 import (
-	"crypto/rsa"
-	"crypto/x509"
 	"database/sql"
-	"encoding/pem"
-	"errors"
 	"log/slog"
 	"net/http"
 	"os"
@@ -18,22 +14,6 @@ import (
 	"github.com/AnuchitO/qoomlee/flight"
 	"github.com/AnuchitO/qoomlee/middleware"
 )
-
-func parseRSAPublicKey(pemStr string) (*rsa.PublicKey, error) {
-	block, _ := pem.Decode([]byte(pemStr))
-	if block == nil {
-		return nil, errors.New("failed to decode PEM block")
-	}
-	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
-	if err != nil {
-		return nil, err
-	}
-	rsaPub, ok := pub.(*rsa.PublicKey)
-	if !ok {
-		return nil, errors.New("key is not RSA")
-	}
-	return rsaPub, nil
-}
 
 func main() {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, nil)))
@@ -48,17 +28,6 @@ func main() {
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
 		slog.Error("DATABASE_URL is required")
-		os.Exit(1)
-	}
-
-	jwtPEM := os.Getenv("JWT_PUBLIC_KEY")
-	if jwtPEM == "" {
-		slog.Error("JWT_PUBLIC_KEY is required")
-		os.Exit(1)
-	}
-	jwtPublicKey, err := parseRSAPublicKey(jwtPEM)
-	if err != nil {
-		slog.Error("failed to parse JWT_PUBLIC_KEY", "err", err)
 		os.Exit(1)
 	}
 
@@ -121,9 +90,9 @@ func main() {
 	// Public flight search — no auth required (anyone can search before logging in)
 	r.GET("/api/flights/search", flightHandler.Search)
 
-	// Authenticated API routes — JWT required
+	// Authenticated API routes — opaque session token required
 	api := r.Group("/api")
-	api.Use(middleware.JWTAuth(jwtPublicKey))
+	api.Use(middleware.SessionAuth())
 	api.GET("/flights/:id", flightHandler.GetByID)
 	api.POST("/bookings", bookingHandler.Create)
 	api.GET("/bookings/:bookingRef", bookingHandler.GetByRef)

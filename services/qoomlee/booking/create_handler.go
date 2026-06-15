@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 // Create handles POST /api/bookings
@@ -50,16 +49,8 @@ func (h *Handler) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, resp)
 }
 
-// userSub extracts the JWT "sub" claim set by middleware.JWTAuth, or "" if absent.
+// userSub returns the opaque session token set by middleware.SessionAuth,
+// used to identify (and scope bookings to) an anonymous user, or "" if absent.
 func userSub(c *gin.Context) string {
-	claims, ok := c.Get("claims")
-	if !ok {
-		return ""
-	}
-	mapClaims, ok := claims.(jwt.MapClaims)
-	if !ok {
-		return ""
-	}
-	sub, _ := mapClaims["sub"].(string)
-	return sub
+	return c.GetString("userSub")
 }

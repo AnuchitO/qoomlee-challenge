@@ -11,15 +11,20 @@ function str(v: string | null, fallback = ""): string {
 
 function formatDeparture(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleString(undefined, {
+  const datePart = d.toLocaleDateString("en-US", {
     weekday: "short",
     day: "numeric",
     month: "short",
     year: "numeric",
+    timeZone: "UTC",
+  });
+  const timePart = d.toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
+    timeZone: "UTC",
   });
+  return `${datePart}, ${timePart}`;
 }
 
 export default function ConfirmationPageClient() {

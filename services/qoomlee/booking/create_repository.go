@@ -5,15 +5,21 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 )
+
+// SeatHoldDuration is how long a PENDING booking holds its seat before it is
+// lazily expired on the next read (see GetByRef).
+const SeatHoldDuration = 15 * time.Minute
 
 // Create runs a single ACID transaction:
 //  1. SELECT available_seats … FOR UPDATE (row lock)
 //  2. Guard against overbooking
 //  3. INSERT INTO passengers
-//  4. INSERT INTO bookings  (total_amount_minor copied from flights.base_price_minor)
+//  4. INSERT INTO bookings  (total_amount_minor copied from flights.base_price_minor,
+//     expires_at = now + SeatHoldDuration, user_sub from the caller's JWT)
 //  5. UPDATE flights SET available_seats = available_seats - 1
-func (r *repository) Create(ctx context.Context, flightID int64, passenger Passenger, pnr string) (*Booking, error) {
+func (r *repository) Create(ctx context.Context, flightID int64, passenger Passenger, pnr, userSub string) (*Booking, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -54,11 +60,12 @@ func (r *repository) Create(ctx context.Context, flightID int64, passenger Passe
 	}
 
 	// Step 4: insert booking
+	expiresAt := time.Now().Add(SeatHoldDuration)
 	var bookingID int64
 	err = tx.QueryRowContext(ctx,
-		`INSERT INTO bookings (booking_ref, flight_id, passenger_id, total_amount_minor, currency)
-		 VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-		pnr, flightID, passengerID, basePriceMinor, currency,
+		`INSERT INTO bookings (booking_ref, flight_id, passenger_id, total_amount_minor, currency, expires_at, user_sub)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+		pnr, flightID, passengerID, basePriceMinor, currency, expiresAt, userSub,
 	).Scan(&bookingID)
 	if err != nil {
 		return nil, err
@@ -84,5 +91,6 @@ func (r *repository) Create(ctx context.Context, flightID int64, passenger Passe
 		TotalAmountMinor: basePriceMinor,
 		TotalAmount:      fmt.Sprintf("%.2f", float64(basePriceMinor)/100),
 		Currency:         currency,
+		ExpiresAt:        &expiresAt,
 	}, nil
 }

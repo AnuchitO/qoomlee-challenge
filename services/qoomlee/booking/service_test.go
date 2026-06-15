@@ -16,7 +16,7 @@ type mockRepository struct {
 	err     error
 }
 
-func (m *mockRepository) Create(_ context.Context, _ int64, _ Passenger, _ string) (*Booking, error) {
+func (m *mockRepository) Create(_ context.Context, _ int64, _ Passenger, _ string, _ string) (*Booking, error) {
 	return m.booking, m.err
 }
 
@@ -33,7 +33,7 @@ type captureRepo struct {
 	capturedPNR string
 }
 
-func (r *captureRepo) Create(_ context.Context, _ int64, _ Passenger, pnr string) (*Booking, error) {
+func (r *captureRepo) Create(_ context.Context, _ int64, _ Passenger, pnr string, _ string) (*Booking, error) {
 	r.capturedPNR = pnr
 	return &Booking{BookingRef: pnr}, nil
 }

@@ -25,7 +25,7 @@ func TestRepositoryCreateBooking(t *testing.T) {
 		pnr := fmt.Sprintf("T1%04d", time.Now().UnixNano()%9999)
 		b, err := repo.Create(context.Background(), 2, Passenger{
 			FirstName: "Test", LastName: "User", Email: "test@example.com",
-		}, pnr)
+		}, pnr, "user-sub-test")
 
 		require.NoError(t, err)
 		require.NotNil(t, b)
@@ -37,6 +37,29 @@ func TestRepositoryCreateBooking(t *testing.T) {
 			"SELECT available_seats FROM flights WHERE id = $1", 2).Scan(&seatsAfter)
 		require.NoError(t, err)
 		assert.Equal(t, seatsBefore-1, seatsAfter, "available_seats must decrement by 1")
+	})
+
+	t.Run("stores user_sub and a 15-minute expires_at", func(t *testing.T) {
+		repo := NewRepository(sharedDB)
+
+		pnr := fmt.Sprintf("T9%04d", time.Now().UnixNano()%9999)
+		before := time.Now()
+		b, err := repo.Create(context.Background(), 5, Passenger{
+			FirstName: "Hold", LastName: "Test", Email: "hold@example.com",
+		}, pnr, "user-abc-123")
+
+		require.NoError(t, err)
+		require.NotNil(t, b.ExpiresAt)
+		assert.WithinDuration(t, before.Add(SeatHoldDuration), *b.ExpiresAt, 5*time.Second)
+
+		var userSub string
+		var expiresAt time.Time
+		err = sharedDB.QueryRowContext(context.Background(),
+			"SELECT user_sub, expires_at FROM bookings WHERE booking_ref = $1", pnr).
+			Scan(&userSub, &expiresAt)
+		require.NoError(t, err)
+		assert.Equal(t, "user-abc-123", userSub)
+		assert.WithinDuration(t, before.Add(SeatHoldDuration), expiresAt, 5*time.Second)
 	})
 
 	t.Run("total amount matches flight base price", func(t *testing.T) {
@@ -52,7 +75,7 @@ func TestRepositoryCreateBooking(t *testing.T) {
 		pnr := fmt.Sprintf("T2%04d", time.Now().UnixNano()%9999)
 		b, err := repo.Create(context.Background(), 3, Passenger{
 			FirstName: "Price", LastName: "Test", Email: "price@example.com",
-		}, pnr)
+		}, pnr, "user-sub-test")
 
 		require.NoError(t, err)
 		assert.Equal(t, basePriceMinor, b.TotalAmountMinor, "total_amount_minor must equal flight base_price_minor")
@@ -66,7 +89,7 @@ func TestRepositoryCreateBooking(t *testing.T) {
 		pnr := fmt.Sprintf("T3%04d", time.Now().UnixNano()%9999)
 		b, err := repo.Create(context.Background(), 16, Passenger{
 			FirstName: "Over", LastName: "Book", Email: "overbook@example.com",
-		}, pnr)
+		}, pnr, "user-sub-test")
 
 		assert.ErrorIs(t, err, ErrNoSeatsAvailable)
 		assert.Nil(t, b)
@@ -98,7 +121,7 @@ func TestRepositoryCreateBooking(t *testing.T) {
 					FirstName: fmt.Sprintf("Concurrent%d", i),
 					LastName:  "User",
 					Email:     fmt.Sprintf("concurrent%d@example.com", i),
-				}, pnr)
+				}, pnr, "user-sub-test")
 				results[i] = result{booking: b, err: err}
 			}()
 		}

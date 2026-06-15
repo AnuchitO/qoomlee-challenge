@@ -294,14 +294,16 @@ VALUES
 -- NRPQ56: Narumon / QM401(id=17) (BKK→KUL) / PENDING — has a FAILED payment → use for retry-payment test
 -- FMXB89: Ahmad   / QM601(id=20) (BKK→MNL) / PENDING — no payment yet → use for first-charge flow test
 -- confirmed_payment_id is a logical cross-DB reference (no FK); wired via UPDATE below.
-INSERT INTO bookings (booking_ref, flight_id, passenger_id, status, total_amount_minor, currency, created_at, updated_at)
+-- PENDING seed bookings get expires_at 1 hour in the future so the lazy-expiry
+-- check (QML-042) does not immediately flip them to EXPIRED.
+INSERT INTO bookings (booking_ref, flight_id, passenger_id, status, total_amount_minor, currency, expires_at, user_sub, created_at, updated_at)
 VALUES
-    ('SEED01', 11, 1, 'CONFIRMED', 350000, 'THB', NOW() - INTERVAL '10 days',                          NOW() - INTERVAL '10 days' + INTERVAL '5 minutes'),  -- id=1  "3500.00" THB
-    ('SEED02', 11, 1, 'PENDING',   350000, 'THB', NOW() - INTERVAL '10 days',                          NOW() - INTERVAL '10 days'),                           -- id=2  "3500.00" THB
-    ('MNKP23', 17, 2, 'CONFIRMED', 129000, 'THB', NOW() - INTERVAL '8 days',                           NOW() - INTERVAL '8 days'  + INTERVAL '5 minutes'),  -- id=3  "1290.00" THB
-    ('AKVWQ4', 19, 4, 'CONFIRMED', 289000, 'THB', NOW() - INTERVAL '7 days',                           NOW() - INTERVAL '7 days'  + INTERVAL '5 minutes'),  -- id=4  "2890.00" THB
-    ('NRPQ56', 17, 3, 'PENDING',   129000, 'THB', NOW() - INTERVAL '6 days',                           NOW() - INTERVAL '6 days'),                            -- id=5  "1290.00" THB
-    ('FMXB89', 20, 5, 'PENDING',   320000, 'THB', NOW() - INTERVAL '5 days',                           NOW() - INTERVAL '5 days');                            -- id=6  "3200.00" THB
+    ('SEED01', 11, 1, 'CONFIRMED', 350000, 'THB', NOW() - INTERVAL '10 days' + INTERVAL '15 minutes', 'seed-user-01', NOW() - INTERVAL '10 days',                          NOW() - INTERVAL '10 days' + INTERVAL '5 minutes'),  -- id=1  "3500.00" THB
+    ('SEED02', 11, 1, 'PENDING',   350000, 'THB', NOW() + INTERVAL '1 hour',                          'seed-user-01', NOW() - INTERVAL '10 days',                          NOW() - INTERVAL '10 days'),                           -- id=2  "3500.00" THB
+    ('MNKP23', 17, 2, 'CONFIRMED', 129000, 'THB', NOW() - INTERVAL '8 days'  + INTERVAL '15 minutes', 'seed-user-02', NOW() - INTERVAL '8 days',                           NOW() - INTERVAL '8 days'  + INTERVAL '5 minutes'),  -- id=3  "1290.00" THB
+    ('AKVWQ4', 19, 4, 'CONFIRMED', 289000, 'THB', NOW() - INTERVAL '7 days'  + INTERVAL '15 minutes', 'seed-user-04', NOW() - INTERVAL '7 days',                           NOW() - INTERVAL '7 days'  + INTERVAL '5 minutes'),  -- id=4  "2890.00" THB
+    ('NRPQ56', 17, 3, 'PENDING',   129000, 'THB', NOW() + INTERVAL '1 hour',                          'seed-user-03', NOW() - INTERVAL '6 days',                          NOW() - INTERVAL '6 days'),                            -- id=5  "1290.00" THB
+    ('FMXB89', 20, 5, 'PENDING',   320000, 'THB', NOW() + INTERVAL '1 hour',                          'seed-user-05', NOW() - INTERVAL '5 days',                          NOW() - INTERVAL '5 days');                            -- id=6  "3200.00" THB
 
 -- ── Wire payment traceability for CONFIRMED bookings ─────────────────────────
 -- confirmed_payment_id: logical cross-DB reference to payment DB payments.id (NO FK)

@@ -9,7 +9,7 @@ import (
 
 // Repository is the data-access interface for the booking domain.
 type Repository interface {
-	Create(ctx context.Context, flightID int64, passenger Passenger, pnr string) (*Booking, error)
+	Create(ctx context.Context, flightID int64, passenger Passenger, pnr, userSub string) (*Booking, error)
 	GetByRef(ctx context.Context, ref string) (*Booking, error)
 	UpdateStatus(ctx context.Context, ref string, req UpdateStatusRequest) error
 }

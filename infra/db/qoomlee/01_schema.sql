@@ -78,12 +78,15 @@ CREATE TABLE bookings (
     flight_id            INT            REFERENCES flights(id),
     passenger_id         INT            REFERENCES passengers(id),
     seat_id              INT            REFERENCES seats(id),   -- NULL — seat picker out of scope
-    status               VARCHAR(20)    NOT NULL DEFAULT 'PENDING', -- PENDING | CONFIRMED
+    status               VARCHAR(20)    NOT NULL DEFAULT 'PENDING'
+                             CHECK (status IN ('PENDING', 'CONFIRMED', 'EXPIRED')),
     confirmed_payment_id INT,                                   -- logical ref to payment DB; NO FK constraint
     payment_provider     VARCHAR(50),                           -- set when status→CONFIRMED (e.g. 'OMISE')
     provider_charge_id   VARCHAR(100),                          -- set when status→CONFIRMED (Omise charge ID)
     total_amount_minor   BIGINT         NOT NULL,               -- minor units (satang); must match payment.amount_minor
     currency             CHAR(3)        NOT NULL DEFAULT 'THB', -- ISO 4217
+    expires_at           TIMESTAMPTZ    NOT NULL,               -- seat-hold deadline; PENDING past this is lazily EXPIRED on read
+    user_sub             VARCHAR(255)   NOT NULL,               -- JWT sub of the passenger who created the booking
     created_at           TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
     updated_at           TIMESTAMPTZ    NOT NULL DEFAULT NOW()  -- set explicitly on UPDATE
 );

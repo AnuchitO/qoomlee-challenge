@@ -12,8 +12,9 @@ import (
 // --- mock Repository ---
 
 type mockRepository struct {
-	booking *Booking
-	err     error
+	booking   *Booking
+	summaries []Summary
+	err       error
 }
 
 func (m *mockRepository) Create(_ context.Context, _ int64, _ Passenger, _ string, _ string) (*Booking, error) {
@@ -22,6 +23,10 @@ func (m *mockRepository) Create(_ context.Context, _ int64, _ Passenger, _ strin
 
 func (m *mockRepository) GetByRef(_ context.Context, _ string) (*Booking, error) {
 	return m.booking, m.err
+}
+
+func (m *mockRepository) GetAll(_ context.Context, _ string) ([]Summary, error) {
+	return m.summaries, m.err
 }
 
 func (m *mockRepository) UpdateStatus(_ context.Context, _ string, _ UpdateStatusRequest) error {
@@ -40,6 +45,10 @@ func (r *captureRepo) Create(_ context.Context, _ int64, _ Passenger, pnr string
 
 func (r *captureRepo) GetByRef(_ context.Context, _ string) (*Booking, error) {
 	return nil, ErrNotFound
+}
+
+func (r *captureRepo) GetAll(_ context.Context, _ string) ([]Summary, error) {
+	return nil, nil
 }
 
 func (r *captureRepo) UpdateStatus(_ context.Context, _ string, _ UpdateStatusRequest) error {
@@ -120,6 +129,33 @@ func TestServiceGetByRef(t *testing.T) {
 
 		assert.ErrorIs(t, err, ErrNotFound)
 		assert.Nil(t, b)
+	})
+}
+
+// --- Service.GetAll tests ---
+
+func TestServiceGetAll(t *testing.T) {
+	t.Run("happy path", func(t *testing.T) {
+		repo := &mockRepository{
+			summaries: []Summary{
+				{BookingRef: "SEED01", Status: "CONFIRMED"},
+				{BookingRef: "SEED02", Status: "PENDING"},
+			},
+		}
+		svc := NewService(repo)
+		summaries, err := svc.GetAll(context.Background(), "user-123")
+
+		require.NoError(t, err)
+		assert.Len(t, summaries, 2)
+	})
+
+	t.Run("propagates repo error", func(t *testing.T) {
+		repo := &mockRepository{err: errors.New("db down")}
+		svc := NewService(repo)
+		summaries, err := svc.GetAll(context.Background(), "user-123")
+
+		assert.EqualError(t, err, "db down")
+		assert.Nil(t, summaries)
 	})
 }
 

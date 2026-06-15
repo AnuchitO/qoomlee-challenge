@@ -55,6 +55,20 @@ type Booking struct {
 	Flight           FlightSummary `json:"flight"`
 }
 
+// Summary is a row in the "My Bookings" list response.
+type Summary struct {
+	BookingRef    string     `json:"bookingRef"`
+	Status        string     `json:"status"`
+	ExpiresAt     *time.Time `json:"expiresAt,omitempty"` // present only when PENDING
+	FlightNumber  string     `json:"flightNumber"`
+	Origin        string     `json:"origin"`
+	Destination   string     `json:"destination"`
+	DepartureTime time.Time  `json:"departureTime"`
+	Passengers    int        `json:"passengers"`
+	TotalAmount   string     `json:"totalAmount"`
+	Currency      string     `json:"currency"`
+}
+
 // CreateRequest is the decoded body of POST /api/bookings.
 type CreateRequest struct {
 	FlightID  int64     `json:"flightId"`

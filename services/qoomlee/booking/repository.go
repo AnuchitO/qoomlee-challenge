@@ -11,6 +11,7 @@ import (
 type Repository interface {
 	Create(ctx context.Context, flightID int64, passenger Passenger, pnr, userSub string) (*Booking, error)
 	GetByRef(ctx context.Context, ref string) (*Booking, error)
+	GetAll(ctx context.Context, userSub string) ([]Summary, error)
 	UpdateStatus(ctx context.Context, ref string, req UpdateStatusRequest) error
 }
 

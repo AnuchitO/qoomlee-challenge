@@ -15,10 +15,12 @@ import (
 // --- mock Service ---
 
 type mockService struct {
-	booking *Booking
-	err     error
+	booking   *Booking
+	summaries []Summary
+	err       error
 
 	gotCreateReq CreateRequest
+	gotGetAllSub string
 }
 
 func (m *mockService) Create(_ context.Context, req CreateRequest) (*Booking, error) {
@@ -28,6 +30,11 @@ func (m *mockService) Create(_ context.Context, req CreateRequest) (*Booking, er
 
 func (m *mockService) GetByRef(_ context.Context, _ string) (*Booking, error) {
 	return m.booking, m.err
+}
+
+func (m *mockService) GetAll(_ context.Context, userSub string) ([]Summary, error) {
+	m.gotGetAllSub = userSub
+	return m.summaries, m.err
 }
 
 func (m *mockService) UpdateStatus(_ context.Context, _ string, _ UpdateStatusRequest) error {
@@ -72,6 +79,16 @@ func doGetByRef(h *Handler, ref string) *httptest.ResponseRecorder {
 	c.Request = httptest.NewRequest(http.MethodGet, "/api/bookings/"+ref, nil)
 	c.Params = gin.Params{{Key: "bookingRef", Value: ref}}
 	h.GetByRef(c)
+	return w
+}
+
+func doGetAll(h *Handler, sub string) *httptest.ResponseRecorder {
+	gin.SetMode(gin.TestMode)
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest(http.MethodGet, "/api/bookings", nil)
+	c.Set("userSub", sub)
+	h.GetAll(c)
 	return w
 }
 

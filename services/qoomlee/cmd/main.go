@@ -95,6 +95,7 @@ func main() {
 	api.Use(middleware.SessionAuth())
 	api.GET("/flights/:id", flightHandler.GetByID)
 	api.POST("/bookings", bookingHandler.Create)
+	api.GET("/bookings", bookingHandler.GetAll)
 	api.GET("/bookings/:bookingRef", bookingHandler.GetByRef)
 
 	slog.Info("qoomlee-service starting", "port", port)

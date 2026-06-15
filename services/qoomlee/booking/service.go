@@ -9,6 +9,7 @@ import (
 type Service interface {
 	Create(ctx context.Context, req CreateRequest) (*Booking, error)
 	GetByRef(ctx context.Context, ref string) (*Booking, error)
+	GetAll(ctx context.Context, userSub string) ([]Summary, error)
 	UpdateStatus(ctx context.Context, ref string, req UpdateStatusRequest) error
 }
 
@@ -28,6 +29,10 @@ func (s *service) Create(ctx context.Context, req CreateRequest) (*Booking, erro
 
 func (s *service) GetByRef(ctx context.Context, ref string) (*Booking, error) {
 	return s.repo.GetByRef(ctx, ref)
+}
+
+func (s *service) GetAll(ctx context.Context, userSub string) ([]Summary, error) {
+	return s.repo.GetAll(ctx, userSub)
 }
 
 func (s *service) UpdateStatus(ctx context.Context, ref string, req UpdateStatusRequest) error {

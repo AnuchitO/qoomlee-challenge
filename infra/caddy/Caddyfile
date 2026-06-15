@@ -1,0 +1,17 @@
+# Reverse proxy + TLS termination for the qoomlee-service and
+# payment-service containers. CADDY_HOSTNAME is the public hostname
+# (e.g. api-dev.<vm-ip>.sslip.io) - Caddy automatically provisions and
+# renews a Let's Encrypt certificate for it. For "localhost" it falls
+# back to Caddy's locally-trusted internal CA.
+{$CADDY_HOSTNAME} {
+	encode gzip
+
+	@payment path /api/payments/*
+	handle @payment {
+		reverse_proxy payment-service:8084
+	}
+
+	handle {
+		reverse_proxy qoomlee-service:8082
+	}
+}

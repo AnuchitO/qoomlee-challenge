@@ -1,0 +1,3 @@
+# Copy to terraform.tfvars and fill in for your fork.
+project_id          = "inno-sandbox-incubator"
+gitlab_project_path = "my-namespace/qoomlee-challenge"

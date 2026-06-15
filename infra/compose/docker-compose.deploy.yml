@@ -1,0 +1,9 @@
+# Deploy-time override: run pre-built images from Artifact Registry instead
+# of building from source on the VM. Used as:
+#   docker compose -f docker-compose.yml -f infra/compose/docker-compose.deploy.yml up -d
+services:
+  qoomlee-service:
+    image: ${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${AR_REPO}/qoomlee-service:${IMAGE_TAG}
+
+  payment-service:
+    image: ${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${AR_REPO}/payment-service:${IMAGE_TAG}

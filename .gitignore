@@ -30,3 +30,11 @@ services/payment-service/payment-service
 
 # OS
 .DS_Store
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+**/terraform.tfvars
+crash.log
+crash.*.log

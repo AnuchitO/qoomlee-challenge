@@ -115,6 +115,16 @@
 | QML-039 | HTTP Security Headers — API Services | both services | ✅ Done |
 | QML-040 | HTTP Security Headers — Web Frontend | web | ✅ Done |
 
+### EPIC: Booking Expiry & Status (Cross-cutting)
+| # | Story | Service | Status |
+|---|-------|---------|--------|
+| QML-041 | Record Seat-Hold Expiry at Booking Creation | qoomlee-service | ⬜ Todo |
+| QML-042 | Lazily Expire Stale Pending Bookings on Read | qoomlee-service | ⬜ Todo |
+| QML-043 | Reject Confirmation & Charges for Expired Bookings | both services | ⬜ Todo |
+| QML-044 | Server-Derived Payment Countdown | web | ⬜ Todo |
+| QML-045 | Handle Expiry Mid-Submit | web | ⬜ Todo |
+| QML-046 | "My Bookings" Backed by Real Data | web + qoomlee-service | ⬜ Todo |
+
 ---
 
 ## What You're Building
@@ -1222,6 +1232,198 @@ api.GET("/bookings/:ref", ...)
 | Contract | `GET /flights` response includes `Content-Security-Policy` header |
 | Contract | `Content-Security-Policy` value contains `frame-ancestors 'none'` |
 | Contract | Production CSP does not contain `unsafe-eval` |
+
+---
+
+### EPIC: Booking Expiry & Status (Cross-cutting)
+
+> **Why**: `POST /api/bookings` already creates a `PENDING` row and decrements
+> `flights.available_seats` immediately — the seat hold already exists in
+> Postgres. The only thing missing is a server-side expiry: the 15-minute
+> countdown on `/payment` is pure client state (`useState(900)`), so
+> refreshing the page resets it and an abandoned booking holds its seat
+> forever. These stories add a third booking status, `EXPIRED`, enforced via
+> lazy expiry-on-read (no background sweeper), and wire `/bookings` to real
+> data.
+
+---
+
+### QML-041 — Record Seat-Hold Expiry at Booking Creation · ⬜ Todo
+
+> As the booking service, I want to record when a booking's seat hold expires so that the hold is not tied to client-side state.
+
+**Acceptance Criteria**
+
+- **Given** `infra/db/qoomlee/01_schema.sql`
+  **When** the schema is applied
+  **Then** `bookings` has a `NOT NULL` `expires_at TIMESTAMPTZ` column, a `NOT NULL` `user_sub VARCHAR(255)` column, and the `status` check constraint allows `PENDING`, `CONFIRMED`, and `EXPIRED`
+- **Given** a valid booking request with an authenticated JWT
+  **When** `POST /api/bookings` succeeds
+  **Then** the new row stores `expires_at = created_at + 15 minutes` (the 15-minute hold duration is a named constant) and `user_sub` from the JWT `sub` claim
+- **Given** a successful booking creation
+  **When** the `201` response is returned
+  **Then** it includes `expiresAt` as an RFC3339 timestamp
+- **Given** `infra/db/qoomlee/02_seed.sql`
+  **When** the database is seeded
+  **Then** every seeded `PENDING` booking has a `user_sub` and an `expires_at` in the future, so seed data is not immediately treated as expired
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Positive | `POST /api/bookings` response includes `expiresAt` ≈ 15 minutes from now |
+| Positive | the created `bookings` row has `user_sub` set to the caller's JWT `sub` |
+| Unit | the `status` check constraint accepts `EXPIRED` |
+| Normal | seeded `PENDING` bookings have `expires_at` in the future and a non-null `user_sub` |
+
+---
+
+### QML-042 — Lazily Expire Stale Pending Bookings on Read · ⬜ Todo
+
+> As the booking service, when anything reads a `PENDING` booking past its `expires_at`, I want to flip it to `EXPIRED` and release the seat so abandoned holds don't block other passengers.
+
+**Acceptance Criteria**
+
+- **Given** a `PENDING` booking whose `expires_at` is in the past
+  **When** `GET /api/bookings/:bookingRef` is called
+  **Then** in one transaction the booking's status becomes `EXPIRED`, `flights.available_seats` for its flight is incremented by 1, and the response returns `status: "EXPIRED"`
+- **Given** a `PENDING` booking whose `expires_at` is in the future
+  **When** `GET /api/bookings/:bookingRef` is called
+  **Then** the booking is returned unchanged, including `expiresAt`
+- **Given** a booking that is already `EXPIRED`
+  **When** `GET /api/bookings/:bookingRef` is called
+  **Then** it is returned unchanged with no additional seat increment
+- **Given** a booking that is `CONFIRMED`
+  **When** `GET /api/bookings/:bookingRef` is called
+  **Then** it is returned unchanged with no `expiresAt` field
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Positive | `GET` on an expired `PENDING` booking returns `EXPIRED` and increments `available_seats` by 1 |
+| Positive | `GET` on a non-expired `PENDING` booking returns `PENDING` with `expiresAt` |
+| Normal | `GET` on an already-`EXPIRED` booking does not increment `available_seats` again |
+| Normal | `GET` on a `CONFIRMED` booking omits `expiresAt` |
+| Negative | `GET /api/bookings/XXXXXX` still returns `404 BOOKING_NOT_FOUND` |
+
+---
+
+### QML-043 — Reject Confirmation & Charges for Expired Bookings · ⬜ Todo
+
+> As the platform, I want a lapsed seat hold to never be confirmed or charged so that an expired booking cannot become a paid one.
+
+**Acceptance Criteria**
+
+- **Given** a booking that is (or, via the QML-042 lazy check, just became) `EXPIRED`
+  **When** `PUT /api/bookings/:bookingRef/status` is called with `status: "CONFIRMED"`
+  **Then** the service returns `409 {"error":"booking_expired"}` and does not change the booking's status
+- **Given** a booking that is already `CONFIRMED`
+  **When** `PUT /api/bookings/:bookingRef/status` is called again
+  **Then** the service returns `409 {"error":"already_confirmed"}`
+- **Given** payment-service's `BookingClient.GetBooking` fetches a booking with status `EXPIRED`
+  **When** `payment.Service.Charge` evaluates it
+  **Then** it returns a new `ErrBookingExpired`
+- **Given** `POST /api/payments/charge` is called for an `EXPIRED` booking
+  **When** the handler processes it
+  **Then** it returns `409 {"error":"booking_expired"}` without calling Omise, alongside the existing `ErrAlreadyPaid` → `already_paid` mapping
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Negative | `PUT .../status` with `CONFIRMED` on an expired `PENDING` booking returns `409 booking_expired` |
+| Negative | `PUT .../status` with `CONFIRMED` on a `CONFIRMED` booking returns `409 already_confirmed` |
+| Negative | `POST /api/payments/charge` for an `EXPIRED` booking returns `409 booking_expired`, no Omise call made |
+| Positive | `PUT .../status` with `CONFIRMED` on a non-expired `PENDING` booking still succeeds |
+
+---
+
+### QML-044 — Server-Derived Payment Countdown · ⬜ Todo
+
+> As a passenger, I want the payment countdown to reflect my real server-side seat hold so that refreshing the page doesn't reset my time, and so I'm told clearly if my hold has expired.
+
+**Acceptance Criteria**
+
+- **Given** I create a booking on `/bookings/new`
+  **When** `POST /api/bookings` succeeds
+  **Then** the real `bookingRef` is passed to `/payment` as a query param, replacing the client-side `generateBookingRef()`
+- **Given** `/payment` loads with a `bookingRef`
+  **When** it calls `GET /api/bookings/:ref` and the booking is `PENDING` and not expired
+  **Then** `secondsRemaining = max(0, expiresAt - now)` seeds the countdown, which still ticks down once per second client-side but is recomputed from `expiresAt` on every page load
+- **Given** the fetched booking is `EXPIRED` (including a `PENDING` booking that this very `GET` lazily expired)
+  **When** `/payment` renders
+  **Then** it shows a "Your booking hold has expired" panel, hides the payment form, and links back to flight search — with no countdown
+- **Given** the fetched booking is `CONFIRMED`
+  **When** `/payment` loads
+  **Then** it redirects immediately to `/bookings/confirmation?ref=...`
+- **Given** the `bookingRef` query param is missing or `GET /api/bookings/:ref` returns `404`
+  **When** `/payment` loads
+  **Then** it redirects to `/bookings/new`
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Component | `/bookings/new` passes the real `bookingRef` to `/payment` |
+| Component | countdown's initial value derives from `expiresAt`, not a hardcoded `900` |
+| Component | `EXPIRED` booking renders the expired panel with no payment form |
+| Component | `CONFIRMED` booking redirects to `/bookings/confirmation?ref=...` |
+| Component | missing or `404` `bookingRef` redirects to `/bookings/new` |
+
+---
+
+### QML-045 — Handle Expiry Mid-Submit · ⬜ Todo
+
+> As a passenger, if my seat hold expires in the moment I submit payment, I want a clear "hold expired" message instead of a generic payment failure.
+
+**Acceptance Criteria**
+
+- **Given** I submit the payment form
+  **When** `POST /api/payments/charge` returns `409 booking_expired` (per QML-043)
+  **Then** `/payment` shows the same "Your booking hold has expired" panel as QML-044, instead of a generic payment-failure message
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Component | `409 booking_expired` on submit renders the expired panel |
+| Component | other payment errors (e.g. `402`) still show the generic failure message |
+
+---
+
+### QML-046 — "My Bookings" Backed by Real Data · ⬜ Todo
+
+> As a passenger, I want to see all my bookings — including pending holds with their time remaining and expired holds — in one place, backed by real data.
+
+**Acceptance Criteria**
+
+- **Given** an authenticated passenger
+  **When** `GET /api/bookings` is called
+  **Then** it returns every booking whose `user_sub` matches the caller's JWT `sub`, each with `bookingRef`, `status` (`PENDING|CONFIRMED|EXPIRED`), `expiresAt` (present only when `PENDING`), route, flight number, departure date, passenger count, and total amount + currency — applying the same lazy-expiry transition as QML-042 to each row
+- **Given** the `/bookings` page
+  **When** it loads
+  **Then** it fetches `GET /api/bookings` instead of `lib/booking/mock.ts`
+- **Given** a booking's status
+  **When** its card renders
+  **Then** `CONFIRMED` shows a green "Confirmed" badge, `PENDING` shows an amber "Awaiting payment · expires in Xm" badge, and `EXPIRED` shows a grey "Expired" badge
+- **Given** the caller has no bookings
+  **When** `/bookings` loads
+  **Then** an empty state ("No bookings yet") is shown
+- **Given** the page is wired to the real endpoint
+  **When** the migration is complete
+  **Then** `lib/booking/mock.ts` and its usages are removed
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Positive | `GET /api/bookings` returns only the caller's own bookings |
+| Positive | `PENDING` rows include `expiresAt`; `CONFIRMED`/`EXPIRED` rows omit it |
+| Component | `PENDING` badge reads "Awaiting payment · expires in Xm" |
+| Component | `EXPIRED` badge reads "Expired" in grey |
+| Component | empty list shows "No bookings yet" |
+| Negative | `lib/booking/mock.ts` is no longer referenced anywhere |
 
 ---
 

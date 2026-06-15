@@ -122,7 +122,7 @@
 | QML-042 | Lazily Expire Stale Pending Bookings on Read | qoomlee-service | ✅ Done |
 | QML-043 | Reject Confirmation & Charges for Expired Bookings | both services | ✅ Done |
 | QML-044 | Server-Derived Payment Countdown | web | ✅ Done |
-| QML-045 | Handle Expiry Mid-Submit | web | ⬜ Todo |
+| QML-045 | Handle Expiry Mid-Submit | web | ✅ Done |
 | QML-046 | "My Bookings" Backed by Real Data | web + qoomlee-service | ⬜ Todo |
 
 ---
@@ -1373,7 +1373,7 @@ api.GET("/bookings/:ref", ...)
 
 ---
 
-### QML-045 — Handle Expiry Mid-Submit · ⬜ Todo
+### QML-045 — Handle Expiry Mid-Submit · ✅ Done
 
 > As a passenger, if my seat hold expires in the moment I submit payment, I want a clear "hold expired" message instead of a generic payment failure.
 

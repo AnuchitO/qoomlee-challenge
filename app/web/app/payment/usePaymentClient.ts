@@ -7,7 +7,7 @@ import {
   validateCardFields,
 } from "@/lib/payment/cardFormatting";
 import { clearPassengerDetails } from "@/lib/booking/passengerDetailsStorage";
-import { getJson } from "@/lib/api/httpClient";
+import { getJson, postJson } from "@/lib/api/httpClient";
 import { authHeaders } from "@/lib/session/sessionToken";
 import type { CardDetails } from "./_qqf/cardScenarios";
 
@@ -19,19 +19,21 @@ export function formatDeparture(iso: string): string {
   return `${weekday} ${day} ${month}`;
 }
 
+function isBookingExpiredError(body: unknown): boolean {
+  return (
+    typeof body === "object" &&
+    body !== null &&
+    "error" in body &&
+    (body as { error: unknown }).error === "booking_expired"
+  );
+}
+
 export function formatCountdown(seconds: number): string {
   const m = Math.floor(seconds / 60)
     .toString()
     .padStart(2, "0");
   const s = (seconds % 60).toString().padStart(2, "0");
   return `${m}:${s}`;
-}
-
-function generateBookingRef(): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  return (
-    "QM" + Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join("")
-  );
 }
 
 export const VALID_PROMO = "QOOMFIRST";
@@ -52,6 +54,11 @@ export type BookingState = "loading" | "ready" | "expired";
 interface BookingResponse {
   status: string;
   expiresAt?: string;
+}
+
+interface ChargeResponse {
+  paymentId: number;
+  status: string;
 }
 
 export interface PaymentClientProps {
@@ -230,7 +237,10 @@ export function usePaymentClient({
   const totalMinor = baseFareMinor + taxMinor + INSURANCE_MINOR - discountMinor;
 
   // pay
-  const handlePay = () => {
+  const [submitError, setSubmitError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handlePay = async () => {
     if (activeMethod === "card") {
       const e: CardErrors = validateCardFields({ cardName, cardNumber, expiry, cvv });
       if (!agreed) e.terms = "You must agree to the terms to proceed";
@@ -238,11 +248,41 @@ export function usePaymentClient({
       if (Object.keys(e).length > 0) return;
     }
 
+    setSubmitError("");
+    setSubmitting(true);
+
+    const apiBase = process.env.NEXT_PUBLIC_PAYMENT_API_URL ?? "http://localhost:8084";
+    const result = await postJson<ChargeResponse>(
+      `${apiBase}/api/payments/charge`,
+      {
+        bookingRef,
+        omiseToken: "tokn_test_mock",
+        amountMinor: totalMinor,
+        currency,
+      },
+      { headers: authHeaders() },
+    );
+
+    setSubmitting(false);
+
+    if (!result.ok) {
+      if (
+        result.error.type === "BAD_STATUS" &&
+        result.error.status === 409 &&
+        isBookingExpiredError(result.error.body)
+      ) {
+        setBookingState("expired");
+        return;
+      }
+
+      setSubmitError("We couldn't process your payment. Please try again.");
+      return;
+    }
+
     clearPassengerDetails();
 
-    const ref = generateBookingRef();
     const params = new URLSearchParams({
-      ref,
+      ref: bookingRef,
       flightNumber,
       origin,
       destination,
@@ -292,6 +332,8 @@ export function usePaymentClient({
     taxMinor,
     discountMinor,
     totalMinor,
+    submitError,
+    submitting,
     handlePay,
     goBack: () => router.back(),
   };

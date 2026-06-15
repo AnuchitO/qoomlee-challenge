@@ -2,18 +2,21 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import PaymentClient from "./PaymentClient";
 import type { PaymentClientProps } from "./usePaymentClient";
-import { getJson } from "@/lib/api/httpClient";
+import { getJson, postJson } from "@/lib/api/httpClient";
 import { ok, err } from "@/lib/result/types";
 import { HttpError } from "@/lib/api/errors";
 
 const mockPush = vi.fn();
 const mockReplace = vi.fn();
+const mockBack = vi.fn();
+const mockRouter = { push: mockPush, replace: mockReplace, back: mockBack };
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: mockPush, replace: mockReplace, back: vi.fn() }),
+  useRouter: () => mockRouter,
 }));
 
 vi.mock("@/lib/api/httpClient", () => ({
   getJson: vi.fn(),
+  postJson: vi.fn(),
 }));
 
 // price=10000 → ฿100/person, so math is easy
@@ -68,6 +71,8 @@ beforeEach(() => {
   vi.mocked(getJson).mockResolvedValue(
     ok({ status: "PENDING", expiresAt: "2026-01-01T00:15:00Z" }),
   );
+  vi.mocked(postJson).mockReset();
+  vi.mocked(postJson).mockResolvedValue(ok({ paymentId: 1, status: "succeeded" }));
 });
 
 afterEach(() => {
@@ -289,6 +294,7 @@ describe("PaymentClient — successful payment", () => {
     fillValidCardForm();
 
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
+    await flush();
 
     expect(mockPush).toHaveBeenCalledOnce();
     expect(mockPush.mock.calls[0]![0]).toContain("/bookings/confirmation");
@@ -299,6 +305,7 @@ describe("PaymentClient — successful payment", () => {
     fillValidCardForm();
 
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
+    await flush();
 
     expect(mockPush.mock.calls[0]![0]).toMatch(/ref=QM[A-Z0-9]{4}/);
   });
@@ -308,6 +315,7 @@ describe("PaymentClient — successful payment", () => {
     fillValidCardForm();
 
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
+    await flush();
 
     const url = mockPush.mock.calls[0]![0] as string;
     expect(url).toContain("flightNumber=QQ101");
@@ -321,6 +329,7 @@ describe("PaymentClient — successful payment", () => {
     fillValidCardForm();
 
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
+    await flush();
 
     const url = mockPush.mock.calls[0]![0] as string;
     expect(url).toContain("totalMinor=70500");
@@ -333,9 +342,57 @@ describe("PaymentClient — successful payment", () => {
     fillValidCardForm();
 
     fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
+    await flush();
 
     const url = mockPush.mock.calls[0]![0] as string;
     expect(url).toContain("totalMinor=20500");
+  });
+
+  it("calls POST /api/payments/charge with the session auth header", async () => {
+    await renderPayment();
+    fillValidCardForm();
+
+    fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
+    await flush();
+
+    expect(postJson).toHaveBeenCalledWith(
+      expect.stringContaining("/api/payments/charge"),
+      expect.objectContaining({ bookingRef: BASE_PROPS.bookingRef }),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: expect.any(String) }),
+      }),
+    );
+  });
+});
+
+describe("PaymentClient — expiry mid-submit", () => {
+  it("shows the expired panel when charge returns 409 booking_expired", async () => {
+    vi.mocked(postJson).mockResolvedValue(
+      err(HttpError.badStatus(409, "conflict", { error: "booking_expired" })),
+    );
+    await renderPayment();
+    fillValidCardForm();
+
+    fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
+    await flush();
+
+    expect(screen.getByText(/booking hold has expired/i)).toBeInTheDocument();
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it("shows a generic failure message for other payment errors", async () => {
+    vi.mocked(postJson).mockResolvedValue(
+      err(HttpError.badStatus(402, "payment failed", { error: "PAYMENT_FAILED" })),
+    );
+    await renderPayment();
+    fillValidCardForm();
+
+    fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
+    await flush();
+
+    expect(screen.getByText(/couldn't process your payment/i)).toBeInTheDocument();
+    expect(screen.queryByText(/booking hold has expired/i)).not.toBeInTheDocument();
+    expect(mockPush).not.toHaveBeenCalled();
   });
 });
 

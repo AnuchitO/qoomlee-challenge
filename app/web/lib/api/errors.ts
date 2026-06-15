@@ -1,9 +1,9 @@
 export type HttpError =
   | { type: "NETWORK_ERROR"; message: string }
-  | { type: "BAD_STATUS"; status: number; message: string };
+  | { type: "BAD_STATUS"; status: number; message: string; body?: unknown };
 
-function badStatus(status: number, message: string): HttpError {
-  return { type: "BAD_STATUS", status, message };
+function badStatus(status: number, message: string, body?: unknown): HttpError {
+  return { type: "BAD_STATUS", status, message, body };
 }
 
 export const HttpError = {

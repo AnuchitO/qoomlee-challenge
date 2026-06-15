@@ -37,7 +37,8 @@ export async function postJson<T>(
     if (!res.ok) {
       const message = `API responded with status ${res.status}`;
       logger.error(`httpClient: POST ${url} - ${message}`, { url, status: res.status });
-      return err(HttpError.badStatus(res.status, message));
+      const body = await res.json().catch(() => undefined);
+      return err(HttpError.badStatus(res.status, message, body));
     }
 
     const data = (await res.json()) as T;

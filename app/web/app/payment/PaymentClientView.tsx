@@ -47,6 +47,8 @@ interface PaymentClientViewProps {
   taxMinor: number;
   discountMinor: number;
   totalMinor: number;
+  submitError: string;
+  submitting: boolean;
   handlePay: () => void;
   goBack: () => void;
 }
@@ -90,6 +92,8 @@ export function PaymentClientView({
   taxMinor,
   discountMinor,
   totalMinor,
+  submitError,
+  submitting,
   handlePay,
   goBack,
 }: PaymentClientViewProps) {
@@ -437,10 +441,16 @@ export function PaymentClientView({
       {/* Sticky pay button */}
       {bookingState === "ready" && (
         <div className="fixed bottom-0 left-0 right-0 z-50 px-container-margin-mobile md:px-container-margin-desktop pb-6 pt-3 bg-background/90 backdrop-blur-sm">
-          <div className="max-w-screen-sm mx-auto">
+          <div className="max-w-screen-sm mx-auto space-y-sm">
+            {submitError && (
+              <p className="text-label-sm text-error text-center" role="alert">
+                {submitError}
+              </p>
+            )}
             <button
               onClick={handlePay}
-              className="w-full bg-primary text-on-primary py-4 rounded-xl text-headline-md shadow-md active:scale-95 transition-transform flex items-center justify-center gap-sm"
+              disabled={submitting}
+              className="w-full bg-primary text-on-primary py-4 rounded-xl text-headline-md shadow-md active:scale-95 transition-transform flex items-center justify-center gap-sm disabled:opacity-60"
             >
               <span className="material-symbols-outlined text-[20px]">lock</span>
               Pay {formatTHB(totalMinor / 100)} Securely

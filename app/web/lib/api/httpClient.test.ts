@@ -138,7 +138,7 @@ describe("postJson", () => {
 
     expect(result).toEqual({
       ok: false,
-      error: HttpError.badStatus(409, "API responded with status 409"),
+      error: HttpError.badStatus(409, "API responded with status 409", {}),
     });
   });
 

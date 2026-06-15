@@ -26,12 +26,17 @@ func (h *Handler) UpdateStatus(c *gin.Context) {
 
 	err := h.svc.UpdateStatus(c.Request.Context(), ref, req)
 	if err != nil {
-		if errors.Is(err, ErrNotFound) {
+		switch {
+		case errors.Is(err, ErrNotFound):
 			c.JSON(http.StatusNotFound, apiErr("BOOKING_NOT_FOUND", "booking not found"))
-			return
+		case errors.Is(err, ErrBookingExpired):
+			c.JSON(http.StatusConflict, gin.H{"error": "booking_expired"})
+		case errors.Is(err, ErrAlreadyConfirmed):
+			c.JSON(http.StatusConflict, gin.H{"error": "already_confirmed"})
+		default:
+			slog.Error("update booking status failed", "ref", ref, "err", err)
+			c.JSON(http.StatusInternalServerError, apiErr("INTERNAL_ERROR", "An unexpected error occurred."))
 		}
-		slog.Error("update booking status failed", "ref", ref, "err", err)
-		c.JSON(http.StatusInternalServerError, apiErr("INTERNAL_ERROR", "An unexpected error occurred."))
 		return
 	}
 

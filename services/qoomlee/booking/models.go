@@ -10,6 +10,12 @@ var (
 	ErrNotFound = errors.New("booking not found")
 	// ErrNoSeatsAvailable is returned when a flight has no remaining seats.
 	ErrNoSeatsAvailable = errors.New("no seats available")
+	// ErrBookingExpired is returned when a status update is attempted on an
+	// EXPIRED booking (or a PENDING booking that has just lazily expired).
+	ErrBookingExpired = errors.New("booking expired")
+	// ErrAlreadyConfirmed is returned when a status update is attempted on a
+	// booking that is already CONFIRMED.
+	ErrAlreadyConfirmed = errors.New("booking already confirmed")
 )
 
 // Passenger holds personal details for one traveller.

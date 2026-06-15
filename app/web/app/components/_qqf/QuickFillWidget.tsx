@@ -17,6 +17,8 @@ export interface QuickFillOption {
 interface QuickFillWidgetProps {
   title: string;
   options: QuickFillOption[];
+  /** Tailwind classes for the icon's resting position, before it's dragged. */
+  anchorClassName?: string;
 }
 
 const PANEL_WIDTH = 256;
@@ -31,7 +33,11 @@ interface DragState {
   moved: boolean;
 }
 
-export default function QuickFillWidget({ title, options }: QuickFillWidgetProps) {
+export default function QuickFillWidget({
+  title,
+  options,
+  anchorClassName = "bottom-24 right-4 md:bottom-4",
+}: QuickFillWidgetProps) {
   const [open, setOpen] = useState(false);
   const [panelStyle, setPanelStyle] = useState<CSSProperties>({});
   const [dragPosition, setDragPosition] = useState<{ left: number; top: number } | null>(null);
@@ -140,13 +146,13 @@ export default function QuickFillWidget({ title, options }: QuickFillWidgetProps
   const containerStyle: CSSProperties = dragPosition
     ? { left: dragPosition.left, top: dragPosition.top }
     : {};
-  const anchorClassName = dragPosition ? "" : "bottom-24 right-4 md:bottom-4";
+  const positionClassName = dragPosition ? "" : anchorClassName;
 
   return (
     <div
       ref={containerRef}
       style={containerStyle}
-      className={`fixed z-50 font-mono text-xs ${anchorClassName}`}
+      className={`fixed z-50 font-mono text-xs ${positionClassName}`}
     >
       {open && (
         <div

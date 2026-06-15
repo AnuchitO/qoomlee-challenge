@@ -61,7 +61,6 @@ services:
       QOOMLEE_SERVICE_URL: http://qoomlee-service:8082
       OMISE_PUBLIC_KEY:    ${OMISE_PUBLIC_KEY}
       OMISE_SECRET_KEY:    ${OMISE_SECRET_KEY}
-      JWT_PUBLIC_KEY:      ${JWT_PUBLIC_KEY}   # verifies incoming user JWTs only
       INTERNAL_TOKEN:      ${INTERNAL_TOKEN}   # sent to qoomlee-service on PUT /status
     ports:
       - "8084:8084"

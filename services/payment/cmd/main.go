@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
@@ -40,6 +41,12 @@ func main() {
 		qoomleeServiceURL = "http://localhost:8082"
 	}
 
+	rawOrigins := os.Getenv("ALLOWED_ORIGINS")
+	if rawOrigins == "" {
+		rawOrigins = "http://localhost:3000"
+	}
+	allowedOrigins := strings.Split(rawOrigins, ",")
+
 	internalToken := os.Getenv("INTERNAL_TOKEN")
 	if internalToken == "" {
 		slog.Error("INTERNAL_TOKEN is required")
@@ -71,7 +78,7 @@ func main() {
 	logger := slog.Default()
 
 	r := gin.New()
-	r.Use(gin.Recovery(), middleware.SecurityHeaders(), middleware.CorrelationID(), middleware.RequestLogger(logger))
+	r.Use(gin.Recovery(), middleware.CORS(allowedOrigins), middleware.SecurityHeaders(), middleware.CorrelationID(), middleware.RequestLogger(logger))
 
 	r.GET("/health/live", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "payment-service"})

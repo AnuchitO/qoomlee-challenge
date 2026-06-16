@@ -113,13 +113,14 @@ install-tools:
 # ====================================================================================
 # DEVELOPMENT
 # ====================================================================================
-.PHONY: up # Build and start all services (foreground)
-up: _check-compose _check-env
-	$(COMPOSE) up --build
+.PHONY: up # Build and start all services, run migrations, then follow logs
+up: up-d
+	$(COMPOSE) logs -f
 
-.PHONY: up-d # Build and start all services (background)
+.PHONY: up-d # Build and start all services (background) and run migrations
 up-d: _check-compose _check-env
 	$(COMPOSE) up --build -d
+	@$(MAKE) db-migrate
 	@echo ""
 	@echo -e "  $(GREEN)✓$(RESET)  All services started"
 	@echo -e "  $(CYAN)→$(RESET)  qoomlee-service $(QOOMLEE_SERVICE_URL)"
@@ -386,6 +387,15 @@ ci: fmt-check lint lint-security test-unit test-integration test-cover test-e2e
 # ====================================================================================
 # DATABASE
 # ====================================================================================
+.PHONY: db-migrate # Apply pending schema migrations to the qoomlee database (idempotent — safe to run repeatedly)
+db-migrate: _check-compose
+	@echo -e "$(BOLD)Applying schema migrations...$(RESET)"
+	@for f in $$(ls infra/db/qoomlee/[0-9][0-9]_*.sql 2>/dev/null | sort | awk 'NR>2'); do \
+	  echo -e "  $(CYAN)→$(RESET)  $$f"; \
+	  $(COMPOSE) exec -T postgres-qoomlee psql -U qoomlee -d qoomlee < "$$f" || exit 1; \
+	done
+	@echo -e "  $(GREEN)✓$(RESET)  Migrations applied"
+
 .PHONY: db-shell-qoomlee # Open a psql shell in the booking database
 db-shell-qoomlee: _check-compose
 	$(COMPOSE) exec postgres-qoomlee psql -U qoomlee -d qoomlee

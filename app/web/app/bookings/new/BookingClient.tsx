@@ -89,6 +89,7 @@ export default function BookingClient({
       `${apiBase}/api/bookings?bookingToken=${encodeURIComponent(bookingToken)}`,
       {
         flightId: flight.id,
+        ...(returnFlight ? { returnFlightId: returnFlight.id } : {}),
         passenger: { firstName, lastName, email, phone },
       },
       { headers: authHeaders() },

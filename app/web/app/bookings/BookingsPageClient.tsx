@@ -19,6 +19,11 @@ export interface Summary {
   destination: string;
   departureTime: string;
   arrivalTime?: string;
+  returnFlightNumber?: string;
+  returnOrigin?: string;
+  returnDestination?: string;
+  returnDepartureTime?: string;
+  returnArrivalTime?: string;
   passengers: number;
   totalAmount: string;
   currency: string;
@@ -101,17 +106,25 @@ export default function BookingsPageClient() {
               <div className="p-md flex items-center justify-between">
                 <div>
                   <h2 className="text-headline-md text-on-surface">
-                    {booking.origin} — {booking.destination}
+                    {booking.returnFlightNumber
+                      ? `${booking.origin} ⇄ ${booking.destination}`
+                      : `${booking.origin} — ${booking.destination}`}
                   </h2>
                   <p className="text-body-md text-on-surface-variant mt-xs">
                     {formatDate(booking.departureTime)}
+                    {booking.returnDepartureTime
+                      ? ` · Return ${formatDate(booking.returnDepartureTime)}`
+                      : ""}
                   </p>
                   <p className="text-label-sm text-on-surface-variant mt-xs">
                     {formatFlightTime(booking.departureTime)} →{" "}
                     {booking.arrivalTime ? formatFlightTime(booking.arrivalTime) : "—"}
                   </p>
                   <p className="text-label-sm text-on-surface-variant mt-xs">
-                    {booking.flightNumber} · {booking.passengers} passengers
+                    {booking.flightNumber}
+                    {booking.returnFlightNumber ? ` · ${booking.returnFlightNumber}` : ""}
+                    {" · "}
+                    {booking.passengers} passengers
                   </p>
                 </div>
                 <div className="text-right">

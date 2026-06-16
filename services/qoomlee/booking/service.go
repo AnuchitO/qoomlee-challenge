@@ -24,7 +24,7 @@ func NewService(repo Repository) Service {
 
 func (s *service) Create(ctx context.Context, req CreateRequest) (*Booking, error) {
 	pnr := generatePNR()
-	return s.repo.Create(ctx, req.FlightID, req.Passenger, pnr, req.UserSub, req.BookingToken)
+	return s.repo.Create(ctx, req.FlightID, req.ReturnFlightID, req.Passenger, pnr, req.UserSub, req.BookingToken)
 }
 
 func (s *service) GetByRef(ctx context.Context, ref string) (*Booking, error) {

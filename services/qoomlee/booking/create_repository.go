@@ -21,7 +21,7 @@ const SeatHoldDuration = 15 * time.Minute
 //  5. INSERT INTO bookings  (total_amount_minor copied from flights.base_price_minor,
 //     expires_at = now + SeatHoldDuration, user_sub from the caller's JWT)
 //  6. UPDATE flights SET available_seats = available_seats - 1
-func (r *repository) Create(ctx context.Context, flightID int64, passenger Passenger, pnr, userSub, bookingToken string) (*Booking, error) {
+func (r *repository) Create(ctx context.Context, flightID int64, returnFlightID *int64, passenger Passenger, pnr, userSub, bookingToken string) (*Booking, error) {
 	if bookingToken != "" {
 		existing, err := r.findByBookingToken(ctx, bookingToken)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -38,7 +38,7 @@ func (r *repository) Create(ctx context.Context, flightID int64, passenger Passe
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	// Step 1+2: lock the flight row and check seat availability
+	// Lock outbound flight row and check seat availability
 	var availableSeats int
 	var basePriceMinor int64
 	var currency string
@@ -57,7 +57,26 @@ func (r *repository) Create(ctx context.Context, flightID int64, passenger Passe
 		return nil, ErrNoSeatsAvailable
 	}
 
-	// Step 3: insert passenger
+	// Lock return flight row (if round-trip) and add its price to the total
+	var returnBasePriceMinor int64
+	if returnFlightID != nil {
+		var returnSeats int
+		err = tx.QueryRowContext(ctx,
+			`SELECT available_seats, base_price_minor FROM flights WHERE id = $1 FOR UPDATE`,
+			*returnFlightID,
+		).Scan(&returnSeats, &returnBasePriceMinor)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("return flight %d not found", *returnFlightID)
+		}
+		if err != nil {
+			return nil, err
+		}
+		if returnSeats <= 0 {
+			return nil, ErrNoSeatsAvailable
+		}
+	}
+
+	// Insert passenger
 	var passengerID int64
 	err = tx.QueryRowContext(ctx,
 		`INSERT INTO passengers (first_name, last_name, email, phone, passport_number, nationality)
@@ -71,27 +90,43 @@ func (r *repository) Create(ctx context.Context, flightID int64, passenger Passe
 		return nil, err
 	}
 
-	// Step 5: insert booking — total = base + 15 % tax (mirrors frontend calculation)
-	taxMinor := int64(math.Round(float64(basePriceMinor) * 0.15))
-	totalAmountMinor := basePriceMinor + taxMinor
+	// Total = (outbound + return) base + 15% tax — mirrors frontend calculation
+	totalBaseMinor := basePriceMinor + returnBasePriceMinor
+	taxMinor := int64(math.Round(float64(totalBaseMinor) * 0.15))
+	totalAmountMinor := totalBaseMinor + taxMinor
 	expiresAt := time.Now().Add(SeatHoldDuration)
+
+	var returnFlightIDParam any
+	if returnFlightID != nil {
+		returnFlightIDParam = *returnFlightID
+	}
+
 	var bookingID int64
 	err = tx.QueryRowContext(ctx,
-		`INSERT INTO bookings (booking_ref, flight_id, passenger_id, total_amount_minor, currency, expires_at, user_sub, booking_token)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
-		pnr, flightID, passengerID, totalAmountMinor, currency, expiresAt, userSub, nullableString(bookingToken),
+		`INSERT INTO bookings (booking_ref, flight_id, return_flight_id, passenger_id, total_amount_minor, currency, expires_at, user_sub, booking_token)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+		pnr, flightID, returnFlightIDParam, passengerID, totalAmountMinor, currency, expiresAt, userSub, nullableString(bookingToken),
 	).Scan(&bookingID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Step 5: decrement seat counter
-	_, err = tx.ExecContext(ctx,
+	// Decrement seat counter for outbound flight
+	if _, err = tx.ExecContext(ctx,
 		`UPDATE flights SET available_seats = available_seats - 1 WHERE id = $1`,
 		flightID,
-	)
-	if err != nil {
+	); err != nil {
 		return nil, err
+	}
+
+	// Decrement seat counter for return flight
+	if returnFlightID != nil {
+		if _, err = tx.ExecContext(ctx,
+			`UPDATE flights SET available_seats = available_seats - 1 WHERE id = $1`,
+			*returnFlightID,
+		); err != nil {
+			return nil, err
+		}
 	}
 
 	if err = tx.Commit(); err != nil {

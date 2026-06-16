@@ -41,41 +41,48 @@ type FlightSummary struct {
 
 // Booking is the canonical booking entity returned by the service / repository.
 type Booking struct {
-	ID               int64         `json:"bookingId"`
-	BookingRef       string        `json:"bookingRef"`
-	Status           string        `json:"status"`
-	TotalAmountMinor int64         `json:"totalAmountMinor"`
-	TotalAmount      string        `json:"totalAmount"` // formatted, e.g. "3500.00"
-	Currency         string        `json:"currency"`
-	CreatedAt        time.Time     `json:"createdAt"`
-	PaymentProvider  *string       `json:"paymentProvider"`     // nil when PENDING
-	ProviderChargeID *string       `json:"providerChargeId"`    // nil when PENDING
-	ExpiresAt        *time.Time    `json:"expiresAt,omitempty"` // seat-hold deadline; nil once CONFIRMED/EXPIRED
-	Passenger        Passenger     `json:"passenger"`
-	Flight           FlightSummary `json:"flight"`
+	ID               int64          `json:"bookingId"`
+	BookingRef       string         `json:"bookingRef"`
+	Status           string         `json:"status"`
+	TotalAmountMinor int64          `json:"totalAmountMinor"`
+	TotalAmount      string         `json:"totalAmount"` // formatted, e.g. "3500.00"
+	Currency         string         `json:"currency"`
+	CreatedAt        time.Time      `json:"createdAt"`
+	PaymentProvider  *string        `json:"paymentProvider"`     // nil when PENDING
+	ProviderChargeID *string        `json:"providerChargeId"`    // nil when PENDING
+	ExpiresAt        *time.Time     `json:"expiresAt,omitempty"` // seat-hold deadline; nil once CONFIRMED/EXPIRED
+	Passenger        Passenger      `json:"passenger"`
+	Flight           FlightSummary  `json:"flight"`
+	ReturnFlight     *FlightSummary `json:"returnFlight,omitempty"`
 }
 
 // Summary is a row in the "My Bookings" list response.
 type Summary struct {
-	BookingRef    string     `json:"bookingRef"`
-	Status        string     `json:"status"`
-	ExpiresAt     *time.Time `json:"expiresAt,omitempty"` // present only when PENDING
-	FlightNumber  string     `json:"flightNumber"`
-	Origin        string     `json:"origin"`
-	Destination   string     `json:"destination"`
-	DepartureTime time.Time  `json:"departureTime"`
-	ArrivalTime   time.Time  `json:"arrivalTime"`
-	Passengers    int        `json:"passengers"`
-	TotalAmount   string     `json:"totalAmount"`
-	Currency      string     `json:"currency"`
+	BookingRef          string     `json:"bookingRef"`
+	Status              string     `json:"status"`
+	ExpiresAt           *time.Time `json:"expiresAt,omitempty"` // present only when PENDING
+	FlightNumber        string     `json:"flightNumber"`
+	Origin              string     `json:"origin"`
+	Destination         string     `json:"destination"`
+	DepartureTime       time.Time  `json:"departureTime"`
+	ArrivalTime         time.Time  `json:"arrivalTime"`
+	ReturnFlightNumber  string     `json:"returnFlightNumber,omitempty"`
+	ReturnOrigin        string     `json:"returnOrigin,omitempty"`
+	ReturnDestination   string     `json:"returnDestination,omitempty"`
+	ReturnDepartureTime *time.Time `json:"returnDepartureTime,omitempty"`
+	ReturnArrivalTime   *time.Time `json:"returnArrivalTime,omitempty"`
+	Passengers          int        `json:"passengers"`
+	TotalAmount         string     `json:"totalAmount"`
+	Currency            string     `json:"currency"`
 }
 
 // CreateRequest is the decoded body of POST /api/bookings.
 type CreateRequest struct {
-	FlightID     int64     `json:"flightId"`
-	Passenger    Passenger `json:"passenger"`
-	UserSub      string    `json:"-"` // JWT sub claim of the caller; not part of the request body
-	BookingToken string    `json:"-"` // from ?bookingToken= query param; prevents duplicate bookings on back-navigation
+	FlightID       int64     `json:"flightId"`
+	ReturnFlightID *int64    `json:"returnFlightId,omitempty"`
+	Passenger      Passenger `json:"passenger"`
+	UserSub        string    `json:"-"` // JWT sub claim of the caller; not part of the request body
+	BookingToken   string    `json:"-"` // from ?bookingToken= query param; prevents duplicate bookings on back-navigation
 }
 
 // UpdateStatusRequest is the decoded body of PUT /api/bookings/:ref/status.

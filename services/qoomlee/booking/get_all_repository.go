@@ -2,6 +2,7 @@ package booking
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 )
@@ -19,10 +20,14 @@ func (r *repository) GetAll(ctx context.Context, userSub string) ([]Summary, err
 	SELECT b.booking_ref, b.status, b.expires_at,
 	       b.total_amount_minor, b.currency,
 	       f.flight_number, rt.origin_iata, rt.destination_iata,
-	       f.departure_time, f.arrival_time
+	       f.departure_time, f.arrival_time,
+	       rf.flight_number, rr.origin_iata, rr.destination_iata,
+	       rf.departure_time, rf.arrival_time
 	FROM bookings b
-	JOIN flights f ON f.id = b.flight_id
+	JOIN flights f  ON f.id  = b.flight_id
 	JOIN routes  rt ON rt.id = f.route_id
+	LEFT JOIN flights rf ON rf.id = b.return_flight_id
+	LEFT JOIN routes  rr ON rr.id = rf.route_id
 	WHERE b.user_sub = $1
 	ORDER BY b.created_at DESC`
 
@@ -37,11 +42,15 @@ func (r *repository) GetAll(ctx context.Context, userSub string) ([]Summary, err
 		var s Summary
 		var expiresAt time.Time
 		var totalAmountMinor int64
+		var rfFlightNumber, rfOrigin, rfDestination sql.NullString
+		var rfDepTime, rfArrTime sql.NullTime
 		if err := rows.Scan(
 			&s.BookingRef, &s.Status, &expiresAt,
 			&totalAmountMinor, &s.Currency,
 			&s.FlightNumber, &s.Origin, &s.Destination,
 			&s.DepartureTime, &s.ArrivalTime,
+			&rfFlightNumber, &rfOrigin, &rfDestination,
+			&rfDepTime, &rfArrTime,
 		); err != nil {
 			return nil, err
 		}
@@ -51,6 +60,15 @@ func (r *repository) GetAll(ctx context.Context, userSub string) ([]Summary, err
 
 		if s.Status == "PENDING" {
 			s.ExpiresAt = &expiresAt
+		}
+		if rfFlightNumber.Valid {
+			s.ReturnFlightNumber = rfFlightNumber.String
+			s.ReturnOrigin = rfOrigin.String
+			s.ReturnDestination = rfDestination.String
+			t := rfDepTime.Time
+			s.ReturnDepartureTime = &t
+			t2 := rfArrTime.Time
+			s.ReturnArrivalTime = &t2
 		}
 
 		summaries = append(summaries, s)

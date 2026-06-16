@@ -21,16 +21,24 @@ func (r *repository) GetByRef(ctx context.Context, ref string) (*Booking, error)
 	       p.first_name, p.last_name, p.email,
 	       COALESCE(p.phone, ''), COALESCE(p.passport_number, ''), COALESCE(p.nationality, ''),
 	       f.flight_number, r.origin_iata, r.destination_iata,
-	       f.departure_time, f.arrival_time
+	       f.departure_time, f.arrival_time,
+	       b.return_flight_id,
+	       rf.flight_number, rr.origin_iata, rr.destination_iata,
+	       rf.departure_time, rf.arrival_time
 	FROM bookings b
-	JOIN passengers p ON p.id = b.passenger_id
-	JOIN flights    f ON f.id = b.flight_id
-	JOIN routes     r ON r.id = f.route_id
+	JOIN passengers p  ON p.id  = b.passenger_id
+	JOIN flights    f  ON f.id  = b.flight_id
+	JOIN routes     r  ON r.id  = f.route_id
+	LEFT JOIN flights rf ON rf.id = b.return_flight_id
+	LEFT JOIN routes  rr ON rr.id = rf.route_id
 	WHERE b.booking_ref = $1`
 
 	var b Booking
 	var expiresAt time.Time
 	var flightID int64
+	var returnFlightID sql.NullInt64
+	var rfFlightNumber, rfOrigin, rfDestination sql.NullString
+	var rfDepartureTime, rfArrivalTime sql.NullTime
 	err := r.db.QueryRowContext(ctx, q, ref).Scan(
 		&b.ID, &b.BookingRef, &b.Status,
 		&b.TotalAmountMinor, &b.Currency, &b.CreatedAt,
@@ -40,12 +48,24 @@ func (r *repository) GetByRef(ctx context.Context, ref string) (*Booking, error)
 		&b.Passenger.Phone, &b.Passenger.PassportNumber, &b.Passenger.Nationality,
 		&b.Flight.FlightNumber, &b.Flight.Origin, &b.Flight.Destination,
 		&b.Flight.DepartureTime, &b.Flight.ArrivalTime,
+		&returnFlightID,
+		&rfFlightNumber, &rfOrigin, &rfDestination,
+		&rfDepartureTime, &rfArrivalTime,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
 	if err != nil {
 		return nil, err
+	}
+	if returnFlightID.Valid {
+		b.ReturnFlight = &FlightSummary{
+			FlightNumber:  rfFlightNumber.String,
+			Origin:        rfOrigin.String,
+			Destination:   rfDestination.String,
+			DepartureTime: rfDepartureTime.Time,
+			ArrivalTime:   rfArrivalTime.Time,
+		}
 	}
 
 	b.TotalAmount = fmt.Sprintf("%.2f", float64(b.TotalAmountMinor)/100)

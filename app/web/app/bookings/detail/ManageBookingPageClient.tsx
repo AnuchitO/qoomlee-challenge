@@ -55,10 +55,15 @@ export default function ManageBookingPageClient() {
                 </div>
                 <div>
                   <h3 className="text-headline-md text-on-surface">
-                    {booking.flight.origin} — {booking.flight.destination}
+                    {booking.returnFlight
+                      ? `${booking.flight.origin} ⇄ ${booking.flight.destination}`
+                      : `${booking.flight.origin} — ${booking.flight.destination}`}
                   </h3>
                   <p className="text-body-md text-on-surface-variant">
                     {formatDate(booking.flight.departureTime)}
+                    {booking.returnFlight
+                      ? ` · Return ${formatDate(booking.returnFlight.departureTime)}`
+                      : ""}
                   </p>
                 </div>
               </div>
@@ -150,6 +155,71 @@ export default function ManageBookingPageClient() {
                     </Link>
                   </div>
                 </div>
+
+                {booking.returnFlight && (
+                  <div className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+                    <div className="bg-secondary px-md py-sm flex justify-between items-center">
+                      <div className="flex items-center gap-sm text-white">
+                        <span
+                          className="material-symbols-outlined text-[18px]"
+                          style={{ fontVariationSettings: "'FILL' 1" }}
+                        >
+                          flight_land
+                        </span>
+                        <span className="text-label-md">
+                          {booking.returnFlight.flightNumber} · Economy
+                        </span>
+                      </div>
+                      <span className="text-label-sm text-white/70">
+                        {formatDate(booking.returnFlight.departureTime)}
+                      </span>
+                    </div>
+                    <div className="p-md">
+                      <FlightRoute
+                        size="xl"
+                        origin={booking.returnFlight.origin}
+                        destination={booking.returnFlight.destination}
+                        originLabel={
+                          findAirport(booking.returnFlight.origin)?.city ??
+                          booking.returnFlight.origin
+                        }
+                        destinationLabel={
+                          findAirport(booking.returnFlight.destination)?.city ??
+                          booking.returnFlight.destination
+                        }
+                        departureTime={formatFlightTime(booking.returnFlight.departureTime)}
+                        arrivalTime={formatFlightTime(booking.returnFlight.arrivalTime)}
+                        duration={formatDuration(
+                          booking.returnFlight.departureTime,
+                          booking.returnFlight.arrivalTime,
+                        )}
+                        stopLabel="Non-stop"
+                        showDots
+                      />
+                    </div>
+                    <div className="relative h-4 flex items-center justify-between overflow-hidden">
+                      <div className="h-8 w-8 bg-background rounded-full -ml-4 border border-outline-variant" />
+                      <div className="flex-1 border-t-2 border-dashed border-outline-variant mx-2" />
+                      <div className="h-8 w-8 bg-background rounded-full -mr-4 border border-outline-variant" />
+                    </div>
+                    <div className="px-md py-sm bg-surface-container-low flex items-center justify-between">
+                      <div className="flex items-center gap-sm">
+                        <span className="material-symbols-outlined text-on-surface-variant">
+                          qr_code_2
+                        </span>
+                        <span className="text-label-sm text-on-surface-variant">
+                          Gate opens at 08:15
+                        </span>
+                      </div>
+                      <Link
+                        href={`/passes/detail?ref=${ref}`}
+                        className="text-primary text-label-md underline underline-offset-4 hover:opacity-80"
+                      >
+                        View Boarding Pass
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Management options */}

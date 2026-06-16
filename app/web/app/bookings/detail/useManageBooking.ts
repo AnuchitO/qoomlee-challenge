@@ -22,6 +22,7 @@ export interface BookingDetail {
   status: string;
   passenger: BookingPassenger;
   flight: BookingFlight;
+  returnFlight?: BookingFlight;
 }
 
 export type ManageBookingState = "loading" | "ready" | "not_found";

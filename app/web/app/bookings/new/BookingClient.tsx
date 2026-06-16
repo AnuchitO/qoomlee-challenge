@@ -22,6 +22,7 @@ interface Props {
   flight: Flight;
   returnFlight?: Flight;
   passengers: number;
+  bookingToken: string;
 }
 
 interface FormErrors {
@@ -34,7 +35,7 @@ interface FormErrors {
 const inputBase =
   "w-full border rounded-xl px-md py-3 bg-surface-bright text-body-md placeholder:text-outline focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors";
 
-export default function BookingClient({ flight, returnFlight, passengers }: Props) {
+export default function BookingClient({ flight, returnFlight, passengers, bookingToken }: Props) {
   const router = useRouter();
   // Restore passenger details if the user navigated back from the payment page
   const [firstName, setFirstName] = useState(() => loadPassengerDetails()?.firstName ?? "");
@@ -80,7 +81,7 @@ export default function BookingClient({ flight, returnFlight, passengers }: Prop
 
     const apiBase = process.env.NEXT_PUBLIC_QOOMLEE_API_URL ?? "http://localhost:8082";
     const result = await postJson<CreateBookingResponse>(
-      `${apiBase}/api/bookings`,
+      `${apiBase}/api/bookings?bookingToken=${encodeURIComponent(bookingToken)}`,
       {
         flightId: flight.id,
         passenger: { firstName, lastName, email, phone },

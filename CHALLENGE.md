@@ -40,6 +40,7 @@
 | QML-004 | View Booking Details | qoomlee-service | ✅ Done |
 | QML-007 | Prevent Overbooking | qoomlee-service | ✅ Done |
 | QML-013 | Passenger Email Validation | qoomlee-service | ⬜ Todo |
+| QML-048 | Prevent Duplicate Bookings on Back Navigation | qoomlee-service + web | ✅ Done |
 
 ### EPIC: Payment
 | # | Story | Service | Status |
@@ -265,6 +266,45 @@ all the way to a confirmed, paid booking.
 | Negative | `GET /api/bookings/XXXXXX` returns `404 BOOKING_NOT_FOUND` |
 | Normal | `PENDING` bookings show `null` for payment provider fields |
 | Normal | `CONFIRMED` bookings show `paymentProvider` and `providerChargeId` |
+
+---
+
+### QML-048 — Prevent Duplicate Bookings on Back Navigation · ✅ Done
+
+> As a passenger, when I navigate back from the payment page to the booking form and click "Continue to Payment" again, I want the system to return my existing pending booking instead of creating a new one, so that I don't accumulate duplicate PENDING bookings.
+
+**Acceptance Criteria**
+
+- **Given** the booking form loads for the first time
+  **When** the page renders
+  **Then** a unique `bookingToken` UUID is generated and injected into the page URL as `?bookingToken=<uuid>`
+- **Given** a valid `?bookingToken=<uuid>` in the URL
+  **When** the passenger clicks "Continue to Payment"
+  **Then** `POST /api/bookings?bookingToken=<uuid>` is called and the server creates a new booking, storing the token
+- **Given** the passenger navigates back from the payment page to the booking form
+  **When** the same `?bookingToken=<uuid>` is still in the URL and the passenger clicks "Continue" again
+  **Then** the server returns the **existing** booking (same `bookingRef`, same `bookingId`) without inserting a new row
+- **Given** `?bookingToken` is absent from the request
+  **When** `POST /api/bookings` is called
+  **Then** the system creates a new booking normally (backward-compatible)
+
+**Technical Notes**
+
+- The booking form page (`/bookings/new`) uses `crypto.randomUUID()` to generate the token client-side on first mount and calls `router.replace` to stamp it into the URL. Navigating back preserves the URL so the same token is reused.
+- The token is sent as a URL query parameter `?bookingToken=<uuid>` — not in the request body or headers. This keeps the token visible, consistent, and in one place from browser URL to API URL.
+- The backend reads it via `c.Query("bookingToken")` and stores it in `bookings.booking_token VARCHAR(36) UNIQUE`. On duplicate key lookup, the existing booking is returned without re-running the seat-decrement transaction.
+- The `booking_token` column is nullable — existing bookings without a token are unaffected.
+
+**Test Cases**
+
+| Layer | Type | Case |
+|---|---|---|
+| Unit | Positive | `?bookingToken=uuid` query param is read and forwarded to service as `CreateRequest.BookingToken` |
+| Unit | Positive | Missing `?bookingToken` forwards empty string — no error, booking created normally |
+| Unit | Positive | `BookingToken` in `CreateRequest` is passed through to the repository |
+| Integration | Positive | Second `POST /api/bookings?bookingToken=same-uuid` returns same `bookingRef` as first |
+| Integration | Positive | Two calls with the same `bookingToken` create exactly one row in `bookings` table |
+| Integration | Positive | Two calls with different `bookingToken` values create two separate bookings |
 
 ---
 

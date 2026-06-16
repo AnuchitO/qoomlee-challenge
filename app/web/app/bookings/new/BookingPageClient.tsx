@@ -1,6 +1,7 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import TopAppBar from "../../components/TopAppBar";
 import FlightSummaryCard from "./components/FlightSummaryCard";
 import BookingClient from "./BookingClient";
@@ -8,8 +9,24 @@ import type { Flight } from "@/lib/flight/types";
 
 export default function BookingPageClient() {
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const str = (key: string, fallback = ""): string => searchParams.get(key) ?? fallback;
+
+  const bookingToken = str("bookingToken");
+
+  // Inject a unique booking-session bookingToken into the URL on first load.
+  // The bookingToken survives browser back-navigation so the backend can deduplicate
+  // repeated "Continue to Payment" clicks for the same booking session.
+  useEffect(() => {
+    if (!bookingToken) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("bookingToken", crypto.randomUUID());
+      router.replace(`/bookings/new?${params.toString()}`);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!bookingToken) return null;
 
   const departureTime = str("departureTime", new Date().toISOString());
 
@@ -84,7 +101,12 @@ export default function BookingPageClient() {
         <div className="max-w-screen-sm mx-auto px-container-margin-mobile md:px-container-margin-desktop -mt-6 relative z-20 space-y-md pb-md">
           <FlightSummaryCard flight={flight} />
           {returnFlight && <FlightSummaryCard flight={returnFlight} />}
-          <BookingClient flight={flight} returnFlight={returnFlight} passengers={passengers} />
+          <BookingClient
+            flight={flight}
+            returnFlight={returnFlight}
+            passengers={passengers}
+            bookingToken={bookingToken}
+          />
         </div>
       </main>
     </>

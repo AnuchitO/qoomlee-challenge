@@ -11,6 +11,32 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestCreateBooking_BookingToken covers QML-048: bookingToken deduplication.
+func TestCreateBooking_BookingToken(t *testing.T) {
+	body := map[string]any{
+		"flightId": 1,
+		"passenger": map[string]any{
+			"firstName": "John", "lastName": "Doe", "email": "john@example.com",
+		},
+	}
+
+	t.Run("bookingToken query param is forwarded to service", func(t *testing.T) {
+		svc := &mockService{booking: &Booking{ID: 1, BookingRef: "QM7X2K"}}
+		w := doCreateWithToken(newTestHandler(svc), body, "test-booking-token-uuid")
+
+		assert.Equal(t, http.StatusCreated, w.Code)
+		assert.Equal(t, "test-booking-token-uuid", svc.gotCreateReq.BookingToken)
+	})
+
+	t.Run("missing bookingToken forwards empty string and still creates booking", func(t *testing.T) {
+		svc := &mockService{booking: &Booking{ID: 2, BookingRef: "ABCDEF"}}
+		w := doCreate(newTestHandler(svc), body)
+
+		assert.Equal(t, http.StatusCreated, w.Code)
+		assert.Equal(t, "", svc.gotCreateReq.BookingToken)
+	})
+}
+
 func TestCreateBooking(t *testing.T) {
 	t.Run("happy path", func(t *testing.T) {
 		svc := &mockService{

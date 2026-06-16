@@ -27,6 +27,7 @@ func (h *Handler) Create(c *gin.Context) {
 	}
 
 	req.UserSub = userSub(c)
+	req.BookingToken = c.Query("bookingToken")
 
 	b, err := h.svc.Create(c.Request.Context(), req)
 	if err != nil {

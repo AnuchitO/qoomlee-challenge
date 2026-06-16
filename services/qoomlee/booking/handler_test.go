@@ -58,6 +58,17 @@ func doCreate(h *Handler, body any) *httptest.ResponseRecorder {
 	return w
 }
 
+func doCreateWithToken(h *Handler, body any, bookingToken string) *httptest.ResponseRecorder {
+	gin.SetMode(gin.TestMode)
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	b, _ := json.Marshal(body)
+	c.Request = httptest.NewRequest(http.MethodPost, "/api/bookings?bookingToken="+bookingToken, bytes.NewReader(b))
+	c.Request.Header.Set("Content-Type", "application/json")
+	h.Create(c)
+	return w
+}
+
 // doCreateAs is like doCreate but sets the opaque session token as the
 // SessionAuth middleware would for an authenticated request.
 func doCreateAs(h *Handler, body any, sub string) *httptest.ResponseRecorder {

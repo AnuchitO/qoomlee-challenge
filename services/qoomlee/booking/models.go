@@ -72,9 +72,10 @@ type Summary struct {
 
 // CreateRequest is the decoded body of POST /api/bookings.
 type CreateRequest struct {
-	FlightID  int64     `json:"flightId"`
-	Passenger Passenger `json:"passenger"`
-	UserSub   string    `json:"-"` // JWT sub claim of the caller; not part of the request body
+	FlightID     int64     `json:"flightId"`
+	Passenger    Passenger `json:"passenger"`
+	UserSub      string    `json:"-"` // JWT sub claim of the caller; not part of the request body
+	BookingToken string    `json:"-"` // from ?bookingToken= query param; prevents duplicate bookings on back-navigation
 }
 
 // UpdateStatusRequest is the decoded body of PUT /api/bookings/:ref/status.

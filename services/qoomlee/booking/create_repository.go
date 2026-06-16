@@ -14,13 +14,24 @@ import (
 const SeatHoldDuration = 15 * time.Minute
 
 // Create runs a single ACID transaction:
-//  1. SELECT available_seats … FOR UPDATE (row lock)
-//  2. Guard against overbooking
-//  3. INSERT INTO passengers
-//  4. INSERT INTO bookings  (total_amount_minor copied from flights.base_price_minor,
+//  1. Idempotency check — if a booking with this key already exists, return it immediately
+//  2. SELECT available_seats … FOR UPDATE (row lock)
+//  3. Guard against overbooking
+//  4. INSERT INTO passengers
+//  5. INSERT INTO bookings  (total_amount_minor copied from flights.base_price_minor,
 //     expires_at = now + SeatHoldDuration, user_sub from the caller's JWT)
-//  5. UPDATE flights SET available_seats = available_seats - 1
-func (r *repository) Create(ctx context.Context, flightID int64, passenger Passenger, pnr, userSub string) (*Booking, error) {
+//  6. UPDATE flights SET available_seats = available_seats - 1
+func (r *repository) Create(ctx context.Context, flightID int64, passenger Passenger, pnr, userSub, idempotencyKey string) (*Booking, error) {
+	if idempotencyKey != "" {
+		existing, err := r.findByIdempotencyKey(ctx, idempotencyKey)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return nil, err
+		}
+		if existing != nil {
+			return existing, nil
+		}
+	}
+
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -60,15 +71,15 @@ func (r *repository) Create(ctx context.Context, flightID int64, passenger Passe
 		return nil, err
 	}
 
-	// Step 4: insert booking — total = base + 15 % tax (mirrors frontend calculation)
+	// Step 5: insert booking — total = base + 15 % tax (mirrors frontend calculation)
 	taxMinor := int64(math.Round(float64(basePriceMinor) * 0.15))
 	totalAmountMinor := basePriceMinor + taxMinor
 	expiresAt := time.Now().Add(SeatHoldDuration)
 	var bookingID int64
 	err = tx.QueryRowContext(ctx,
-		`INSERT INTO bookings (booking_ref, flight_id, passenger_id, total_amount_minor, currency, expires_at, user_sub)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-		pnr, flightID, passengerID, totalAmountMinor, currency, expiresAt, userSub,
+		`INSERT INTO bookings (booking_ref, flight_id, passenger_id, total_amount_minor, currency, expires_at, user_sub, booking_token)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+		pnr, flightID, passengerID, totalAmountMinor, currency, expiresAt, userSub, nullableString(idempotencyKey),
 	).Scan(&bookingID)
 	if err != nil {
 		return nil, err
@@ -96,4 +107,20 @@ func (r *repository) Create(ctx context.Context, flightID int64, passenger Passe
 		Currency:         currency,
 		ExpiresAt:        &expiresAt,
 	}, nil
+}
+
+func (r *repository) findByIdempotencyKey(ctx context.Context, key string) (*Booking, error) {
+	var b Booking
+	var expiresAt time.Time
+	err := r.db.QueryRowContext(ctx,
+		`SELECT id, booking_ref, status, total_amount_minor, currency, expires_at
+		   FROM bookings WHERE booking_token = $1`,
+		key,
+	).Scan(&b.ID, &b.BookingRef, &b.Status, &b.TotalAmountMinor, &b.Currency, &expiresAt)
+	if err != nil {
+		return nil, err
+	}
+	b.TotalAmount = fmt.Sprintf("%.2f", float64(b.TotalAmountMinor)/100)
+	b.ExpiresAt = &expiresAt
+	return &b, nil
 }

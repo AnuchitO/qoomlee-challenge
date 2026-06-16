@@ -87,6 +87,7 @@ CREATE TABLE bookings (
     currency             CHAR(3)        NOT NULL DEFAULT 'THB', -- ISO 4217
     expires_at           TIMESTAMPTZ    NOT NULL,               -- seat-hold deadline; PENDING past this is lazily EXPIRED on read
     user_sub             VARCHAR(255)   NOT NULL,               -- JWT sub of the passenger who created the booking
+    booking_token        VARCHAR(36)    UNIQUE,                 -- client-supplied UUID; prevents duplicate bookings on back-navigation
     created_at           TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
     updated_at           TIMESTAMPTZ    NOT NULL DEFAULT NOW()  -- set explicitly on UPDATE
 );

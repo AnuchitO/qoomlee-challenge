@@ -17,7 +17,7 @@ type mockRepository struct {
 	err       error
 }
 
-func (m *mockRepository) Create(_ context.Context, _ int64, _ Passenger, _ string, _ string) (*Booking, error) {
+func (m *mockRepository) Create(_ context.Context, _ int64, _ Passenger, _ string, _ string, _ string) (*Booking, error) {
 	return m.booking, m.err
 }
 
@@ -33,13 +33,15 @@ func (m *mockRepository) UpdateStatus(_ context.Context, _ string, _ UpdateStatu
 	return m.err
 }
 
-// captureRepo lets us inspect the PNR passed into Create.
+// captureRepo lets us inspect the PNR and bookingToken passed into Create.
 type captureRepo struct {
-	capturedPNR string
+	capturedPNR          string
+	capturedBookingToken string
 }
 
-func (r *captureRepo) Create(_ context.Context, _ int64, _ Passenger, pnr string, _ string) (*Booking, error) {
+func (r *captureRepo) Create(_ context.Context, _ int64, _ Passenger, pnr string, _ string, bookingToken string) (*Booking, error) {
 	r.capturedPNR = pnr
+	r.capturedBookingToken = bookingToken
 	return &Booking{BookingRef: pnr}, nil
 }
 
@@ -81,6 +83,29 @@ func TestServiceCreateBooking(t *testing.T) {
 			Passenger: Passenger{FirstName: "John", LastName: "Doe", Email: "john@example.com"},
 		})
 		assert.Len(t, repo.capturedPNR, 6)
+	})
+
+	// QML-048: bookingToken is forwarded from CreateRequest to the repository.
+	t.Run("bookingToken is forwarded to repo", func(t *testing.T) {
+		repo := &captureRepo{}
+		svc := NewService(repo)
+		_, _ = svc.Create(context.Background(), CreateRequest{
+			FlightID:     1,
+			Passenger:    Passenger{FirstName: "John", LastName: "Doe", Email: "john@example.com"},
+			BookingToken: "test-uuid-token",
+		})
+		assert.Equal(t, "test-uuid-token", repo.capturedBookingToken)
+	})
+
+	// QML-048: empty bookingToken is forwarded as empty string (backward-compatible).
+	t.Run("empty bookingToken forwarded as empty string", func(t *testing.T) {
+		repo := &captureRepo{}
+		svc := NewService(repo)
+		_, _ = svc.Create(context.Background(), CreateRequest{
+			FlightID:  1,
+			Passenger: Passenger{FirstName: "John", LastName: "Doe", Email: "john@example.com"},
+		})
+		assert.Equal(t, "", repo.capturedBookingToken)
 	})
 
 	t.Run("propagates no seats available error", func(t *testing.T) {

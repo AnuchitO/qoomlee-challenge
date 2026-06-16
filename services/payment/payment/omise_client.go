@@ -2,6 +2,7 @@ package payment
 
 import (
 	"context"
+	"errors"
 
 	omise "github.com/omise/omise-go"
 	"github.com/omise/omise-go/operations"
@@ -29,6 +30,16 @@ func (o *OmiseClient) CreateCharge(_ context.Context, token string, amount int64
 		Currency: currency,
 		Card:     token,
 	}); err != nil {
+		// Omise API errors (invalid token, declined card, etc.) are payment
+		// failures — surface them as FailedError so the handler returns 402,
+		// not 500. Transport/auth errors propagate as-is.
+		var omiseErr *omise.Error
+		if errors.As(err, &omiseErr) {
+			return nil, &FailedError{
+				FailureCode:    omiseErr.Code,
+				FailureMessage: omiseErr.Message,
+			}
+		}
 		return nil, err
 	}
 

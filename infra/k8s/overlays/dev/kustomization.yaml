@@ -18,8 +18,8 @@ patches:
 
 images:
   - name: registry.gitlab.com/arise-by-infinitas/devrise-workshop/qoomlee-service
-    newTag: dev
+    newTag: latest
   - name: registry.gitlab.com/arise-by-infinitas/devrise-workshop/payment-service
-    newTag: dev
+    newTag: latest
   - name: registry.gitlab.com/arise-by-infinitas/devrise-workshop/web
-    newTag: dev
+    newTag: latest

@@ -50,6 +50,12 @@ describe("FlightList — rendering", () => {
     expect(screen.getByText("No flights found for this route.")).toBeInTheDocument();
   });
 
+  it("shows the price on each flight card", () => {
+    render(<FlightList flights={[makeFlight({ basePriceMinor: 810000 })]} passengers={1} />);
+    // 810000 minor = ฿8,100
+    expect(screen.getByText(/8[,.]?100/)).toBeInTheDocument();
+  });
+
   it("renders filter chips", () => {
     render(<FlightList flights={[makeFlight()]} passengers={1} />);
 

@@ -10,6 +10,24 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("BookingPageClient — one-way", () => {
+  it("renders the Book Your Flight heading", () => {
+    mockUseSearchParams.mockReturnValue(
+      new URLSearchParams({
+        flightId: "1",
+        flightNumber: "QQ101",
+        origin: "BKK",
+        destination: "SIN",
+        departureTime: "2026-10-24T08:00:00Z",
+        price: "810000",
+        currency: "THB",
+        passengers: "1",
+        bookingToken: "test-token",
+      }),
+    );
+    render(<BookingPageClient />);
+    expect(screen.getByText("Book Your Flight")).toBeInTheDocument();
+  });
+
   it("shows a single flight summary card when no return flight is present", () => {
     mockUseSearchParams.mockReturnValue(
       new URLSearchParams({

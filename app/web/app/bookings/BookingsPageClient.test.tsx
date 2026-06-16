@@ -25,6 +25,7 @@ const confirmed: Summary = {
   origin: "BKK",
   destination: "SIN",
   departureTime: "2026-07-01T08:00:00Z",
+  arrivalTime: "2026-07-01T09:30:00Z",
   passengers: 1,
   totalAmount: "3500.00",
   currency: "THB",
@@ -104,5 +105,21 @@ describe("BookingsPageClient", () => {
 
     expect(screen.queryByText("No bookings yet")).not.toBeInTheDocument();
     expect(screen.queryByText("Confirmed")).not.toBeInTheDocument();
+  });
+
+  it("shows departure → arrival times on each booking card", async () => {
+    vi.mocked(getJson).mockResolvedValue(ok([confirmed]));
+    render(<BookingsPageClient />);
+    await waitFor(() => expect(screen.getByText("Confirmed")).toBeInTheDocument());
+    expect(screen.queryByText(/Invalid Date/)).not.toBeInTheDocument();
+    expect(screen.getByText(/→/)).toBeInTheDocument();
+  });
+
+  it("does not show 'Invalid Date' when arrivalTime is missing from the API response", async () => {
+    const { arrivalTime: _, ...withoutArrival } = confirmed;
+    vi.mocked(getJson).mockResolvedValue(ok([withoutArrival as Summary]));
+    render(<BookingsPageClient />);
+    await waitFor(() => expect(screen.getByText("Confirmed")).toBeInTheDocument());
+    expect(screen.queryByText(/Invalid Date/)).not.toBeInTheDocument();
   });
 });

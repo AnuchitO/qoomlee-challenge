@@ -14,9 +14,9 @@ func InternalToken(secret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.GetHeader("X-Internal-Token")
 		if subtle.ConstantTimeCompare([]byte(token), secretBytes) != 1 {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error":   "UNAUTHORIZED",
-				"message": "invalid internal token",
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+				"error":   "FORBIDDEN",
+				"message": "internal token required",
 			})
 			return
 		}

@@ -29,21 +29,21 @@ func TestInternalToken(t *testing.T) {
 
 	t.Run("valid token is accepted", func(t *testing.T) {
 		w := callInternalToken(handler, secret)
-		assert.NotEqual(t, http.StatusUnauthorized, w.Code)
+		assert.NotEqual(t, http.StatusForbidden, w.Code)
 	})
 
-	t.Run("missing X-Internal-Token returns 401", func(t *testing.T) {
+	t.Run("missing X-Internal-Token returns 403", func(t *testing.T) {
 		w := callInternalToken(handler, "")
-		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		assert.Equal(t, http.StatusForbidden, w.Code)
 	})
 
-	t.Run("wrong token returns 401", func(t *testing.T) {
+	t.Run("wrong token returns 403", func(t *testing.T) {
 		w := callInternalToken(handler, "wrong-token")
-		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		assert.Equal(t, http.StatusForbidden, w.Code)
 	})
 
-	t.Run("empty string token returns 401", func(t *testing.T) {
+	t.Run("empty string token returns 403", func(t *testing.T) {
 		w := callInternalToken(handler, " ")
-		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		assert.Equal(t, http.StatusForbidden, w.Code)
 	})
 }

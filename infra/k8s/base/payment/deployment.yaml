@@ -20,7 +20,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: payment
-          image: ghcr.io/team-00/payment-service:latest
+          image: registry.gitlab.com/arise-by-infinitas/devrise-workshop/payment-service:latest
           ports:
             - name: http
               containerPort: 8084

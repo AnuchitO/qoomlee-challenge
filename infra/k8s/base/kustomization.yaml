@@ -17,9 +17,9 @@ resources:
   - gateway/httproutes.yaml
 
 images:
-  - name: ghcr.io/team-00/qoomlee-service
+  - name: registry.gitlab.com/arise-by-infinitas/devrise-workshop/qoomlee-service
     newTag: latest
-  - name: ghcr.io/team-00/payment-service
+  - name: registry.gitlab.com/arise-by-infinitas/devrise-workshop/payment-service
     newTag: latest
-  - name: ghcr.io/team-00/web
+  - name: registry.gitlab.com/arise-by-infinitas/devrise-workshop/web
     newTag: latest

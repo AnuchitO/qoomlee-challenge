@@ -18,6 +18,10 @@ jwt_public.pem
 services/qoomlee-service/qoomlee-service
 services/payment-service/payment-service
 
+# Kubernetes secrets (never commit actual secret files)
+infra/k8s/**/secret.env
+infra/k8s/**/secret.payment.env
+
 # Coverage
 **/coverage/
 **/*.out

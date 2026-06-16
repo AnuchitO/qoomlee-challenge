@@ -20,7 +20,7 @@ spec:
         fsGroup: 1001
       containers:
         - name: web
-          image: ghcr.io/team-00/web:latest
+          image: registry.gitlab.com/arise-by-infinitas/devrise-workshop/web:latest
           ports:
             - name: http
               containerPort: 3000

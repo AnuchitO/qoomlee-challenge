@@ -40,6 +40,7 @@ func (c *HTTPBookingClient) GetBooking(ctx context.Context, ref string) (*Bookin
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Authorization", "Bearer "+c.internalToken)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {

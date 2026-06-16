@@ -62,8 +62,13 @@ test.describe("Home page", () => {
   });
 
   test("shows a flight search form with origin and destination fields", async ({ page }) => {
-    await expect(page.getByText("From").first()).toBeVisible();
-    await expect(page.getByText("To").first()).toBeVisible();
+    await expect(
+      page
+        .locator("label:visible")
+        .filter({ hasText: /^From$/ })
+        .first(),
+    ).toBeVisible();
+    await expect(page.locator("label:visible").filter({ hasText: /^To$/ }).first()).toBeVisible();
   });
 
   test("shows the Search Flights button", async ({ page }) => {

@@ -36,7 +36,7 @@ type mockOmiser struct {
 	err    error
 }
 
-func (m *mockOmiser) CreateCharge(_ context.Context, _ string, _ int64, _ string) (*ChargeResult, error) {
+func (m *mockOmiser) CreateCharge(_ context.Context, _ ChargeRequest) (*ChargeResult, error) {
 	return m.result, m.err
 }
 
@@ -84,10 +84,14 @@ var declinedCharge = &ChargeResult{
 }
 
 var validReq = ChargeRequest{
-	BookingRef:  "QM7X2K",
-	OmiseToken:  "tokn_test_xxxx",
-	AmountMinor: 350000,
-	Currency:    "THB",
+	BookingRef:      "QM7X2K",
+	CardName:        "John Doe",
+	CardNumber:      "4242424242424242",
+	ExpirationMonth: 12,
+	ExpirationYear:  2028,
+	SecurityCode:    "123",
+	AmountMinor:     350000,
+	Currency:        "THB",
 }
 
 // --- service tests ---

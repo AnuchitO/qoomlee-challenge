@@ -1,4 +1,3 @@
-import Script from "next/script";
 import Link from "next/link";
 import { Skeleton } from "../components/skeletons/Skeleton";
 import { formatTHB } from "@/lib/currency/format";
@@ -102,7 +101,6 @@ export function PaymentClientView({
 
   return (
     <div className="min-h-screen bg-background pb-40">
-      <Script src="https://cdn.omise.co/omise.js" strategy="afterInteractive" />
       {/* Header */}
       <header className="sticky top-0 z-50 bg-surface-bright border-b border-outline-variant shadow-sm">
         <div className="max-w-screen-sm mx-auto px-container-margin-mobile flex items-center justify-between h-16">

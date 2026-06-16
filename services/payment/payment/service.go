@@ -18,8 +18,9 @@ type BookingClient interface {
 }
 
 // Omiser abstracts the Omise payment gateway.
+// Implementations are responsible for tokenizing card data internally.
 type Omiser interface {
-	CreateCharge(ctx context.Context, token string, amount int64, currency string) (*ChargeResult, error)
+	CreateCharge(ctx context.Context, req ChargeRequest) (*ChargeResult, error)
 }
 
 // Repository persists payment records.
@@ -76,7 +77,7 @@ func (s *service) Charge(ctx context.Context, req ChargeRequest) (*Payment, erro
 		return nil, ErrAmountMismatch
 	}
 
-	result, err := s.omise.CreateCharge(ctx, req.OmiseToken, req.AmountMinor, req.Currency)
+	result, err := s.omise.CreateCharge(ctx, req)
 	if err != nil {
 		return nil, err
 	}

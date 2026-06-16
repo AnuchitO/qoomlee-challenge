@@ -51,11 +51,17 @@ func (e *FailedError) Error() string {
 }
 
 // ChargeRequest is the request body for POST /api/payments/charge.
+// The payment service tokenizes the card with Omise internally — callers
+// never interact with Omise directly.
 type ChargeRequest struct {
-	BookingRef  string `json:"bookingRef"`
-	OmiseToken  string `json:"omiseToken"`
-	AmountMinor int64  `json:"amountMinor"`
-	Currency    string `json:"currency"`
+	BookingRef      string `json:"bookingRef"`
+	CardName        string `json:"cardName"`
+	CardNumber      string `json:"cardNumber"`
+	ExpirationMonth int    `json:"expirationMonth"`
+	ExpirationYear  int    `json:"expirationYear"`
+	SecurityCode    string `json:"securityCode"`
+	AmountMinor     int64  `json:"amountMinor"`
+	Currency        string `json:"currency"`
 }
 
 // ChargeResponse is the response body for POST /api/payments/charge.

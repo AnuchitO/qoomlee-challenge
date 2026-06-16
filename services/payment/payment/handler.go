@@ -70,8 +70,12 @@ func (h *Handler) Charge(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, apiErr("MISSING_REQUIRED_FIELD", "bookingRef is required"))
 		return
 	}
-	if req.OmiseToken == "" {
-		c.JSON(http.StatusBadRequest, apiErr("MISSING_REQUIRED_FIELD", "omiseToken is required"))
+	if req.CardNumber == "" {
+		c.JSON(http.StatusBadRequest, apiErr("MISSING_REQUIRED_FIELD", "cardNumber is required"))
+		return
+	}
+	if req.ExpirationMonth == 0 || req.ExpirationYear == 0 {
+		c.JSON(http.StatusBadRequest, apiErr("MISSING_REQUIRED_FIELD", "expirationMonth and expirationYear are required"))
 		return
 	}
 	if req.AmountMinor == 0 {

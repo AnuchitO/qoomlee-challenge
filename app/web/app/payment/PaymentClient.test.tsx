@@ -19,25 +19,6 @@ vi.mock("@/lib/api/httpClient", () => ({
   postJson: vi.fn(),
 }));
 
-vi.mock("next/script", () => ({
-  default: () => null,
-}));
-
-// Stub window.Omise to resolve immediately with a fixed test token
-const MOCK_OMISE_TOKEN = "tokn_test_mock_vitest";
-function setupOmiseMock(token = MOCK_OMISE_TOKEN) {
-  Object.defineProperty(window, "Omise", {
-    configurable: true,
-    writable: true,
-    value: {
-      setPublicKey: vi.fn(),
-      createToken: vi.fn((_type, _data, callback: (code: number, res: { id: string }) => void) => {
-        callback(200, { id: token });
-      }),
-    },
-  });
-}
-
 // price=10000 → ฿100/person, so math is easy
 // base=10000, tax=round(10000*0.15)=1500, insurance=59000
 // total without promo = 70500 → ฿705
@@ -86,7 +67,6 @@ beforeEach(() => {
   vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
   mockPush.mockClear();
   mockReplace.mockClear();
-  setupOmiseMock();
   vi.mocked(getJson).mockReset();
   vi.mocked(getJson).mockResolvedValue(
     ok({ status: "PENDING", expiresAt: "2026-01-01T00:15:00Z" }),
@@ -368,7 +348,7 @@ describe("PaymentClient — successful payment", () => {
     expect(url).toContain("totalMinor=20500");
   });
 
-  it("calls POST /api/payments/charge with the Omise token and session auth header", async () => {
+  it("calls POST /api/payments/charge with card details and session auth header", async () => {
     await renderPayment();
     fillValidCardForm();
 
@@ -379,36 +359,16 @@ describe("PaymentClient — successful payment", () => {
       expect.stringContaining("/api/payments/charge"),
       expect.objectContaining({
         bookingRef: BASE_PROPS.bookingRef,
-        omiseToken: MOCK_OMISE_TOKEN,
+        cardName: "John Doe",
+        cardNumber: "1234567890123456",
+        expirationMonth: 12,
+        expirationYear: 2028,
+        securityCode: "123",
       }),
       expect.objectContaining({
         headers: expect.objectContaining({ Authorization: expect.any(String) }),
       }),
     );
-  });
-
-  it("shows a tokenization error when Omise.js rejects the card", async () => {
-    Object.defineProperty(window, "Omise", {
-      configurable: true,
-      writable: true,
-      value: {
-        setPublicKey: vi.fn(),
-        createToken: vi.fn(
-          (_type, _data, callback: (code: number, res: { message: string }) => void) => {
-            callback(422, { message: "invalid card number" });
-          },
-        ),
-      },
-    });
-
-    await renderPayment();
-    fillValidCardForm();
-
-    fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
-    await flush();
-
-    expect(screen.getByText(/invalid card number/i)).toBeInTheDocument();
-    expect(postJson).not.toHaveBeenCalled();
   });
 
   it("uses totalAmountMinor from booking GET response as the charge amountMinor", async () => {

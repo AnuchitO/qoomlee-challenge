@@ -3,6 +3,7 @@ package payment
 import (
 	"context"
 	"errors"
+	"time"
 
 	omise "github.com/omise/omise-go"
 	"github.com/omise/omise-go/operations"
@@ -22,25 +23,37 @@ func NewOmiseClient(publicKey, secretKey string) (*OmiseClient, error) {
 	return &OmiseClient{client: c}, nil
 }
 
-// CreateCharge creates a charge with Omise for the given card token and amount.
-func (o *OmiseClient) CreateCharge(_ context.Context, token string, amount int64, currency string) (*ChargeResult, error) {
+func (o *OmiseClient) toFailedError(err error) error {
+	var omiseErr *omise.Error
+	if errors.As(err, &omiseErr) {
+		return &FailedError{FailureCode: omiseErr.Code, FailureMessage: omiseErr.Message}
+	}
+	return err
+}
+
+// CreateCharge tokenizes the card details and then creates a charge with Omise.
+// Callers never interact with Omise directly.
+func (o *OmiseClient) CreateCharge(_ context.Context, req ChargeRequest) (*ChargeResult, error) {
+	// Step 1: create a card token from raw card details
+	token := &omise.Token{}
+	if err := o.client.Do(token, &operations.CreateToken{
+		Name:            req.CardName,
+		Number:          req.CardNumber,
+		ExpirationMonth: time.Month(req.ExpirationMonth),
+		ExpirationYear:  req.ExpirationYear,
+		SecurityCode:    req.SecurityCode,
+	}); err != nil {
+		return nil, o.toFailedError(err)
+	}
+
+	// Step 2: charge the token
 	charge := &omise.Charge{}
 	if err := o.client.Do(charge, &operations.CreateCharge{
-		Amount:   amount,
-		Currency: currency,
-		Card:     token,
+		Amount:   req.AmountMinor,
+		Currency: req.Currency,
+		Card:     token.ID,
 	}); err != nil {
-		// Omise API errors (invalid token, declined card, etc.) are payment
-		// failures — surface them as FailedError so the handler returns 402,
-		// not 500. Transport/auth errors propagate as-is.
-		var omiseErr *omise.Error
-		if errors.As(err, &omiseErr) {
-			return nil, &FailedError{
-				FailureCode:    omiseErr.Code,
-				FailureMessage: omiseErr.Message,
-			}
-		}
-		return nil, err
+		return nil, o.toFailedError(err)
 	}
 
 	result := &ChargeResult{

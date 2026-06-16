@@ -1,27 +1,5 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-
-declare global {
-  interface Window {
-    Omise: {
-      setPublicKey(key: string): void;
-      createToken(
-        type: "card",
-        data: {
-          name: string;
-          number: string;
-          expiration_month: number;
-          expiration_year: number;
-          security_code: string;
-        },
-        callback: (
-          statusCode: number,
-          response: { id?: string; message?: string; code?: string },
-        ) => void,
-      ): void;
-    };
-  }
-}
 import {
   formatCardNumber,
   formatExpiry,
@@ -276,44 +254,17 @@ export function usePaymentClient({
     setSubmitError("");
     setSubmitting(true);
 
-    // Tokenize the card via Omise.js before calling the charge endpoint
-    let omiseToken: string;
-    try {
-      const [month, shortYear] = expiry.split("/");
-      omiseToken = await new Promise<string>((resolve, reject) => {
-        window.Omise.setPublicKey(process.env.NEXT_PUBLIC_OMISE_PUBLIC_KEY ?? "");
-        window.Omise.createToken(
-          "card",
-          {
-            name: cardName,
-            number: cardNumber.replace(/\s/g, ""),
-            expiration_month: parseInt(month, 10),
-            expiration_year: 2000 + parseInt(shortYear, 10),
-            security_code: cvv,
-          },
-          (statusCode, response) => {
-            if (statusCode === 200 && response.id) {
-              resolve(response.id);
-            } else {
-              reject(new Error(response.message ?? "Card tokenization failed"));
-            }
-          },
-        );
-      });
-    } catch (e) {
-      setSubmitting(false);
-      setSubmitError(
-        e instanceof Error ? e.message : "Card tokenization failed. Please try again.",
-      );
-      return;
-    }
-
+    const [month, shortYear] = expiry.split("/");
     const apiBase = process.env.NEXT_PUBLIC_PAYMENT_API_URL ?? "http://localhost:8084";
     const result = await postJson<ChargeResponse>(
       `${apiBase}/api/payments/charge`,
       {
         bookingRef,
-        omiseToken,
+        cardName,
+        cardNumber: cardNumber.replace(/\s/g, ""),
+        expirationMonth: parseInt(month, 10),
+        expirationYear: 2000 + parseInt(shortYear, 10),
+        securityCode: cvv,
         amountMinor: bookingTotalMinor || totalMinor,
         currency,
       },

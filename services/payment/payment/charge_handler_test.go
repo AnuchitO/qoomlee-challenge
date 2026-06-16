@@ -57,10 +57,14 @@ func assertErrCode(t *testing.T, w *httptest.ResponseRecorder, code string) {
 }
 
 var validBody = map[string]any{
-	"bookingRef":  "QM7X2K",
-	"omiseToken":  "tokn_test_xxxx",
-	"amountMinor": 350000,
-	"currency":    "THB",
+	"bookingRef":      "QM7X2K",
+	"cardName":        "John Doe",
+	"cardNumber":      "4242424242424242",
+	"expirationMonth": 12,
+	"expirationYear":  2028,
+	"securityCode":    "123",
+	"amountMinor":     350000,
+	"currency":        "THB",
 }
 
 // ─── Charge handler tests ─────────────────────────────────────────────────────
@@ -89,21 +93,28 @@ func TestChargeHandler(t *testing.T) {
 	})
 
 	t.Run("missing bookingRef returns 400", func(t *testing.T) {
-		body := map[string]any{"omiseToken": "tokn_test_xxxx", "amountMinor": 350000}
+		body := map[string]any{"cardNumber": "4242424242424242", "expirationMonth": 12, "expirationYear": 2028, "amountMinor": 350000}
 		w := doCharge(newTestHandler(&mockService{}), body)
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		assertErrCode(t, w, "MISSING_REQUIRED_FIELD")
 	})
 
-	t.Run("missing omiseToken returns 400", func(t *testing.T) {
-		body := map[string]any{"bookingRef": "QM7X2K", "amountMinor": 350000}
+	t.Run("missing cardNumber returns 400", func(t *testing.T) {
+		body := map[string]any{"bookingRef": "QM7X2K", "expirationMonth": 12, "expirationYear": 2028, "amountMinor": 350000}
+		w := doCharge(newTestHandler(&mockService{}), body)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assertErrCode(t, w, "MISSING_REQUIRED_FIELD")
+	})
+
+	t.Run("missing expiration dates returns 400", func(t *testing.T) {
+		body := map[string]any{"bookingRef": "QM7X2K", "cardNumber": "4242424242424242", "amountMinor": 350000}
 		w := doCharge(newTestHandler(&mockService{}), body)
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		assertErrCode(t, w, "MISSING_REQUIRED_FIELD")
 	})
 
 	t.Run("missing amountMinor returns 400", func(t *testing.T) {
-		body := map[string]any{"bookingRef": "QM7X2K", "omiseToken": "tokn_test_xxxx"}
+		body := map[string]any{"bookingRef": "QM7X2K", "cardNumber": "4242424242424242", "expirationMonth": 12, "expirationYear": 2028}
 		w := doCharge(newTestHandler(&mockService{}), body)
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		assertErrCode(t, w, "MISSING_REQUIRED_FIELD")

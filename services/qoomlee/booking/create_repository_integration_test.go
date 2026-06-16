@@ -26,7 +26,7 @@ func TestRepositoryCreateBooking(t *testing.T) {
 		pnr := fmt.Sprintf("T1%04d", time.Now().UnixNano()%9999)
 		b, err := repo.Create(context.Background(), 2, Passenger{
 			FirstName: "Test", LastName: "User", Email: "test@example.com",
-		}, pnr, "user-sub-test")
+		}, pnr, "user-sub-test", "")
 
 		require.NoError(t, err)
 		require.NotNil(t, b)
@@ -47,7 +47,7 @@ func TestRepositoryCreateBooking(t *testing.T) {
 		before := time.Now()
 		b, err := repo.Create(context.Background(), 5, Passenger{
 			FirstName: "Hold", LastName: "Test", Email: "hold@example.com",
-		}, pnr, "user-abc-123")
+		}, pnr, "user-abc-123", "")
 
 		require.NoError(t, err)
 		require.NotNil(t, b.ExpiresAt)
@@ -76,7 +76,7 @@ func TestRepositoryCreateBooking(t *testing.T) {
 		pnr := fmt.Sprintf("T2%04d", time.Now().UnixNano()%9999)
 		b, err := repo.Create(context.Background(), 3, Passenger{
 			FirstName: "Price", LastName: "Test", Email: "price@example.com",
-		}, pnr, "user-sub-test")
+		}, pnr, "user-sub-test", "")
 
 		require.NoError(t, err)
 		taxMinor := int64(math.Round(float64(basePriceMinor) * 0.15))
@@ -115,7 +115,7 @@ func TestRepositoryCreateBooking(t *testing.T) {
 		pnr := fmt.Sprintf("T3%04d", time.Now().UnixNano()%9999)
 		b, err := repo.Create(context.Background(), 16, Passenger{
 			FirstName: "Over", LastName: "Book", Email: "overbook@example.com",
-		}, pnr, "user-sub-test")
+		}, pnr, "user-sub-test", "")
 
 		assert.ErrorIs(t, err, ErrNoSeatsAvailable)
 		assert.Nil(t, b)
@@ -147,7 +147,7 @@ func TestRepositoryCreateBooking(t *testing.T) {
 					FirstName: fmt.Sprintf("Concurrent%d", i),
 					LastName:  "User",
 					Email:     fmt.Sprintf("concurrent%d@example.com", i),
-				}, pnr, "user-sub-test")
+				}, pnr, "user-sub-test", "")
 				results[i] = result{booking: b, err: err}
 			}()
 		}

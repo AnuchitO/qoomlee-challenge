@@ -254,7 +254,7 @@ export function usePaymentClient({
     setSubmitError("");
     setSubmitting(true);
 
-    const [month, shortYear] = expiry.split("/");
+    const [month = "", shortYear = ""] = expiry.split("/");
     const apiBase = process.env.NEXT_PUBLIC_PAYMENT_API_URL ?? "http://localhost:8084";
     const result = await postJson<ChargeResponse>(
       `${apiBase}/api/payments/charge`,

@@ -130,6 +130,44 @@ test.describe("Secure Payment page", () => {
     await expect(page).toHaveURL(/\/payment/);
   });
 
+  // ── loading overlay ───────────────────────────────────────────────────────
+
+  test("shows loading overlay and blocks interaction while payment is processing", async ({
+    page,
+  }) => {
+    let resolveCharge!: () => void;
+    const chargePending = new Promise<void>((r) => {
+      resolveCharge = r;
+    });
+
+    // Hold the charge response so we can inspect interim UI state
+    await page.route("**/api/payments/charge", async (route) => {
+      resolveCharge();
+      await new Promise((r) => setTimeout(r, 2000));
+      void route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ paymentId: 1, status: "succeeded" }),
+      });
+    });
+
+    await page.getByPlaceholder("e.g. Johnathan Doe").fill("John Doe");
+    await page.getByPlaceholder("0000 0000 0000 0000").fill("4111111111111111");
+    await page.getByPlaceholder("MM/YY").fill("1228");
+    await page.getByPlaceholder("•••").fill("123");
+    await page.getByRole("checkbox", { name: /i agree/i }).check();
+    await page.getByRole("button", { name: /pay.*securely/i }).click();
+
+    await chargePending;
+
+    // Overlay must be visible
+    await expect(page.getByTestId("payment-loading-overlay")).toBeVisible();
+    await expect(page.getByText(/processing your payment/i)).toBeVisible();
+
+    // Pay button is gone (overlay covers it) — user cannot click again
+    await expect(page.getByRole("button", { name: /pay.*securely/i })).toBeDisabled();
+  });
+
   // ── happy path ────────────────────────────────────────────────────────────
 
   test("navigates to /bookings/confirmation on valid payment", async ({ page }) => {

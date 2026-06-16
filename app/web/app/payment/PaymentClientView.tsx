@@ -101,6 +101,22 @@ export function PaymentClientView({
 
   return (
     <div className="min-h-screen bg-background pb-40">
+      {/* Full-page overlay — blocks all interaction while payment is processing */}
+      {submitting && (
+        <div
+          data-testid="payment-loading-overlay"
+          aria-busy="true"
+          aria-label="Processing payment"
+          className="fixed inset-0 z-[200] bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center gap-md pointer-events-auto"
+        >
+          <span className="material-symbols-outlined text-primary text-[56px] animate-spin">
+            progress_activity
+          </span>
+          <p className="text-body-md text-on-surface font-semibold">Processing your payment…</p>
+          <p className="text-label-sm text-on-surface-variant">Please don&apos;t close this page</p>
+        </div>
+      )}
+
       {/* Header */}
       <header className="sticky top-0 z-50 bg-surface-bright border-b border-outline-variant shadow-sm">
         <div className="max-w-screen-sm mx-auto px-container-margin-mobile flex items-center justify-between h-16">

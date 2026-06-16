@@ -4,7 +4,7 @@ import BookingPageClient from "./BookingPageClient";
 
 const mockUseSearchParams = vi.fn();
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
   usePathname: () => "/bookings/new",
   useSearchParams: () => mockUseSearchParams(),
 }));
@@ -21,6 +21,7 @@ describe("BookingPageClient — one-way", () => {
         price: "810000",
         currency: "THB",
         passengers: "1",
+        bookingToken: "test-token-one-way",
       }),
     );
 
@@ -49,6 +50,7 @@ describe("BookingPageClient — round trip", () => {
         returnPrice: "390000",
         currency: "THB",
         passengers: "1",
+        bookingToken: "test-token-round-trip-1",
       }),
     );
 
@@ -76,6 +78,7 @@ describe("BookingPageClient — round trip", () => {
         returnPrice: "10000",
         currency: "THB",
         passengers: "1",
+        bookingToken: "test-token-round-trip-2",
       }),
     );
 

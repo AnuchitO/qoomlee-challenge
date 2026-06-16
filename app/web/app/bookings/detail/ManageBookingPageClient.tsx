@@ -6,6 +6,7 @@ import BottomNav from "../../components/BottomNav";
 import FlightRoute from "../../components/FlightRoute";
 import { BookingDetailSkeleton } from "./_skeleton/BookingDetailSkeleton";
 import { findAirport } from "../../flights/data/airports";
+import { formatFlightTime } from "@/lib/flight/dateTime";
 import { useManageBooking } from "./useManageBooking";
 
 function formatDate(iso: string): string {
@@ -14,15 +15,6 @@ function formatDate(iso: string): string {
     day: "numeric",
     month: "short",
     year: "numeric",
-    timeZone: "UTC",
-  });
-}
-
-function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
     timeZone: "UTC",
   });
 }
@@ -104,8 +96,8 @@ export default function ManageBookingPageClient() {
                       destinationLabel={
                         findAirport(booking.flight.destination)?.city ?? booking.flight.destination
                       }
-                      departureTime={formatTime(booking.flight.departureTime)}
-                      arrivalTime={formatTime(booking.flight.arrivalTime)}
+                      departureTime={formatFlightTime(booking.flight.departureTime)}
+                      arrivalTime={formatFlightTime(booking.flight.arrivalTime)}
                       duration={formatDuration(
                         booking.flight.departureTime,
                         booking.flight.arrivalTime,

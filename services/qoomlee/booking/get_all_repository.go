@@ -18,7 +18,8 @@ func (r *repository) GetAll(ctx context.Context, userSub string) ([]Summary, err
 	q := `
 	SELECT b.booking_ref, b.status, b.expires_at,
 	       b.total_amount_minor, b.currency,
-	       f.flight_number, rt.origin_iata, rt.destination_iata, f.departure_time
+	       f.flight_number, rt.origin_iata, rt.destination_iata,
+	       f.departure_time, f.arrival_time
 	FROM bookings b
 	JOIN flights f ON f.id = b.flight_id
 	JOIN routes  rt ON rt.id = f.route_id
@@ -39,7 +40,8 @@ func (r *repository) GetAll(ctx context.Context, userSub string) ([]Summary, err
 		if err := rows.Scan(
 			&s.BookingRef, &s.Status, &expiresAt,
 			&totalAmountMinor, &s.Currency,
-			&s.FlightNumber, &s.Origin, &s.Destination, &s.DepartureTime,
+			&s.FlightNumber, &s.Origin, &s.Destination,
+			&s.DepartureTime, &s.ArrivalTime,
 		); err != nil {
 			return nil, err
 		}

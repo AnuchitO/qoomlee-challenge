@@ -64,6 +64,7 @@ type Summary struct {
 	Origin        string     `json:"origin"`
 	Destination   string     `json:"destination"`
 	DepartureTime time.Time  `json:"departureTime"`
+	ArrivalTime   time.Time  `json:"arrivalTime"`
 	Passengers    int        `json:"passengers"`
 	TotalAmount   string     `json:"totalAmount"`
 	Currency      string     `json:"currency"`

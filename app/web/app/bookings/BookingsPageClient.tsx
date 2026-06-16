@@ -8,6 +8,7 @@ import { BookingsListSkeleton } from "./_skeleton/BookingsListSkeleton";
 import { getJson } from "@/lib/api/httpClient";
 import { authHeaders } from "@/lib/session/sessionToken";
 import { formatTHB } from "@/lib/currency/format";
+import { formatFlightTime } from "@/lib/flight/dateTime";
 
 export interface Summary {
   bookingRef: string;
@@ -17,6 +18,7 @@ export interface Summary {
   origin: string;
   destination: string;
   departureTime: string;
+  arrivalTime: string;
   passengers: number;
   totalAmount: string;
   currency: string;
@@ -103,6 +105,10 @@ export default function BookingsPageClient() {
                   </h2>
                   <p className="text-body-md text-on-surface-variant mt-xs">
                     {formatDate(booking.departureTime)}
+                  </p>
+                  <p className="text-label-sm text-on-surface-variant mt-xs">
+                    {formatFlightTime(booking.departureTime)} →{" "}
+                    {formatFlightTime(booking.arrivalTime)}
                   </p>
                   <p className="text-label-sm text-on-surface-variant mt-xs">
                     {booking.flightNumber} · {booking.passengers} passengers

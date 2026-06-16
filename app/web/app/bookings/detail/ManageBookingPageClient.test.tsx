@@ -4,6 +4,7 @@ import ManageBookingPageClient from "./ManageBookingPageClient";
 import { getJson } from "@/lib/api/httpClient";
 import { ok, err } from "@/lib/result/types";
 import { HttpError } from "@/lib/api/errors";
+import { formatFlightTime } from "@/lib/flight/dateTime";
 
 const mockReplace = vi.fn();
 
@@ -85,13 +86,15 @@ describe("ManageBookingPageClient — QML-047", () => {
   it("shows the real departure time", async () => {
     render(<ManageBookingPageClient />);
     await flush();
-    expect(screen.getByText("08:00")).toBeInTheDocument();
+    const expected = formatFlightTime(BOOKING_DETAIL.flight.departureTime);
+    expect(screen.getAllByText(expected)[0]).toBeInTheDocument();
   });
 
   it("shows the real arrival time", async () => {
     render(<ManageBookingPageClient />);
     await flush();
-    expect(screen.getByText("09:30")).toBeInTheDocument();
+    const expected = formatFlightTime(BOOKING_DETAIL.flight.arrivalTime);
+    expect(screen.getAllByText(expected)[0]).toBeInTheDocument();
   });
 
   // AC5 — real passenger name

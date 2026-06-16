@@ -92,35 +92,6 @@ test.describe("Flight search form", () => {
     await expect(page.getByText("Flying from")).not.toBeVisible({ timeout: 10000 });
   });
 
-  // ── Date picker ───────────────────────────────────────────────────────────────
-
-  test("auto-opens return date picker after clicking Add return", async ({ page }) => {
-    await visibleText(page, "One way").click();
-    await expect(visibleRole(page, "button", { name: "Add return" })).toBeVisible();
-
-    await visibleRole(page, "button", { name: "Add return" }).click();
-
-    // Desktop opens a positioned calendar portal; mobile opens a bottom-sheet without
-    // data-testid. "Select return date" is the mobile-only heading shown in the sheet.
-    await expect(
-      page
-        .locator('[data-testid="calendar-panel"]')
-        .or(page.getByText("Select return date", { exact: true })),
-    ).toBeVisible();
-  });
-
-  // ── Validation ────────────────────────────────────────────────────────────────
-
-  test("shows origin validation error when Search is clicked with empty fields", async ({
-    page,
-  }) => {
-    await visibleRole(page, "button", { name: "Search Flights" }).click();
-
-    await expect(visibleText(page, "Please enter a departure city or airport")).toBeVisible({
-      timeout: 10000,
-    });
-  });
-
   // ── Happy path ────────────────────────────────────────────────────────────────
 
   test("navigates to results page on valid one-way search (desktop)", async ({ page }) => {

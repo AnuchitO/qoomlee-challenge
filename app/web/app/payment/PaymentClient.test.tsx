@@ -446,6 +446,21 @@ describe("PaymentClient — expiry mid-submit", () => {
   });
 });
 
+describe("PaymentClient — loading overlay", () => {
+  it("shows loading overlay and disables Pay button while charge is in flight", async () => {
+    vi.mocked(postJson).mockReturnValue(new Promise(() => {})); // never resolves
+    await renderPayment();
+    fillValidCardForm();
+
+    fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
+    await flush();
+
+    expect(screen.getByTestId("payment-loading-overlay")).toBeInTheDocument();
+    expect(screen.getByText(/processing your payment/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /pay.*securely/i })).toBeDisabled();
+  });
+});
+
 describe("PaymentClient — card number formatting", () => {
   it("formats card number into groups of 4 as the user types", async () => {
     await renderPayment();

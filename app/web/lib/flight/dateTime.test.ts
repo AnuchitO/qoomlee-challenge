@@ -2,12 +2,13 @@ import { describe, it, expect } from "vitest";
 import { formatFlightTime, isNextDay, formatDepartureDateTime } from "./dateTime";
 
 describe("formatFlightTime", () => {
-  it("formats an ISO timestamp as 24-hour HH:MM in the local timezone", () => {
+  it("formats an ISO timestamp as 24-hour HH:MM in UTC timezone", () => {
     const iso = "2026-06-15T08:05:00Z";
     const expected = new Date(iso).toLocaleTimeString(undefined, {
       hour: "2-digit",
       minute: "2-digit",
       hour12: false,
+      timeZone: "UTC",
     });
 
     expect(formatFlightTime(iso)).toBe(expected);

@@ -17,6 +17,7 @@ export function formatDate(isoDateString: string): string {
       month: "short",
       day: "numeric",
       year: "numeric",
+      timeZone: "UTC", // Use UTC to ensure consistency across all pages
     });
   } catch (error) {
     logger.error("Error formatting date", { error });
@@ -36,6 +37,7 @@ export function formatTime(isoTimeString: string): string {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
+      timeZone: "UTC", // Use UTC to ensure consistency across all pages
     });
   } catch (error) {
     logger.error("Error formatting time", { error });

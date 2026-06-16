@@ -47,6 +47,18 @@ describe("DateRangePicker", () => {
     expect(onAddReturn).toHaveBeenCalledOnce();
   });
 
+  it("opens the return date calendar when 'Add return' is clicked", () => {
+    render(<DateRangePicker {...base} />);
+
+    fireEvent.click(screen.getByText("Add return"));
+
+    // Calendar opens at the return step — day buttons (numeric text) appear
+    const dayButtons = screen
+      .getAllByRole("button")
+      .filter((b) => /^\d{1,2}$/.test(b.textContent ?? ""));
+    expect(dayButtons.length).toBeGreaterThan(0);
+  });
+
   it("opens calendar when departure trigger is clicked", () => {
     render(<DateRangePicker {...base} />);
 

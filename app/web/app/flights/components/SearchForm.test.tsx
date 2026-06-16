@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import SearchForm from "./SearchForm";
 
 vi.mock("next/navigation", () => ({
@@ -30,5 +30,13 @@ describe("SearchForm — layout", () => {
     render(<SearchForm />);
     expect(screen.getAllByText("One way").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Round trip").length).toBeGreaterThan(0);
+  });
+});
+
+describe("SearchForm — validation", () => {
+  it("shows a validation error when Search Flights is clicked with no origin selected", () => {
+    render(<SearchForm />);
+    fireEvent.click(screen.getAllByRole("button", { name: /search flights/i })[0]!);
+    expect(screen.getAllByText("Please enter a departure city or airport")[0]).toBeInTheDocument();
   });
 });

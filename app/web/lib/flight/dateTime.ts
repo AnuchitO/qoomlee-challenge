@@ -3,6 +3,7 @@ export function formatFlightTime(iso: string): string {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
+    timeZone: "UTC", // Use UTC to ensure consistency across all pages
   });
 }
 

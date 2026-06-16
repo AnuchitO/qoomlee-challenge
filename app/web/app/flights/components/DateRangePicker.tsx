@@ -25,7 +25,11 @@ const shiftMonth = (y: number, m: number, n: number): [number, number] => {
 };
 
 const monthLabel = (y: number, m: number) =>
-  new Date(y, m).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  new Date(Date.UTC(y, m)).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
 
 const daysInMonth = (y: number, m: number) => new Date(y, m + 1, 0).getDate();
 const firstDayOffset = (y: number, m: number) => (new Date(y, m, 1).getDay() + 6) % 7; // Mon=0
@@ -478,8 +482,8 @@ export default function DateRangePicker({
     if (!iso) return <span className="text-on-surface-variant text-body-sm">Select date</span>;
     const [y, m, d] = parseISO(iso);
     const dt = new Date(y, m, d);
-    const dow = dt.toLocaleDateString("en-US", { weekday: "short" });
-    const mon = dt.toLocaleDateString("en-US", { month: "short" });
+    const dow = dt.toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" });
+    const mon = dt.toLocaleDateString("en-US", { month: "short", timeZone: "UTC" });
     return (
       <span className="text-body-md text-on-surface font-medium truncate">
         {dow}, {d} {mon} {y}

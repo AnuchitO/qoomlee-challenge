@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Skeleton } from "../components/skeletons/Skeleton";
 import { formatTHB } from "@/lib/currency/format";
+import { FEATURE_ALT_PAYMENT_METHODS } from "@/lib/features";
 import {
   formatCountdown,
   formatDeparture,
@@ -97,7 +98,9 @@ export function PaymentClientView({
   handlePay,
   goBack,
 }: PaymentClientViewProps) {
-  const visiblePaymentMethods = PAYMENT_METHODS;
+  const visiblePaymentMethods = FEATURE_ALT_PAYMENT_METHODS
+    ? PAYMENT_METHODS
+    : PAYMENT_METHODS.filter((m) => m.id === "card");
 
   return (
     <div className="min-h-screen bg-background pb-40">

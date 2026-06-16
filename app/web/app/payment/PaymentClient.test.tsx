@@ -19,6 +19,14 @@ vi.mock("@/lib/api/httpClient", () => ({
   postJson: vi.fn(),
 }));
 
+// Mutable flag — tests that need alt methods set this to true before rendering
+let altPaymentEnabled = false;
+vi.mock("@/lib/features", () => ({
+  get FEATURE_ALT_PAYMENT_METHODS() {
+    return altPaymentEnabled;
+  },
+}));
+
 // price=10000 → ฿100/person, so math is easy
 // base=10000, tax=round(10000*0.15)=1500, insurance=59000
 // total without promo = 70500 → ฿705
@@ -102,12 +110,21 @@ describe("PaymentClient — layout", () => {
     expect(screen.getByTestId("countdown").textContent).toMatch(/^\d{2}:\d{2}$/);
   });
 
-  it("renders all four payment method tabs", async () => {
+  it("hides payment method tab bar when alt payment methods flag is off", async () => {
+    altPaymentEnabled = false;
+    await renderPayment();
+    expect(screen.queryByRole("button", { name: "PromptPay" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Bank" })).not.toBeInTheDocument();
+  });
+
+  it("renders all four payment method tabs when alt payment methods flag is on", async () => {
+    altPaymentEnabled = true;
     await renderPayment();
     expect(screen.getByRole("button", { name: "Card" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "PromptPay" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Bank" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Other" })).toBeInTheDocument();
+    altPaymentEnabled = false;
   });
 
   it("shows the card form by default", async () => {
@@ -117,12 +134,14 @@ describe("PaymentClient — layout", () => {
   });
 
   it("shows a coming-soon message when a non-card method is selected", async () => {
+    altPaymentEnabled = true;
     await renderPayment();
 
     fireEvent.click(screen.getByRole("button", { name: "PromptPay" }));
 
     expect(screen.getByText(/PromptPay.*coming soon/i)).toBeInTheDocument();
     expect(screen.queryByPlaceholderText("0000 0000 0000 0000")).not.toBeInTheDocument();
+    altPaymentEnabled = false;
   });
 });
 

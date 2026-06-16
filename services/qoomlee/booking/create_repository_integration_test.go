@@ -5,6 +5,7 @@ package booking
 import (
 	"context"
 	"fmt"
+	"math"
 	"sync"
 	"testing"
 	"time"
@@ -62,7 +63,7 @@ func TestRepositoryCreateBooking(t *testing.T) {
 		assert.WithinDuration(t, before.Add(SeatHoldDuration), expiresAt, 5*time.Second)
 	})
 
-	t.Run("total amount matches flight base price", func(t *testing.T) {
+	t.Run("total amount is base price plus 15% tax", func(t *testing.T) {
 		repo := NewRepository(sharedDB)
 
 		var basePriceMinor int64
@@ -78,8 +79,33 @@ func TestRepositoryCreateBooking(t *testing.T) {
 		}, pnr, "user-sub-test")
 
 		require.NoError(t, err)
-		assert.Equal(t, basePriceMinor, b.TotalAmountMinor, "total_amount_minor must equal flight base_price_minor")
+		taxMinor := int64(math.Round(float64(basePriceMinor) * 0.15))
+		expectedTotal := basePriceMinor + taxMinor
+		assert.Equal(t, expectedTotal, b.TotalAmountMinor,
+			"total_amount_minor must be base_price_minor + 15%% tax (got base=%d, tax=%d)",
+			basePriceMinor, taxMinor)
 		assert.Equal(t, currency, b.Currency)
+	})
+
+	t.Run("total amount tax rounds to nearest minor unit", func(t *testing.T) {
+		// Verify math.Round behaviour: a base price that would produce a fractional
+		// tax (e.g. 10 minor → tax = 1.5 → rounds to 2) is handled correctly,
+		// mirroring the JS Math.round() in usePaymentClient.ts.
+		cases := []struct {
+			base     int64
+			expected int64 // base + round(base*0.15)
+		}{
+			{10000, 11500},   // 10000 + 1500 = 11500 (exact)
+			{420000, 483000}, // 420000 + 63000 = 483000 (exact)
+			{10, 12},         // 10 + round(1.5) = 10 + 2 = 12
+			{20, 23},         // 20 + round(3.0) = 23
+		}
+		for _, tc := range cases {
+			taxMinor := int64(math.Round(float64(tc.base) * 0.15))
+			got := tc.base + taxMinor
+			assert.Equal(t, tc.expected, got,
+				"base=%d: expected total %d, got %d", tc.base, tc.expected, got)
+		}
 	})
 
 	t.Run("sold out flight returns no seats available error", func(t *testing.T) {

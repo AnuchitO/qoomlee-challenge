@@ -363,6 +363,49 @@ describe("PaymentClient — successful payment", () => {
       }),
     );
   });
+
+  it("uses totalAmountMinor from booking GET response as the charge amountMinor", async () => {
+    // Backend stores base + 15% tax (e.g. 10000 + 1500 = 11500).
+    // The charge must use that server-authoritative total, not the
+    // frontend-computed display total (which also includes insurance).
+    const serverTotal = 11500;
+    vi.mocked(getJson).mockResolvedValue(
+      ok({ status: "PENDING", expiresAt: "2026-01-01T00:15:00Z", totalAmountMinor: serverTotal }),
+    );
+
+    await renderPayment();
+    fillValidCardForm();
+
+    fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
+    await flush();
+
+    expect(postJson).toHaveBeenCalledWith(
+      expect.stringContaining("/api/payments/charge"),
+      expect.objectContaining({ amountMinor: serverTotal }),
+      expect.anything(),
+    );
+  });
+
+  it("falls back to computed total when booking response has no totalAmountMinor", async () => {
+    // Booking response without totalAmountMinor (e.g. legacy or test stub):
+    // charge should still proceed using the frontend-computed totalMinor.
+    vi.mocked(getJson).mockResolvedValue(
+      ok({ status: "PENDING", expiresAt: "2026-01-01T00:15:00Z" }),
+    );
+
+    await renderPayment();
+    fillValidCardForm();
+
+    fireEvent.click(screen.getByRole("button", { name: /pay.*securely/i }));
+    await flush();
+
+    // base=10000, tax=1500, insurance=59000 → totalMinor=70500
+    expect(postJson).toHaveBeenCalledWith(
+      expect.stringContaining("/api/payments/charge"),
+      expect.objectContaining({ amountMinor: 70500 }),
+      expect.anything(),
+    );
+  });
 });
 
 describe("PaymentClient — expiry mid-submit", () => {

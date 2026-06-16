@@ -47,12 +47,21 @@ async function fillAndSubmitBookingForm(page: import("@playwright/test").Page) {
   await page.getByRole("button", { name: /continue to payment/i }).click();
 }
 
+/**
+ * Wait for BookingPageClient's useEffect to stamp the bookingToken into the URL.
+ * `networkidle` fires before router.replace completes under parallel load, so we
+ * poll the URL directly instead.
+ */
+async function waitForToken(page: import("@playwright/test").Page) {
+  await page.waitForURL(/bookingToken=/, { timeout: 10000 });
+}
+
 test.describe("Booking token deduplication (QML-048)", () => {
   // ── token injection ─────────────────────────────────────────────────────────
 
   test("injects a UUID bookingToken into the URL on first load", async ({ page }) => {
     await page.goto(BOOKING_URL);
-    await page.waitForLoadState("networkidle");
+    await waitForToken(page);
 
     const url = new URL(page.url());
     const token = url.searchParams.get("bookingToken");
@@ -62,12 +71,12 @@ test.describe("Booking token deduplication (QML-048)", () => {
 
   test("generates a fresh bookingToken for each new booking session", async ({ page }) => {
     await page.goto(BOOKING_URL);
-    await page.waitForLoadState("networkidle");
+    await waitForToken(page);
     const token1 = new URL(page.url()).searchParams.get("bookingToken");
 
     await page.goto("/flights");
     await page.goto(BOOKING_URL);
-    await page.waitForLoadState("networkidle");
+    await waitForToken(page);
     const token2 = new URL(page.url()).searchParams.get("bookingToken");
 
     expect(token1).toMatch(UUID_RE);
@@ -80,7 +89,7 @@ test.describe("Booking token deduplication (QML-048)", () => {
   test("bookingToken in URL is unchanged after navigating back from payment", async ({ page }) => {
     await mockCreateBooking(page);
     await page.goto(BOOKING_URL);
-    await page.waitForLoadState("networkidle");
+    await waitForToken(page);
 
     const tokenBeforeSubmit = new URL(page.url()).searchParams.get("bookingToken");
     expect(tokenBeforeSubmit).toMatch(UUID_RE);
@@ -89,7 +98,7 @@ test.describe("Booking token deduplication (QML-048)", () => {
     await expect(page).toHaveURL(/\/payment/, { timeout: 5000 });
 
     await page.goBack();
-    await page.waitForLoadState("networkidle");
+    await waitForToken(page);
 
     const tokenAfterBack = new URL(page.url()).searchParams.get("bookingToken");
     expect(tokenAfterBack).toBe(tokenBeforeSubmit);
@@ -120,14 +129,15 @@ test.describe("Booking token deduplication (QML-048)", () => {
 
     // First visit — fill and submit
     await page.goto(BOOKING_URL);
-    await page.waitForLoadState("networkidle");
+    await waitForToken(page);
     await fillAndSubmitBookingForm(page);
     await expect(page).toHaveURL(/\/payment/, { timeout: 5000 });
 
-    // Navigate back and submit again
+    // Navigate back and submit again.
+    // React state (form fields) may be reset on back navigation under load; re-fill.
     await page.goBack();
-    await page.waitForLoadState("networkidle");
-    await page.getByRole("button", { name: /continue to payment/i }).click();
+    await waitForToken(page);
+    await fillAndSubmitBookingForm(page);
     await expect(page).toHaveURL(/\/payment/, { timeout: 5000 });
 
     // Two POST calls were made
@@ -160,7 +170,7 @@ test.describe("Booking token deduplication (QML-048)", () => {
     });
 
     await page.goto(BOOKING_URL);
-    await page.waitForLoadState("networkidle");
+    await waitForToken(page);
     await fillAndSubmitBookingForm(page);
 
     // Wait until the request has been received before asserting

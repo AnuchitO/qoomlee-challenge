@@ -119,7 +119,7 @@ test.describe("Traveller books and pays for a flight", () => {
     await expect(page).toHaveURL(/\/bookings\/confirmation/, { timeout: 5000 });
     await expect(page).toHaveURL(new RegExp(`ref=${BOOKING_REF}`));
 
-    await expect(page.getByText(/booking confirmed/i)).toBeVisible();
+    await expect(page.getByRole("heading", { name: /booking confirmed/i })).toBeVisible();
     await expect(page.getByText(BOOKING_REF)).toBeVisible();
     await expect(page.getByText(/jane/i).first()).toBeVisible();
     await expect(page.getByText("QQ101").first()).toBeVisible();

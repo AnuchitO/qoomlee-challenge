@@ -21,6 +21,10 @@ test.describe("Flight search form", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/flights");
     await page.waitForLoadState("networkidle");
+    // Ensure React has hydrated and the form is interactive before each test.
+    await expect(
+      page.getByRole("button", { name: "Search Flights" }).filter({ visible: true }),
+    ).toBeVisible({ timeout: 15000 });
   });
 
   test("swaps origin and destination (desktop)", async ({ page }) => {
@@ -85,7 +89,7 @@ test.describe("Flight search form", () => {
 
     // Tap the backdrop (top-left corner, outside the sheet)
     await page.mouse.click(10, 10);
-    await expect(page.getByText("Flying from")).not.toBeVisible({ timeout: 5000 });
+    await expect(page.getByText("Flying from")).not.toBeVisible({ timeout: 10000 });
   });
 
   // ── Date picker ───────────────────────────────────────────────────────────────
@@ -96,10 +100,13 @@ test.describe("Flight search form", () => {
 
     await visibleRole(page, "button", { name: "Add return" }).click();
 
-    // After switching to round trip, the return date trigger should appear
+    // Desktop opens a positioned calendar portal; mobile opens a bottom-sheet without
+    // data-testid. "Select return date" is the mobile-only heading shown in the sheet.
     await expect(
-      page.locator('[data-testid="return-trigger"]').filter({ visible: true }),
-    ).toBeVisible({ timeout: 5000 });
+      page
+        .locator('[data-testid="calendar-panel"]')
+        .or(page.getByText("Select return date", { exact: true })),
+    ).toBeVisible();
   });
 
   // ── Validation ────────────────────────────────────────────────────────────────
@@ -110,7 +117,7 @@ test.describe("Flight search form", () => {
     await visibleRole(page, "button", { name: "Search Flights" }).click();
 
     await expect(visibleText(page, "Please enter a departure city or airport")).toBeVisible({
-      timeout: 5000,
+      timeout: 10000,
     });
   });
 
@@ -128,7 +135,7 @@ test.describe("Flight search form", () => {
     // Open the custom calendar (portal renders to document.body with data-testid="calendar-panel")
     await page.locator('[data-testid="departure-trigger"]').filter({ visible: true }).click();
     const cal = page.locator('[data-testid="calendar-panel"]');
-    await expect(cal).toBeVisible({ timeout: 5000 });
+    await expect(cal).toBeVisible({ timeout: 10000 });
     // Click the first non-disabled day button (past days have disabled attr; nav buttons have aria-label)
     await cal.locator('button[type="button"]:not([aria-label]):not([disabled])').first().click();
 

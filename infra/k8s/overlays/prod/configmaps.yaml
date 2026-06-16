@@ -1,0 +1,31 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: qoomlee-config
+data:
+  DB_HOST: "postgres-qoomlee.qoomlee-team-00-prod.svc.cluster.local"
+  DB_PORT: "5432"
+  DB_NAME: "qoomlee"
+  DB_USER: "qoomlee"
+  ALLOWED_ORIGINS: "https://app.team-00.example.com"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payment-config
+data:
+  DB_HOST: "postgres-payment.qoomlee-team-00-prod.svc.cluster.local"
+  DB_PORT: "5432"
+  DB_NAME: "qoomlee_payment"
+  DB_USER: "qoomlee_payment"
+  QOOMLEE_SERVICE_URL: "http://qoomlee:8082"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-config
+data:
+  NEXT_PUBLIC_QOOMLEE_API_URL: "https://api.team-00.example.com"
+  NEXT_PUBLIC_PAYMENT_API_URL: "https://payment.team-00.example.com"
+  NEXT_PUBLIC_ENABLE_TEST_SCENARIOS: "false"

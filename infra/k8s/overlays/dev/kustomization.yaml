@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: qoomlee-team-00-dev
+
+labels:
+  - pairs:
+      env: dev
+    includeSelectors: false
+
+resources:
+  - ../../base
+  - namespace.yaml
+  - configmaps.yaml
+
+patches:
+  - path: patch-httproutes.yaml
+
+images:
+  - name: ghcr.io/team-00/qoomlee-service
+    newTag: dev
+  - name: ghcr.io/team-00/payment-service
+    newTag: dev
+  - name: ghcr.io/team-00/web
+    newTag: dev

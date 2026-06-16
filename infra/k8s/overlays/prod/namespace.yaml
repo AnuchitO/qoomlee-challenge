@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: qoomlee-team-00-prod
+  labels:
+    team: team-00
+    env: prod

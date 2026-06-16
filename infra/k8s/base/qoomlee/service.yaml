@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: qoomlee
+  labels:
+    app: qoomlee
+spec:
+  selector:
+    app: qoomlee
+  ports:
+    - name: http
+      port: 8082
+      targetPort: 8082
+      protocol: TCP

@@ -1,0 +1,8 @@
+# NOT applied — GKE provisions GatewayClasses automatically when Gateway API is enabled on the cluster.
+# Enable it via: gcloud container clusters update <CLUSTER> --gateway-api=standard --region=<REGION>
+#
+# Available GKE GatewayClasses:
+#   gke-l7-global-external-managed   — Global external Application Load Balancer (internet-facing, used here)
+#   gke-l7-regional-external-managed — Regional external Application Load Balancer
+#   gke-l7-rilb                      — Regional internal Application Load Balancer
+#   gke-l7-gxlb                      — Global external classic (legacy)

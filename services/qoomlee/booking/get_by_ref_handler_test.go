@@ -68,6 +68,30 @@ func TestGetBookingByRef(t *testing.T) {
 		assert.Nil(t, resp["providerChargeId"])
 	})
 
+	t.Run("expired booking returns status EXPIRED with no expiresAt", func(t *testing.T) {
+		svc := &mockService{
+			booking: &Booking{
+				ID: 3, BookingRef: "EXPRD1", Status: "EXPIRED",
+				TotalAmountMinor: 350000, TotalAmount: "3500.00", Currency: "THB",
+				ExpiresAt: nil, // lazy-expired; must not appear in response
+				Flight: FlightSummary{
+					FlightNumber:  "QM101",
+					Origin:        "BKK",
+					Destination:   "SIN",
+					DepartureTime: time.Now(),
+					ArrivalTime:   time.Now(),
+				},
+			},
+		}
+		w := doGetByRef(newTestHandler(svc), "EXPRD1")
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var resp map[string]any
+		require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+		assert.Equal(t, "EXPIRED", resp["status"])
+		assert.Nil(t, resp["expiresAt"], "expiresAt must be absent for an expired booking")
+	})
+
 	t.Run("not found", func(t *testing.T) {
 		svc := &mockService{err: ErrNotFound}
 		w := doGetByRef(newTestHandler(svc), "XXXXXX")

@@ -32,10 +32,10 @@ test.describe("Flight search form", () => {
 
   test("switches to Round trip and shows a return date input", async ({ page }) => {
     await visibleText(page, "Round trip").click();
-    // After switching, at least one return date input should appear
-    await expect(page.locator('input[type="date"]').filter({ visible: true }).last()).toBeVisible({
-      timeout: 5000,
-    });
+    // After switching, the return date trigger should appear
+    await expect(
+      page.locator('[data-testid="return-trigger"]').filter({ visible: true }),
+    ).toBeVisible({ timeout: 5000 });
   });
 
   // ── Airport select — desktop ─────────────────────────────────────────────────
@@ -150,10 +150,10 @@ test.describe("Flight search form", () => {
 
     await visibleRole(page, "button", { name: "Add return" }).click();
 
-    // Return date input must appear in the active layout
-    await expect(page.locator('input[type="date"]').filter({ visible: true }).last()).toBeVisible({
-      timeout: 5000,
-    });
+    // After switching to round trip, the return date trigger should appear
+    await expect(
+      page.locator('[data-testid="return-trigger"]').filter({ visible: true }),
+    ).toBeVisible({ timeout: 5000 });
   });
 
   // ── Validation ────────────────────────────────────────────────────────────────
@@ -179,7 +179,12 @@ test.describe("Flight search form", () => {
     await visibleText(page, "Select destination").click();
     await visibleText(page, "Singapore Changi Airport").click();
 
-    await page.locator('input[type="date"]').filter({ visible: true }).first().fill("2026-08-01");
+    // Open the custom calendar (portal renders to document.body with data-testid="calendar-panel")
+    await page.locator('[data-testid="departure-trigger"]').filter({ visible: true }).click();
+    const cal = page.locator('[data-testid="calendar-panel"]');
+    await expect(cal).toBeVisible({ timeout: 5000 });
+    // Click the first non-disabled day button (past days have disabled attr; nav buttons have aria-label)
+    await cal.locator('button[type="button"]:not([aria-label]):not([disabled])').first().click();
 
     await visibleRole(page, "button", { name: "Search Flights" }).click();
     await expect(page).toHaveURL(/\/flights\/results/, { timeout: 10000 });

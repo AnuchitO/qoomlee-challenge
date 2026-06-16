@@ -1,8 +1,11 @@
 import { test, expect } from "@playwright/test";
 
+const BOOKING_REF = "QM7X2K";
+
 const PAYMENT_URL =
   "/payment?" +
-  "flightNumber=QQ101" +
+  `ref=${BOOKING_REF}` +
+  "&flightNumber=QQ101" +
   "&origin=BKK" +
   "&destination=SIN" +
   "&departureTime=2026-10-24T08%3A00%3A00Z" +
@@ -14,8 +17,29 @@ const PAYMENT_URL =
   "&email=john%40example.com" +
   "&phone=0812345678";
 
+// Mock the booking lookup (GET /api/bookings/:ref) to return a PENDING booking
+// with an expiresAt 15 minutes in the future so the page reaches "ready" state.
+async function mockPendingBooking(page: import("@playwright/test").Page) {
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+  await page.route(`**/${BOOKING_REF}`, (route) => {
+    void route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ status: "PENDING", expiresAt }),
+    });
+  });
+  await page.route("**/api/payments/charge", (route) => {
+    void route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ paymentId: 1, status: "succeeded" }),
+    });
+  });
+}
+
 test.describe("Secure Payment page", () => {
   test.beforeEach(async ({ page }) => {
+    await mockPendingBooking(page);
     await page.goto(PAYMENT_URL);
     await page.waitForLoadState("networkidle");
   });

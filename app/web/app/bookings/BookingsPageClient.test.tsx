@@ -82,4 +82,27 @@ describe("BookingsPageClient", () => {
 
     await waitFor(() => expect(screen.getByText("No bookings yet")).toBeInTheDocument());
   });
+
+  it("calls GET /api/bookings with the session auth header", async () => {
+    vi.mocked(getJson).mockResolvedValue(ok([]));
+
+    render(<BookingsPageClient />);
+
+    await waitFor(() => expect(getJson).toHaveBeenCalled());
+    expect(getJson).toHaveBeenCalledWith(
+      expect.stringContaining("/api/bookings"),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: "Bearer test-token" }),
+      }),
+    );
+  });
+
+  it("shows the loading skeleton before bookings arrive", () => {
+    vi.mocked(getJson).mockReturnValue(new Promise(() => {}));
+
+    render(<BookingsPageClient />);
+
+    expect(screen.queryByText("No bookings yet")).not.toBeInTheDocument();
+    expect(screen.queryByText("Confirmed")).not.toBeInTheDocument();
+  });
 });

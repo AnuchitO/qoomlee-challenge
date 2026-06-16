@@ -97,10 +97,7 @@ export function PaymentClientView({
   handlePay,
   goBack,
 }: PaymentClientViewProps) {
-  const enableAltPaymentMethods = process.env.NEXT_PUBLIC_ENABLE_ALT_PAYMENT_METHODS === "true";
-  const visiblePaymentMethods = enableAltPaymentMethods
-    ? PAYMENT_METHODS
-    : PAYMENT_METHODS.filter(({ id }) => id === "card");
+  const visiblePaymentMethods = PAYMENT_METHODS;
 
   return (
     <div className="min-h-screen bg-background pb-40">
@@ -118,6 +115,21 @@ export function PaymentClientView({
           <span className="material-symbols-outlined text-on-surface-variant">lock</span>
         </div>
       </header>
+
+      {/* Progress stepper */}
+      <div className="max-w-screen-sm mx-auto px-container-margin-mobile pt-sm pb-xs">
+        <ol className="flex items-center text-label-sm">
+          {(["Flights", "Seats", "Extras", "Payment"] as const).map((step, i, arr) => (
+            <li
+              key={step}
+              className={`flex-1 text-center font-medium ${step === "Payment" ? "text-primary" : "text-on-surface-variant"}`}
+            >
+              {step}
+              {i < arr.length - 1 && <span className="mx-1 text-outline-variant">›</span>}
+            </li>
+          ))}
+        </ol>
+      </div>
 
       {bookingState === "loading" && (
         <div className="max-w-screen-sm mx-auto px-container-margin-mobile py-md space-y-md">

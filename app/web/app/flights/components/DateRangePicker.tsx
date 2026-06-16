@@ -685,6 +685,7 @@ export default function DateRangePicker({
             ref={panelRef}
             tabIndex={-1}
             onKeyDown={handleKeyDown}
+            data-testid="calendar-panel"
             style={{
               position: "absolute",
               top: desktopPos.top,

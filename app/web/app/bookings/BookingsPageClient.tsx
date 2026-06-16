@@ -18,7 +18,7 @@ export interface Summary {
   origin: string;
   destination: string;
   departureTime: string;
-  arrivalTime: string;
+  arrivalTime?: string;
   passengers: number;
   totalAmount: string;
   currency: string;
@@ -108,7 +108,7 @@ export default function BookingsPageClient() {
                   </p>
                   <p className="text-label-sm text-on-surface-variant mt-xs">
                     {formatFlightTime(booking.departureTime)} →{" "}
-                    {formatFlightTime(booking.arrivalTime)}
+                    {booking.arrivalTime ? formatFlightTime(booking.arrivalTime) : "—"}
                   </p>
                   <p className="text-label-sm text-on-surface-variant mt-xs">
                     {booking.flightNumber} · {booking.passengers} passengers

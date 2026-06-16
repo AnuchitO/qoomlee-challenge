@@ -115,6 +115,28 @@ describe("BookingsPageClient", () => {
     expect(screen.getByText(/→/)).toBeInTheDocument();
   });
 
+  it("shows the My Bookings page title", async () => {
+    vi.mocked(getJson).mockResolvedValue(ok([]));
+    render(<BookingsPageClient />);
+    await waitFor(() => expect(screen.queryByText("No bookings yet")).toBeInTheDocument());
+    expect(screen.getByText("My Bookings")).toBeInTheDocument();
+  });
+
+  it("shows multiple booking cards when API returns more than one booking", async () => {
+    const second: Summary = {
+      ...confirmed,
+      bookingRef: "SEED04",
+      flightNumber: "QM202",
+      origin: "SIN",
+      destination: "BKK",
+    };
+    vi.mocked(getJson).mockResolvedValue(ok([confirmed, second]));
+    render(<BookingsPageClient />);
+    await waitFor(() => expect(screen.getAllByText("Confirmed").length).toBe(2));
+    expect(screen.getByText(/QM101/)).toBeInTheDocument();
+    expect(screen.getByText(/QM202/)).toBeInTheDocument();
+  });
+
   it("does not show 'Invalid Date' when arrivalTime is missing from the API response", async () => {
     const { arrivalTime: _, ...withoutArrival } = confirmed;
     vi.mocked(getJson).mockResolvedValue(ok([withoutArrival as Summary]));

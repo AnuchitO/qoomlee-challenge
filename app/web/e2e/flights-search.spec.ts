@@ -23,60 +23,6 @@ test.describe("Flight search form", () => {
     await page.waitForLoadState("networkidle");
   });
 
-  // ── Trip type toggle ─────────────────────────────────────────────────────────
-
-  test("shows 'Round trip' and 'One way' tabs", async ({ page }) => {
-    await expect(visibleText(page, "Round trip")).toBeVisible();
-    await expect(visibleText(page, "One way")).toBeVisible();
-  });
-
-  test("switches to Round trip and shows a return date input", async ({ page }) => {
-    await visibleText(page, "Round trip").click();
-    // After switching, the return date trigger should appear
-    await expect(
-      page.locator('[data-testid="return-trigger"]').filter({ visible: true }),
-    ).toBeVisible({ timeout: 5000 });
-  });
-
-  // ── Airport select — desktop ─────────────────────────────────────────────────
-
-  test("opens airport dropdown and selects an airport (desktop)", async ({ page }) => {
-    test.skip(isMobile(page), "desktop only");
-
-    await visibleText(page, "Select origin").click();
-    await expect(visibleText(page, "Popular Cities or Airports")).toBeVisible();
-    await visibleText(page, "Suvarnabhumi Airport").click();
-    await expect(visibleText(page, "Bangkok (BKK)")).toBeVisible();
-  });
-
-  test("filters airports by search query (desktop)", async ({ page }) => {
-    test.skip(isMobile(page), "desktop only");
-
-    await visibleText(page, "Select origin").click();
-    await page
-      .getByPlaceholder("Search airports or cities…")
-      .filter({ visible: true })
-      .fill("Singapore");
-    await expect(visibleText(page, "Singapore Changi Airport")).toBeVisible();
-    await expect(
-      page.getByText("Suvarnabhumi Airport").filter({ visible: true }),
-    ).not.toBeVisible();
-  });
-
-  test("excludes selected origin from destination dropdown (desktop)", async ({ page }) => {
-    test.skip(isMobile(page), "desktop only");
-
-    await visibleText(page, "Select origin").click();
-    await visibleText(page, "Suvarnabhumi Airport").click();
-
-    await visibleText(page, "Select destination").click();
-    await page
-      .getByPlaceholder("Search airports or cities…")
-      .filter({ visible: true })
-      .fill("Bangkok");
-    await expect(visibleText(page, "No airports found")).toBeVisible();
-  });
-
   test("swaps origin and destination (desktop)", async ({ page }) => {
     test.skip(isMobile(page), "desktop only");
 

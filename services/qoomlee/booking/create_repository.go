@@ -21,9 +21,9 @@ const SeatHoldDuration = 15 * time.Minute
 //  5. INSERT INTO bookings  (total_amount_minor copied from flights.base_price_minor,
 //     expires_at = now + SeatHoldDuration, user_sub from the caller's JWT)
 //  6. UPDATE flights SET available_seats = available_seats - 1
-func (r *repository) Create(ctx context.Context, flightID int64, passenger Passenger, pnr, userSub, idempotencyKey string) (*Booking, error) {
-	if idempotencyKey != "" {
-		existing, err := r.findByIdempotencyKey(ctx, idempotencyKey)
+func (r *repository) Create(ctx context.Context, flightID int64, passenger Passenger, pnr, userSub, bookingToken string) (*Booking, error) {
+	if bookingToken != "" {
+		existing, err := r.findByBookingToken(ctx, bookingToken)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return nil, err
 		}
@@ -79,7 +79,7 @@ func (r *repository) Create(ctx context.Context, flightID int64, passenger Passe
 	err = tx.QueryRowContext(ctx,
 		`INSERT INTO bookings (booking_ref, flight_id, passenger_id, total_amount_minor, currency, expires_at, user_sub, booking_token)
 		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
-		pnr, flightID, passengerID, totalAmountMinor, currency, expiresAt, userSub, nullableString(idempotencyKey),
+		pnr, flightID, passengerID, totalAmountMinor, currency, expiresAt, userSub, nullableString(bookingToken),
 	).Scan(&bookingID)
 	if err != nil {
 		return nil, err
@@ -109,7 +109,7 @@ func (r *repository) Create(ctx context.Context, flightID int64, passenger Passe
 	}, nil
 }
 
-func (r *repository) findByIdempotencyKey(ctx context.Context, key string) (*Booking, error) {
+func (r *repository) findByBookingToken(ctx context.Context, key string) (*Booking, error) {
 	var b Booking
 	var expiresAt time.Time
 	err := r.db.QueryRowContext(ctx,

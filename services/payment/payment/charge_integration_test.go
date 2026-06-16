@@ -128,7 +128,6 @@ func TestServiceChargeAgainstRealDB(t *testing.T) {
 
 	p, err := svc.Charge(context.Background(), ChargeRequest{
 		BookingRef:  ref,
-		OmiseToken:  "tokn_test_integration",
 		AmountMinor: 350000,
 		Currency:    "THB",
 	})
@@ -164,7 +163,6 @@ func TestServiceChargeAlreadyPaid(t *testing.T) {
 
 	_, err := svc.Charge(context.Background(), ChargeRequest{
 		BookingRef:  "SEED01",
-		OmiseToken:  "tokn_test_integration",
 		AmountMinor: 350000,
 		Currency:    "THB",
 	})

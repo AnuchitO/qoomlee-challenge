@@ -54,6 +54,7 @@ export type BookingState = "loading" | "ready" | "expired";
 interface BookingResponse {
   status: string;
   expiresAt?: string;
+  totalAmountMinor?: number;
 }
 
 interface ChargeResponse {
@@ -102,6 +103,7 @@ export function usePaymentClient({
   // booking lookup — seeds the countdown and gates the form
   const [bookingState, setBookingState] = useState<BookingState>("loading");
   const [secondsLeft, setSecondsLeft] = useState(0);
+  const [bookingTotalMinor, setBookingTotalMinor] = useState(0);
 
   useEffect(() => {
     if (!bookingRef) {
@@ -138,6 +140,7 @@ export function usePaymentClient({
         ? Math.max(0, Math.round((Date.parse(booking.expiresAt) - Date.now()) / 1000))
         : 0;
       setSecondsLeft(secs);
+      if (booking.totalAmountMinor) setBookingTotalMinor(booking.totalAmountMinor);
       setBookingState("ready");
     });
 
@@ -257,7 +260,7 @@ export function usePaymentClient({
       {
         bookingRef,
         omiseToken: "tokn_test_mock",
-        amountMinor: totalMinor,
+        amountMinor: bookingTotalMinor || totalMinor,
         currency,
       },
       { headers: authHeaders() },

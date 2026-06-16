@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"math"
 	"time"
 )
 
@@ -59,13 +60,15 @@ func (r *repository) Create(ctx context.Context, flightID int64, passenger Passe
 		return nil, err
 	}
 
-	// Step 4: insert booking
+	// Step 4: insert booking — total = base + 15 % tax (mirrors frontend calculation)
+	taxMinor := int64(math.Round(float64(basePriceMinor) * 0.15))
+	totalAmountMinor := basePriceMinor + taxMinor
 	expiresAt := time.Now().Add(SeatHoldDuration)
 	var bookingID int64
 	err = tx.QueryRowContext(ctx,
 		`INSERT INTO bookings (booking_ref, flight_id, passenger_id, total_amount_minor, currency, expires_at, user_sub)
 		 VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-		pnr, flightID, passengerID, basePriceMinor, currency, expiresAt, userSub,
+		pnr, flightID, passengerID, totalAmountMinor, currency, expiresAt, userSub,
 	).Scan(&bookingID)
 	if err != nil {
 		return nil, err
@@ -88,8 +91,8 @@ func (r *repository) Create(ctx context.Context, flightID int64, passenger Passe
 		ID:               bookingID,
 		BookingRef:       pnr,
 		Status:           "PENDING",
-		TotalAmountMinor: basePriceMinor,
-		TotalAmount:      fmt.Sprintf("%.2f", float64(basePriceMinor)/100),
+		TotalAmountMinor: totalAmountMinor,
+		TotalAmount:      fmt.Sprintf("%.2f", float64(totalAmountMinor)/100),
 		Currency:         currency,
 		ExpiresAt:        &expiresAt,
 	}, nil

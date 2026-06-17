@@ -54,7 +54,7 @@ BRANCH="${BRANCH:-main}"
 APP_NAME="qoomlee-team-${TEAM}"
 GIT_URL="${GIT_URL_PATTERN//TEAM/${TEAM}}"
 OVERLAY_PATH="infra/k8s/overlays/team-${TEAM}"
-NAMESPACE="qoomlee-team-${TEAM}-dev"
+NAMESPACE="qoomlee-team-${TEAM}"
 REGISTRY="registry.gitlab.com/arise-by-infinitas/devrise-team-${TEAM}-workshop"
 
 QOOMLEE_DB_URL="postgresql://qoomlee:${POSTGRES_PASSWORD}@postgres-qoomlee.${NAMESPACE}.svc.cluster.local:5432/qoomlee?sslmode=disable"

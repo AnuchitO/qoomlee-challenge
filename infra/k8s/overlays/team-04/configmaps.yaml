@@ -4,7 +4,7 @@ kind: ConfigMap
 metadata:
   name: qoomlee-config
 data:
-  DB_HOST: "postgres-qoomlee.qoomlee-team-04-dev.svc.cluster.local"
+  DB_HOST: "postgres-qoomlee.qoomlee-team-04.svc.cluster.local"
   DB_PORT: "5432"
   DB_NAME: "qoomlee"
   DB_USER: "qoomlee"
@@ -15,7 +15,7 @@ kind: ConfigMap
 metadata:
   name: payment-config
 data:
-  DB_HOST: "postgres-payment.qoomlee-team-04-dev.svc.cluster.local"
+  DB_HOST: "postgres-payment.qoomlee-team-04.svc.cluster.local"
   DB_PORT: "5432"
   DB_NAME: "qoomlee_payment"
   DB_USER: "qoomlee_payment"

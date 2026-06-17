@@ -3,7 +3,7 @@
 # Usage: bash infra/k8s/setup-dev.sh
 set -euo pipefail
 
-NAMESPACE=qoomlee-team-00-dev
+NAMESPACE=qoomlee-team-00
 OVERLAY=infra/k8s/overlays/team-00
 ARGOCD_VERSION="${ARGOCD_VERSION:-v2.14.11}"
 

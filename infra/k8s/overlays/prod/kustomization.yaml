@@ -20,9 +20,9 @@ patches:
   - path: patch-replicas.yaml
 
 images:
-  - name: ghcr.io/team-00/qoomlee-service
-    newTag: "1.0.0"  # pin to a specific release tag in prod
-  - name: ghcr.io/team-00/payment-service
-    newTag: "1.0.0"
-  - name: ghcr.io/team-00/web
-    newTag: "1.0.0"
+  - name: registry.gitlab.com/arise-by-infinitas/devrise-workshop/qoomlee-service
+    newTag: latest
+  - name: registry.gitlab.com/arise-by-infinitas/devrise-workshop/payment-service
+    newTag: latest
+  - name: registry.gitlab.com/arise-by-infinitas/devrise-workshop/web
+    newTag: latest

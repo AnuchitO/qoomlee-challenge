@@ -66,6 +66,7 @@ kubectl create secret generic qoomlee-secret \
   -n "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
 
 kubectl create secret generic payment-secret \
+  --from-literal=POSTGRES_PAYMENT_PASSWORD="${POSTGRES_PASSWORD}" \
   --from-literal=POSTGRES_PASSWORD="${POSTGRES_PASSWORD}" \
   --from-literal=OMISE_PUBLIC_KEY="${OMISE_PUBLIC_KEY}" \
   --from-literal=OMISE_SECRET_KEY="${OMISE_SECRET_KEY}" \

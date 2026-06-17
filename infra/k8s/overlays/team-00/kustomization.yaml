@@ -22,6 +22,8 @@ images:
   newTag: 6a174d17c3e6c34d6b0b562176060ac530067261
 - name: registry.gitlab.com/arise-by-infinitas/devrise-team-00-workshop/web
   newTag: 6a174d17c3e6c34d6b0b562176060ac530067261
+- name: registry.gitlab.com/arise-by-infinitas/devrise-team-01-workshop/payment-service
+  newTag: b29c37f0f2d0eaf6cea83b444f9338374d662181
 - name: registry.gitlab.com/arise-by-infinitas/devrise-team-01-workshop/web
   newTag: b29c37f0f2d0eaf6cea83b444f9338374d662181
 - name: registry.gitlab.com/arise-by-infinitas/devrise-workshop/payment-service

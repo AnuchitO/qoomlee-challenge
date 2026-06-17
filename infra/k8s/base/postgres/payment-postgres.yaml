@@ -18,6 +18,8 @@ spec:
         - name: postgres
           image: postgres:16-alpine
           env:
+            - name: TZ
+              value: Asia/Bangkok
             - name: POSTGRES_DB
               value: qoomlee_payment
             - name: POSTGRES_USER

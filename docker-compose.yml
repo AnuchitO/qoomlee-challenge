@@ -3,6 +3,7 @@ services:
   postgres-qoomlee:
     image: postgres:16-alpine
     environment:
+      TZ:                Asia/Bangkok
       POSTGRES_DB:       ${POSTGRES_QOOMLEE_DB:-qoomlee}
       POSTGRES_USER:     ${POSTGRES_USER:-qoomlee}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-qoomlee}
@@ -20,6 +21,7 @@ services:
   postgres-qoomlee-payment:
     image: postgres:16-alpine
     environment:
+      TZ:                Asia/Bangkok
       POSTGRES_DB:       ${POSTGRES_PAYMENT_DB:-qoomlee_payment}
       POSTGRES_USER:     ${POSTGRES_PAYMENT_USER:-qoomlee_payment}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-qoomlee}

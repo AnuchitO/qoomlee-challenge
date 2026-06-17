@@ -35,6 +35,7 @@ func TestMain(m *testing.M) {
 
 	pgc, err := postgres.Run(ctx,
 		"postgres:16-alpine",
+		tc.WithEnv(map[string]string{"TZ": "Asia/Bangkok"}),
 		postgres.WithDatabase("qoomlee"),
 		postgres.WithUsername("qoomlee"),
 		postgres.WithPassword("qoomlee"),

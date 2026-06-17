@@ -37,6 +37,7 @@ build:qoomlee:
   extends: .build
   rules:
     - changes:
+        - .gitlab-ci.yml
         - services/qoomlee/**/*
         - infra/k8s/**/qoomlee/**/*
   script:
@@ -49,6 +50,7 @@ update-manifest:qoomlee:
   needs: ["build:qoomlee"]
   rules:
     - changes:
+        - .gitlab-ci.yml
         - services/qoomlee/**/*
         - infra/k8s/**/qoomlee/**/*
   script:
@@ -65,6 +67,7 @@ build:payment:
   extends: .build
   rules:
     - changes:
+        - .gitlab-ci.yml
         - services/payment/**/*
         - infra/k8s/**/payment/**/*
   script:
@@ -77,6 +80,7 @@ update-manifest:payment:
   needs: ["build:payment"]
   rules:
     - changes:
+        - .gitlab-ci.yml
         - services/payment/**/*
         - infra/k8s/**/payment/**/*
   script:
@@ -93,6 +97,7 @@ build:web:
   extends: .build
   rules:
     - changes:
+        - .gitlab-ci.yml
         - app/web/**/*
         - infra/k8s/**/web/**/*
   script:
@@ -105,6 +110,7 @@ update-manifest:web:
   needs: ["build:web"]
   rules:
     - changes:
+        - .gitlab-ci.yml
         - app/web/**/*
         - infra/k8s/**/web/**/*
   script:

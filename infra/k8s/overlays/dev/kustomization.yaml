@@ -19,6 +19,6 @@ images:
 - name: registry.gitlab.com/arise-by-infinitas/devrise-team-00-workshop/payment-service
   newTag: 73a281e41324e1a81cc2eefb75b61b16e309dbf2
 - name: registry.gitlab.com/arise-by-infinitas/devrise-team-00-workshop/qoomlee-service
-  newTag: 73a281e41324e1a81cc2eefb75b61b16e309dbf2
+  newTag: 738bde1b2d4fe4f19c5e61244470e5b2a2a79278
 - name: registry.gitlab.com/arise-by-infinitas/devrise-team-00-workshop/web
   newTag: 73a281e41324e1a81cc2eefb75b61b16e309dbf2

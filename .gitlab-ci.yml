@@ -1,6 +1,7 @@
 stages:
   - build
   - update-manifest
+  - cleanup
   - promote
 
 variables:
@@ -121,6 +122,44 @@ update-manifest:web:
     - git add "${OVERLAY_PATH}/kustomization.yaml"
     - 'git diff --cached --quiet || git commit -m "ci: update web to ${CI_COMMIT_SHA} [skip ci]"'
     - 'git push origin HEAD:${CI_DEFAULT_BRANCH}'
+
+# ── cleanup: keep only 4 latest tags per image ────────────────────────────────
+
+cleanup:registry:
+  stage: cleanup
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache curl jq
+  script:
+    - |
+      KEEP=4
+      REPO_IDS=$(curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/registry/repositories?per_page=100" \
+        | jq -r '.[].id')
+
+      for REPO_ID in $REPO_IDS; do
+        REPO_NAME=$(curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+          "$CI_API_V4_URL/projects/$CI_PROJECT_ID/registry/repositories/$REPO_ID" \
+          | jq -r '.path')
+        echo "=== Processing $REPO_NAME ==="
+
+        TAGS_TO_DELETE=$(curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+          "$CI_API_V4_URL/projects/$CI_PROJECT_ID/registry/repositories/$REPO_ID/tags?per_page=100&order_by=name&sort=desc" \
+          | jq -r '[.[] | select(.name != "latest")] | sort_by(.created_at) | reverse | .['"$KEEP"':][].name')
+
+        if [ -z "$TAGS_TO_DELETE" ]; then
+          echo "  Nothing to delete (≤$KEEP tags)."
+          continue
+        fi
+
+        echo "$TAGS_TO_DELETE" | while read TAG; do
+          echo "  Deleting tag: $TAG"
+          curl -s --request DELETE \
+            --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+            "$CI_API_V4_URL/projects/$CI_PROJECT_ID/registry/repositories/$REPO_ID/tags/$TAG"
+        done
+      done
+  allow_failure: true
 
 # ── list dev image tags (run this first to find what SHA to promote) ───────────
 

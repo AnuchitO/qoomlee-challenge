@@ -26,13 +26,15 @@ APP_NAME="qoomlee-team-${TEAM}"
 GIT_URL="${GIT_URL_PATTERN//TEAM/${TEAM}}"
 OVERLAY_PATH="infra/k8s/overlays/team-${TEAM}"
 NAMESPACE="qoomlee-team-${TEAM}-dev"
+REGISTRY="registry.gitlab.com/arise-by-infinitas/devrise-team-${TEAM}-workshop"
 
 echo "==> Creating ArgoCD Application: $APP_NAME"
-echo "    Git URL : $GIT_URL"
-echo "    Path    : $OVERLAY_PATH"
-echo "    Branch  : $BRANCH"
-echo "    Cluster : $CLUSTER_URL"
+echo "    Git URL  : $GIT_URL"
+echo "    Path     : $OVERLAY_PATH"
+echo "    Branch   : $BRANCH"
+echo "    Cluster  : $CLUSTER_URL"
 echo "    Namespace: $NAMESPACE"
+echo "    Registry : $REGISTRY"
 echo ""
 
 cat <<EOF | kubectl apply -f -
@@ -47,6 +49,11 @@ spec:
     repoURL: ${GIT_URL}
     targetRevision: ${BRANCH}
     path: ${OVERLAY_PATH}
+    kustomize:
+      images:
+        - registry.gitlab.com/arise-by-infinitas/devrise-workshop/qoomlee-service=${REGISTRY}/qoomlee-service
+        - registry.gitlab.com/arise-by-infinitas/devrise-workshop/payment-service=${REGISTRY}/payment-service
+        - registry.gitlab.com/arise-by-infinitas/devrise-workshop/web=${REGISTRY}/web
   destination:
     server: ${CLUSTER_URL}
     namespace: ${NAMESPACE}

@@ -11,7 +11,7 @@
 set -euo pipefail
 
 TEAM="${1:-}"
-GIT_URL_PATTERN="${GIT_URL_PATTERN:-https://gitlab.com/arise-by-infinitas/devrise-team-TEAM-workshop.git}"
+GIT_URL_PATTERN="${GIT_URL_PATTERN:-https://gitlab.com/arise-by-infinitas/devrise-team-${TEAM}-workshop.git}"
 CLUSTER_URL="${CLUSTER_URL:-https://kubernetes.default.svc}"
 PROJECT="${PROJECT:-default}"
 BRANCH="${BRANCH:-main}"
@@ -51,9 +51,9 @@ spec:
     path: ${OVERLAY_PATH}
     kustomize:
       images:
-        - ${REGISTRY}/qoomlee-service
-        - ${REGISTRY}/payment-service
-        - ${REGISTRY}/web
+        - registry.gitlab.com/arise-by-infinitas/devrise-workshop/qoomlee-service=${REGISTRY}/qoomlee-service
+        - registry.gitlab.com/arise-by-infinitas/devrise-workshop/payment-service=${REGISTRY}/payment-service
+        - registry.gitlab.com/arise-by-infinitas/devrise-workshop/web=${REGISTRY}/web
   destination:
     server: ${CLUSTER_URL}
     namespace: ${NAMESPACE}

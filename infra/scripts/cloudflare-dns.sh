@@ -105,6 +105,7 @@ RECORDS=(
   "team-${TEAM}-qoomlee-web"
   "team-${TEAM}-qoomlee-api"
   "team-${TEAM}-payment-api"
+  "team-${TEAM}-qoomlee-db"
 )
 
 upsert_record() {
@@ -149,6 +150,7 @@ echo "Done. URLs for team-${TEAM}:"
 echo "  Web     : https://team-${TEAM}-qoomlee-web.${DOMAIN}"
 echo "  API     : https://team-${TEAM}-qoomlee-api.${DOMAIN}"
 echo "  Payment : https://team-${TEAM}-payment-api.${DOMAIN}"
+echo "  DB      : https://team-${TEAM}-qoomlee-db.${DOMAIN}"
 echo ""
 echo "==> Setting Cloudflare SSL/TLS mode to 'full'..."
 curl -s -X PATCH "${CF_HEADERS[@]}" \

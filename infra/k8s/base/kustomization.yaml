@@ -17,6 +17,8 @@ resources:
   - payment/healthcheckpolicy.yaml
   - web/deployment.yaml
   - web/service.yaml
+  - pgweb/deployment.yaml
+  - pgweb/service.yaml
   - gateway/httproutes.yaml
 
 # ArgoCD is installed separately for all teams (shared infrastructure)

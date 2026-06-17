@@ -22,3 +22,11 @@ metadata:
 spec:
   hostnames:
     - "team-00-qoomlee-web.anuchito.com"
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: pgweb
+spec:
+  hostnames:
+    - "team-00-qoomlee-db.anuchito.com"

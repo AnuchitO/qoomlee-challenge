@@ -18,7 +18,7 @@ ENV NEXT_PUBLIC_ENABLE_TEST_SCENARIOS=$NEXT_PUBLIC_ENABLE_TEST_SCENARIOS
 
 RUN bun run build
 
-FROM nginx:1.27-alpine AS runner
+FROM nginxinc/nginx-unprivileged:1.27-alpine AS runner
 COPY --from=builder /app/out /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 3000

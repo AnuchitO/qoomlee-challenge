@@ -16,8 +16,6 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1001
-        fsGroup: 1001
       containers:
         - name: web
           image: registry.gitlab.com/arise-by-infinitas/devrise-workshop/web:latest

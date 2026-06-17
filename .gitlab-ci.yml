@@ -15,6 +15,9 @@ variables:
 
 build:qoomlee:
   extends: .build
+  rules:
+    - changes:
+        - services/qoomlee/**/*
   script:
     - docker build --platform linux/amd64 -t "$CI_REGISTRY_IMAGE/qoomlee-service:$CI_COMMIT_SHA" -t "$CI_REGISTRY_IMAGE/qoomlee-service:latest" services/qoomlee
     - docker push "$CI_REGISTRY_IMAGE/qoomlee-service:$CI_COMMIT_SHA"
@@ -22,6 +25,9 @@ build:qoomlee:
 
 build:payment:
   extends: .build
+  rules:
+    - changes:
+        - services/payment/**/*
   script:
     - docker build --platform linux/amd64 -t "$CI_REGISTRY_IMAGE/payment-service:$CI_COMMIT_SHA" -t "$CI_REGISTRY_IMAGE/payment-service:latest" services/payment
     - docker push "$CI_REGISTRY_IMAGE/payment-service:$CI_COMMIT_SHA"
@@ -29,6 +35,9 @@ build:payment:
 
 build:web:
   extends: .build
+  rules:
+    - changes:
+        - app/web/**/*
   script:
     - docker build --platform linux/amd64
         --build-arg NEXT_PUBLIC_QOOMLEE_API_URL=https://team-00-qoomlee-api.anuchito.com

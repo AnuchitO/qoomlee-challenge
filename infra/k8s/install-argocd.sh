@@ -20,6 +20,10 @@ echo "==> Installing ArgoCD ${ARGOCD_VERSION}..."
 kubectl apply -n "$NAMESPACE" -f \
   "https://raw.githubusercontent.com/argoproj/argo-cd/${ARGOCD_VERSION}/manifests/install.yaml"
 
+echo "==> Configuring ArgoCD server for HTTP (TLS terminated at gateway/Cloudflare)..."
+kubectl patch cm argocd-cmd-params-cm -n "$NAMESPACE" \
+  --type merge -p '{"data":{"server.insecure":"true"}}'
+
 echo "==> Waiting for ArgoCD deployments to be ready..."
 kubectl wait deployment \
   argocd-server \
@@ -39,5 +43,6 @@ kubectl -n "$NAMESPACE" get secret argocd-initial-admin-secret \
 echo ""
 echo ""
 echo "--- Access the UI ---"
-echo "Run: kubectl port-forward svc/argocd-server -n ${NAMESPACE} 8080:443"
-echo "Then open: https://localhost:8080  (user: admin)"
+echo "Via gateway: https://qoomlee-argocd.anuchito.com  (user: admin)"
+echo "Via port-forward: kubectl port-forward svc/argocd-server -n ${NAMESPACE} 8080:80"
+echo "Then open: http://localhost:8080  (user: admin)"

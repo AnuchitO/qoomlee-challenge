@@ -23,3 +23,4 @@ COPY --chown=101:101 --chmod=755 docker-entrypoint.sh /docker-entrypoint.sh
 EXPOSE 3000
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]
+

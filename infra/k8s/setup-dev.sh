@@ -80,6 +80,7 @@ echo "==> [6/6] Configuring ArgoCD server for HTTP (TLS at gateway/Cloudflare)..
 kubectl patch cm argocd-cmd-params-cm -n argocd \
   --type merge -p '{"data":{"server.insecure":"true"}}'
 kubectl rollout restart deployment argocd-server -n argocd
+kubectl apply -f infra/k8s/base/gateway/gateway.yaml
 kubectl apply -f infra/k8s/base/argocd/httproute.yaml
 kubectl apply -f infra/k8s/base/argocd/healthcheckpolicy.yaml
 

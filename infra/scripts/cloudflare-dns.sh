@@ -27,7 +27,7 @@ EXPLICIT_IP="${2:-}"
 DOMAIN="${DOMAIN:-anuchito.com}"
 PROXIED="${PROXIED:-true}"
 GATEWAY_NAME="${GATEWAY_NAME:-qoomlee}"
-GATEWAY_NAMESPACE="${GATEWAY_NAMESPACE:-qoomlee-team-00-dev}"
+GATEWAY_NAMESPACE="${GATEWAY_NAMESPACE:-argocd}"
 
 if [[ -z "$TEAM" ]]; then
   echo "Usage: CF_API_TOKEN=<token> CF_ZONE_ID=<zone-id> bash $0 <team> [ip]"

@@ -17,7 +17,6 @@ tf_dir="infra/terraform/envs/${env_name}"
 remote_dir="/opt/qoomlee"
 
 vm_name=$(terraform -chdir="${tf_dir}" output -raw vm_name)
-api_hostname=$(terraform -chdir="${tf_dir}" output -raw api_hostname)
 frontend_hostname=$(terraform -chdir="${tf_dir}" output -raw frontend_hostname)
 
 export POSTGRES_QOOMLEE_DB POSTGRES_PAYMENT_DB POSTGRES_USER POSTGRES_PAYMENT_USER \
@@ -27,7 +26,6 @@ env_file="$(mktemp)"
 envsubst <infra/compose/.env.tpl >"${env_file}"
 cat >>"${env_file}" <<EOF
 ALLOWED_ORIGINS=https://${frontend_hostname}
-CADDY_HOSTNAME=${api_hostname}
 IMAGE_TAG=${CI_COMMIT_SHORT_SHA}
 GCP_REGION=${GCP_REGION}
 GCP_PROJECT_ID=${GCP_PROJECT_ID}
@@ -37,14 +35,11 @@ EOF
 ssh_args=(--zone="${GCP_ZONE}" --tunnel-through-iap)
 
 gcloud compute ssh "${vm_name}" "${ssh_args[@]}" \
-  --command="sudo mkdir -p ${remote_dir}/infra/caddy && sudo chown -R \$(whoami) ${remote_dir}"
+  --command="sudo mkdir -p ${remote_dir} && sudo chown -R \$(whoami) ${remote_dir}"
 
 gcloud compute scp "${ssh_args[@]}" \
   docker-compose.yml infra/compose/docker-compose.deploy.yml "${env_file}" \
   "${vm_name}:${remote_dir}/"
-
-gcloud compute scp "${ssh_args[@]}" --recurse \
-  infra/caddy/Caddyfile "${vm_name}:${remote_dir}/infra/caddy/"
 
 gcloud compute ssh "${vm_name}" "${ssh_args[@]}" --command="
   set -euo pipefail

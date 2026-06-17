@@ -76,29 +76,6 @@ services:
       retries: 5
       start_period: 15s
 
-  caddy:
-    image: caddy:2-alpine
-    environment:
-      # Public hostname Caddy requests a TLS cert for, e.g.
-      # api-dev.<vm-ip>.sslip.io. Defaults to "localhost" for local dev,
-      # where Caddy serves HTTPS using its locally-trusted internal CA.
-      CADDY_HOSTNAME: ${CADDY_HOSTNAME:-localhost}
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      qoomlee-service:
-        condition: service_healthy
-      payment-service:
-        condition: service_healthy
-
-
 volumes:
   postgres_qoomlee_data:
   postgres_qoomlee_payment_data:
-  caddy_data:
-  caddy_config:

@@ -111,9 +111,9 @@ spec:
     path: ${OVERLAY_PATH}
     kustomize:
       images:
-        - registry.gitlab.com/arise-by-infinitas/devrise-workshop/qoomlee-service=${REGISTRY}/qoomlee-service
-        - registry.gitlab.com/arise-by-infinitas/devrise-workshop/payment-service=${REGISTRY}/payment-service
-        - registry.gitlab.com/arise-by-infinitas/devrise-workshop/web=${REGISTRY}/web
+        - registry.gitlab.com/arise-by-infinitas/devrise-team-${TEAM}-workshop/qoomlee-service=${REGISTRY}/qoomlee-service
+        - registry.gitlab.com/arise-by-infinitas/devrise-team-${TEAM}-workshop/payment-service=${REGISTRY}/payment-service
+        - registry.gitlab.com/arise-by-infinitas/devrise-team-${TEAM}-workshop/web=${REGISTRY}/web
   destination:
     server: ${CLUSTER_URL}
     namespace: ${NAMESPACE}

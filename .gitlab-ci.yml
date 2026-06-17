@@ -172,11 +172,22 @@ list:dev-tags:
     - git fetch origin "${CI_DEFAULT_BRANCH}"
     - git checkout "${CI_DEFAULT_BRANCH}"
   script:
-    - echo "=== Current image tags in dev overlay ==="
-    - grep -A1 "name:" infra/k8s/overlays/dev/kustomization.yaml | grep "newTag"
-    - echo ""
-    - echo "=== Recent promotions to prod ==="
-    - git log --oneline --follow infra/k8s/overlays/prod/kustomization.yaml | head -10
+    - echo "=== Current image tags in DEV overlay ==="
+    - grep -B1 "newTag:" infra/k8s/overlays/dev/kustomization.yaml | grep "name:" | sed 's/.*name: //'
+
+# ── list prod image tags (see what's currently in prod) ────────────────────────
+
+list:prod-tags:
+  stage: promote
+  image: alpine:latest
+  when: manual
+  before_script:
+    - apk add --no-cache git
+    - git fetch origin "${CI_DEFAULT_BRANCH}"
+    - git checkout "${CI_DEFAULT_BRANCH}"
+  script:
+    - echo "=== Current image tags in PROD overlay ==="
+    - grep -B1 "newTag:" infra/k8s/overlays/prod/kustomization.yaml | grep "name:" | sed 's/.*name: //'
 
 # ── promote to prod ────────────────────────────────────────────────────────────
 # Trigger manually: CI/CD → Pipelines → Run pipeline

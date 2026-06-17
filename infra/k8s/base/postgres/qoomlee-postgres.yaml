@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-qoomlee
+  labels:
+    app: postgres-qoomlee
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-qoomlee
+  template:
+    metadata:
+      labels:
+        app: postgres-qoomlee
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          env:
+            - name: POSTGRES_DB
+              value: qoomlee
+            - name: POSTGRES_USER
+              value: qoomlee
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: qoomlee-secret
+                  key: POSTGRES_PASSWORD
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: initdb
+              mountPath: /docker-entrypoint-initdb.d
+          readinessProbe:
+            exec:
+              command: [pg_isready, -U, qoomlee]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: data
+          emptyDir: {}
+        - name: initdb
+          configMap:
+            name: postgres-qoomlee-init
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-qoomlee
+spec:
+  selector:
+    app: postgres-qoomlee
+  ports:
+    - port: 5432
+      targetPort: 5432

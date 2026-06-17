@@ -7,6 +7,8 @@ labels:
     includeSelectors: false
 
 resources:
+  - postgres/qoomlee-postgres.yaml
+  - postgres/payment-postgres.yaml
   - qoomlee/deployment.yaml
   - qoomlee/service.yaml
   - payment/deployment.yaml
@@ -15,6 +17,21 @@ resources:
   - web/service.yaml
   - gateway/gateway.yaml
   - gateway/httproutes.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+configMapGenerator:
+  - name: postgres-qoomlee-init
+    files:
+      - postgres/init/qoomlee/01_schema.sql
+      - postgres/init/qoomlee/02_seed.sql
+      - postgres/init/qoomlee/03_booking_token.sql
+      - postgres/init/qoomlee/04_return_flight.sql
+  - name: postgres-payment-init
+    files:
+      - postgres/init/payment/01_schema.sql
+      - postgres/init/payment/02_seed.sql
 
 images:
   - name: registry.gitlab.com/arise-by-infinitas/devrise-workshop/qoomlee-service

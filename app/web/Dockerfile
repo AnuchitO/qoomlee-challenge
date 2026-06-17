@@ -1,8 +1,8 @@
-FROM node:20-alpine AS builder
+FROM oven/bun:1 AS builder
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
 
 COPY . .
 
@@ -16,7 +16,7 @@ ENV NEXT_PUBLIC_PAYMENT_API_URL=$NEXT_PUBLIC_PAYMENT_API_URL
 ENV NEXT_PUBLIC_ENABLE_ALT_PAYMENT_METHODS=$NEXT_PUBLIC_ENABLE_ALT_PAYMENT_METHODS
 ENV NEXT_PUBLIC_ENABLE_TEST_SCENARIOS=$NEXT_PUBLIC_ENABLE_TEST_SCENARIOS
 
-RUN npm run build
+RUN bun run build
 
 FROM nginx:1.27-alpine AS runner
 COPY --from=builder /app/out /usr/share/nginx/html

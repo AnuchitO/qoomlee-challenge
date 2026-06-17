@@ -56,8 +56,8 @@ update-manifest:qoomlee:
     - kustomize edit set image "${CI_REGISTRY_IMAGE}/qoomlee-service:${CI_COMMIT_SHA}"
     - cd -
     - git add "${OVERLAY_PATH}/kustomization.yaml"
-    - git diff --cached --quiet || git commit -m "ci: update qoomlee-service to ${CI_COMMIT_SHA} [skip ci]"
-    - git push origin "HEAD:${CI_DEFAULT_BRANCH}"
+    - 'git diff --cached --quiet || git commit -m "ci: update qoomlee-service to ${CI_COMMIT_SHA} [skip ci]"'
+    - 'git push origin HEAD:${CI_DEFAULT_BRANCH}'
 
 # ── payment-service ────────────────────────────────────────────────────────────
 
@@ -84,8 +84,8 @@ update-manifest:payment:
     - kustomize edit set image "${CI_REGISTRY_IMAGE}/payment-service:${CI_COMMIT_SHA}"
     - cd -
     - git add "${OVERLAY_PATH}/kustomization.yaml"
-    - git diff --cached --quiet || git commit -m "ci: update payment-service to ${CI_COMMIT_SHA} [skip ci]"
-    - git push origin "HEAD:${CI_DEFAULT_BRANCH}"
+    - 'git diff --cached --quiet || git commit -m "ci: update payment-service to ${CI_COMMIT_SHA} [skip ci]"'
+    - 'git push origin HEAD:${CI_DEFAULT_BRANCH}'
 
 # ── web ────────────────────────────────────────────────────────────────────────
 
@@ -112,5 +112,5 @@ update-manifest:web:
     - kustomize edit set image "${CI_REGISTRY_IMAGE}/web:${CI_COMMIT_SHA}"
     - cd -
     - git add "${OVERLAY_PATH}/kustomization.yaml"
-    - git diff --cached --quiet || git commit -m "ci: update web to ${CI_COMMIT_SHA} [skip ci]"
-    - git push origin "HEAD:${CI_DEFAULT_BRANCH}"
+    - 'git diff --cached --quiet || git commit -m "ci: update web to ${CI_COMMIT_SHA} [skip ci]"'
+    - 'git push origin HEAD:${CI_DEFAULT_BRANCH}'

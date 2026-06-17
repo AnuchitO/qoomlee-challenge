@@ -24,11 +24,11 @@ CLUSTER_URL="${CLUSTER_URL:-https://kubernetes.default.svc}"
 PROJECT="${PROJECT:-default}"
 BRANCH="${BRANCH:-main}"
 
-POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-changeme}"
-POSTGRES_PAYMENT_PASSWORD="${POSTGRES_PAYMENT_PASSWORD:-changeme}"
-INTERNAL_TOKEN="${INTERNAL_TOKEN:-dev-internal-token-changeme}"
-OMISE_PUBLIC_KEY="${OMISE_PUBLIC_KEY:-pkey_test_xxxxxxxxxxxxxxxxxxxx}"
-OMISE_SECRET_KEY="${OMISE_SECRET_KEY:-skey_test_xxxxxxxxxxxxxxxxxxxx}"
+ENV_FILE="${ENV_FILE:-.env}"
+if [[ -f "$ENV_FILE" ]]; then
+  echo "==> Loading secrets from $ENV_FILE"
+  set -a; source "$ENV_FILE"; set +a
+fi
 
 if [[ -z "$TEAM" ]]; then
   echo "Usage: bash $0 <team>"
@@ -59,15 +59,17 @@ kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -
 echo "==> [2/3] Creating secrets..."
 
 kubectl create secret generic qoomlee-secret \
-  --from-literal=POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
-  --from-literal=INTERNAL_TOKEN="$INTERNAL_TOKEN" \
+  --from-literal=POSTGRES_PASSWORD="${POSTGRES_PASSWORD}" \
+  --from-literal=INTERNAL_TOKEN="${INTERNAL_TOKEN}" \
+  --from-literal=JWT_PRIVATE_KEY="${JWT_PRIVATE_KEY:-}" \
+  --from-literal=JWT_PUBLIC_KEY="${JWT_PUBLIC_KEY:-}" \
   -n "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
 
 kubectl create secret generic payment-secret \
-  --from-literal=POSTGRES_PAYMENT_PASSWORD="$POSTGRES_PAYMENT_PASSWORD" \
-  --from-literal=OMISE_PUBLIC_KEY="$OMISE_PUBLIC_KEY" \
-  --from-literal=OMISE_SECRET_KEY="$OMISE_SECRET_KEY" \
-  --from-literal=INTERNAL_TOKEN="$INTERNAL_TOKEN" \
+  --from-literal=POSTGRES_PASSWORD="${POSTGRES_PASSWORD}" \
+  --from-literal=OMISE_PUBLIC_KEY="${OMISE_PUBLIC_KEY}" \
+  --from-literal=OMISE_SECRET_KEY="${OMISE_SECRET_KEY}" \
+  --from-literal=INTERNAL_TOKEN="${INTERNAL_TOKEN}" \
   -n "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
 
 # ── 3. Create ArgoCD Application ─────────────────────────────────────────────

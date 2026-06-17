@@ -19,17 +19,11 @@ spec:
           image: sosedoff/pgweb:latest
           ports:
             - containerPort: 8081
-          env:
-            - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: qoomlee-secret
-                  key: DATABASE_URL
           command: ["/usr/bin/pgweb"]
           args:
             - "--bind=0.0.0.0"
             - "--listen=8081"
-            - "--url=$(DATABASE_URL)"
+            - "--sessions"
           resources:
             requests:
               cpu: 10m

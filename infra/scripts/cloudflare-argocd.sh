@@ -27,7 +27,7 @@ EXPLICIT_IP="${1:-}"
 DOMAIN="${DOMAIN:-anuchito.com}"
 PROXIED="${PROXIED:-true}"
 GATEWAY_NAME="${GATEWAY_NAME:-qoomlee}"
-NAMESPACE="${NAMESPACE:-qoomlee-team-00-dev}"
+NAMESPACE="${NAMESPACE:-argocd}"
 HOSTNAME="qoomlee-argocd"
 
 if [[ -z "${CF_API_TOKEN:-}" || -z "${CF_ZONE_ID:-}" ]]; then

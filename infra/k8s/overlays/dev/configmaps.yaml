@@ -20,6 +20,7 @@ data:
   DB_NAME: "qoomlee_payment"
   DB_USER: "qoomlee_payment"
   QOOMLEE_SERVICE_URL: "http://qoomlee:8082"
+  ALLOWED_ORIGINS: "https://team-00-qoomlee-web.anuchito.com"
 ---
 apiVersion: v1
 kind: ConfigMap

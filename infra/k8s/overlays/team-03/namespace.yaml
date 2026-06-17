@@ -1,6 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: qoomlee-team-03
-  labels:
-    team: team-03

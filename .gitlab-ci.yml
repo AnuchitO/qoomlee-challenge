@@ -8,7 +8,7 @@ variables:
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: "/certs"
   KUSTOMIZE_VERSION: "v5.4.3"
-  OVERLAY_PATH: "infra/k8s/overlays/team-00"
+  OVERLAY_PATH: "infra/k8s/overlays/dev"
 
 .build:
   stage: build
@@ -165,7 +165,7 @@ cleanup:registry:
       done
   allow_failure: true
 
-# ── list image tags for team-00 ───────────────────────────────────────────────
+# ── list image tags ───────────────────────────────────────────────────────────
 
 list:tags:
   stage: inspect
@@ -177,6 +177,6 @@ list:tags:
     - git checkout "${CI_DEFAULT_BRANCH}"
   script:
     - |
-      echo "=== Current image tags for team-00 ==="
+      echo "=== Current image tags for dev ==="
       awk '/^images:/,0 { if (/- name:/) name=$NF; if (/newTag:/) printf "  %-60s tag: %s\n", name, $NF }' \
-        infra/k8s/overlays/team-00/kustomization.yaml
+        infra/k8s/overlays/dev/kustomization.yaml

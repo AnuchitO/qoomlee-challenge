@@ -1,9 +1,12 @@
 stages:
   - build
+  - update-manifest
 
 variables:
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: "/certs"
+  KUSTOMIZE_VERSION: "v5.4.3"
+  OVERLAY_PATH: "infra/k8s/overlays/dev"
 
 .build:
   stage: build
@@ -13,6 +16,24 @@ variables:
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
 
+# Checks out latest main, installs kustomize, configures git push via CI job token
+.update-manifest:
+  stage: update-manifest
+  image: alpine/git:latest
+  retry: 2
+  before_script:
+    - apk add --no-cache curl
+    - curl -sL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
+        | tar xz -C /usr/local/bin/
+    - git config --global user.email "ci@noreply.gitlab"
+    - git config --global user.name "GitLab CI"
+    - git remote set-url origin "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+    - git fetch origin "${CI_DEFAULT_BRANCH}"
+    - git checkout "${CI_DEFAULT_BRANCH}"
+    - git pull --rebase origin "${CI_DEFAULT_BRANCH}"
+
+# ── qoomlee-service ────────────────────────────────────────────────────────────
+
 build:qoomlee:
   extends: .build
   rules:
@@ -20,9 +41,29 @@ build:qoomlee:
         - services/qoomlee/**/*
         - infra/k8s/**/qoomlee/**/*
   script:
-    - docker build --platform linux/amd64 -t "$CI_REGISTRY_IMAGE/qoomlee-service:$CI_COMMIT_SHA" -t "$CI_REGISTRY_IMAGE/qoomlee-service:latest" services/qoomlee
+    - docker build --platform linux/amd64
+        -t "$CI_REGISTRY_IMAGE/qoomlee-service:$CI_COMMIT_SHA"
+        -t "$CI_REGISTRY_IMAGE/qoomlee-service:latest"
+        services/qoomlee
     - docker push "$CI_REGISTRY_IMAGE/qoomlee-service:$CI_COMMIT_SHA"
     - docker push "$CI_REGISTRY_IMAGE/qoomlee-service:latest"
+
+update-manifest:qoomlee:
+  extends: .update-manifest
+  needs: ["build:qoomlee"]
+  rules:
+    - changes:
+        - services/qoomlee/**/*
+        - infra/k8s/**/qoomlee/**/*
+  script:
+    - cd "${OVERLAY_PATH}"
+    - kustomize edit set image "${CI_REGISTRY_IMAGE}/qoomlee-service:${CI_COMMIT_SHA}"
+    - cd -
+    - git add "${OVERLAY_PATH}/kustomization.yaml"
+    - git diff --cached --quiet || git commit -m "ci: update qoomlee-service to ${CI_COMMIT_SHA} [skip ci]"
+    - git push origin "HEAD:${CI_DEFAULT_BRANCH}"
+
+# ── payment-service ────────────────────────────────────────────────────────────
 
 build:payment:
   extends: .build
@@ -31,9 +72,29 @@ build:payment:
         - services/payment/**/*
         - infra/k8s/**/payment/**/*
   script:
-    - docker build --platform linux/amd64 -t "$CI_REGISTRY_IMAGE/payment-service:$CI_COMMIT_SHA" -t "$CI_REGISTRY_IMAGE/payment-service:latest" services/payment
+    - docker build --platform linux/amd64
+        -t "$CI_REGISTRY_IMAGE/payment-service:$CI_COMMIT_SHA"
+        -t "$CI_REGISTRY_IMAGE/payment-service:latest"
+        services/payment
     - docker push "$CI_REGISTRY_IMAGE/payment-service:$CI_COMMIT_SHA"
     - docker push "$CI_REGISTRY_IMAGE/payment-service:latest"
+
+update-manifest:payment:
+  extends: .update-manifest
+  needs: ["build:payment"]
+  rules:
+    - changes:
+        - services/payment/**/*
+        - infra/k8s/**/payment/**/*
+  script:
+    - cd "${OVERLAY_PATH}"
+    - kustomize edit set image "${CI_REGISTRY_IMAGE}/payment-service:${CI_COMMIT_SHA}"
+    - cd -
+    - git add "${OVERLAY_PATH}/kustomization.yaml"
+    - git diff --cached --quiet || git commit -m "ci: update payment-service to ${CI_COMMIT_SHA} [skip ci]"
+    - git push origin "HEAD:${CI_DEFAULT_BRANCH}"
+
+# ── web ────────────────────────────────────────────────────────────────────────
 
 build:web:
   extends: .build
@@ -51,3 +112,18 @@ build:web:
         app/web
     - docker push "$CI_REGISTRY_IMAGE/web:$CI_COMMIT_SHA"
     - docker push "$CI_REGISTRY_IMAGE/web:latest"
+
+update-manifest:web:
+  extends: .update-manifest
+  needs: ["build:web"]
+  rules:
+    - changes:
+        - app/web/**/*
+        - infra/k8s/**/web/**/*
+  script:
+    - cd "${OVERLAY_PATH}"
+    - kustomize edit set image "${CI_REGISTRY_IMAGE}/web:${CI_COMMIT_SHA}"
+    - cd -
+    - git add "${OVERLAY_PATH}/kustomization.yaml"
+    - git diff --cached --quiet || git commit -m "ci: update web to ${CI_COMMIT_SHA} [skip ci]"
+    - git push origin "HEAD:${CI_DEFAULT_BRANCH}"

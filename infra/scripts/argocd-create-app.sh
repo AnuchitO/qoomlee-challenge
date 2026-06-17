@@ -58,8 +58,12 @@ kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -
 # ── 2. Create secrets ────────────────────────────────────────────────────────
 echo "==> [2/3] Creating secrets..."
 
+QOOMLEE_DB_URL="postgresql://qoomlee:${POSTGRES_PASSWORD}@postgres-qoomlee.${NAMESPACE}.svc.cluster.local:5432/qoomlee?sslmode=disable"
+PAYMENT_DB_URL="postgresql://qoomlee_payment:${POSTGRES_PASSWORD}@postgres-payment.${NAMESPACE}.svc.cluster.local:5432/qoomlee_payment?sslmode=disable"
+
 kubectl create secret generic qoomlee-secret \
   --from-literal=POSTGRES_PASSWORD="${POSTGRES_PASSWORD}" \
+  --from-literal=DATABASE_URL="${QOOMLEE_DB_URL}" \
   --from-literal=INTERNAL_TOKEN="${INTERNAL_TOKEN}" \
   --from-literal=JWT_PRIVATE_KEY="${JWT_PRIVATE_KEY:-}" \
   --from-literal=JWT_PUBLIC_KEY="${JWT_PUBLIC_KEY:-}" \
@@ -68,6 +72,7 @@ kubectl create secret generic qoomlee-secret \
 kubectl create secret generic payment-secret \
   --from-literal=POSTGRES_PAYMENT_PASSWORD="${POSTGRES_PASSWORD}" \
   --from-literal=POSTGRES_PASSWORD="${POSTGRES_PASSWORD}" \
+  --from-literal=DATABASE_URL="${PAYMENT_DB_URL}" \
   --from-literal=OMISE_PUBLIC_KEY="${OMISE_PUBLIC_KEY}" \
   --from-literal=OMISE_SECRET_KEY="${OMISE_SECRET_KEY}" \
   --from-literal=INTERNAL_TOKEN="${INTERNAL_TOKEN}" \

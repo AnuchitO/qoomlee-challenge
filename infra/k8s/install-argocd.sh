@@ -35,8 +35,7 @@ kubectl wait deployment \
   --for=condition=Available \
   --timeout=300s
 
-echo "==> Deploying shared Gateway in argocd namespace..."
-kubectl apply -f infra/k8s/base/gateway/gateway.yaml
+echo "==> Deploying ArgoCD HTTPRoute and health check..."
 kubectl apply -f infra/k8s/base/argocd/httproute.yaml
 kubectl apply -f infra/k8s/base/argocd/healthcheckpolicy.yaml
 

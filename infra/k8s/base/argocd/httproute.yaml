@@ -9,7 +9,7 @@ metadata:
 spec:
   parentRefs:
     - name: qoomlee
-      namespace: argocd
+      namespace: qoomlee-team-00-dev
   hostnames:
     - "qoomlee-argocd.anuchito.com"
   rules:

@@ -10,7 +10,7 @@ metadata:
 spec:
   parentRefs:
     - name: qoomlee
-      namespace: argocd
+      namespace: qoomlee-team-00-dev
   hostnames:
     - "api.example.com"
   rules:
@@ -29,7 +29,7 @@ metadata:
 spec:
   parentRefs:
     - name: qoomlee
-      namespace: argocd
+      namespace: qoomlee-team-00-dev
   hostnames:
     - "payment.example.com"
   rules:
@@ -48,7 +48,7 @@ metadata:
 spec:
   parentRefs:
     - name: qoomlee
-      namespace: argocd
+      namespace: qoomlee-team-00-dev
   hostnames:
     - "app.example.com"
   rules:

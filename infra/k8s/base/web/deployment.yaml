@@ -20,7 +20,7 @@ spec:
         fsGroup: 101
       containers:
         - name: web
-          image: registry.gitlab.com/arise-by-infinitas/devrise-workshop/web:latest
+          image: registry.gitlab.com/arise-by-infinitas/devrise-team-00-workshop/web:latest
           imagePullPolicy: Always
           ports:
             - name: http

@@ -20,7 +20,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: qoomlee
-          image: registry.gitlab.com/arise-by-infinitas/devrise-workshop/qoomlee-service:latest
+          image: registry.gitlab.com/arise-by-infinitas/devrise-team-00-workshop/qoomlee-service:latest
           ports:
             - name: http
               containerPort: 8082

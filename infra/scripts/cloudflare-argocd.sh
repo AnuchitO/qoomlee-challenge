@@ -26,8 +26,8 @@ set -euo pipefail
 EXPLICIT_IP="${1:-}"
 DOMAIN="${DOMAIN:-anuchito.com}"
 PROXIED="${PROXIED:-true}"
-GATEWAY_NAME="${GATEWAY_NAME:-argocd}"
-NAMESPACE="${NAMESPACE:-argocd}"
+GATEWAY_NAME="${GATEWAY_NAME:-qoomlee}"
+NAMESPACE="${NAMESPACE:-qoomlee-team-00-dev}"
 HOSTNAME="qoomlee-argocd"
 
 if [[ -z "${CF_API_TOKEN:-}" || -z "${CF_ZONE_ID:-}" ]]; then

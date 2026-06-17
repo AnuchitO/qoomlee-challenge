@@ -27,7 +27,7 @@ EXPLICIT_IP="${2:-}"
 DOMAIN="${DOMAIN:-anuchito.com}"
 PROXIED="${PROXIED:-true}"
 GATEWAY_NAME="${GATEWAY_NAME:-qoomlee}"
-NAMESPACE="qoomlee-team-${TEAM}-dev"
+GATEWAY_NAMESPACE="${GATEWAY_NAMESPACE:-qoomlee-team-00-dev}"
 
 if [[ -z "$TEAM" ]]; then
   echo "Usage: CF_API_TOKEN=<token> CF_ZONE_ID=<zone-id> bash $0 <team> [ip]"
@@ -46,9 +46,9 @@ if [[ -n "$EXPLICIT_IP" ]]; then
   IP="$EXPLICIT_IP"
   echo "==> Using explicit IP: $IP"
 else
-  echo "==> Detecting Gateway IP from cluster (namespace: $NAMESPACE)..."
+  echo "==> Detecting Gateway IP from cluster (namespace: $GATEWAY_NAMESPACE)..."
   for i in $(seq 1 20); do
-    IP=$(kubectl get gateway "$GATEWAY_NAME" -n "$NAMESPACE" \
+    IP=$(kubectl get gateway "$GATEWAY_NAME" -n "$GATEWAY_NAMESPACE" \
       -o jsonpath='{.status.addresses[0].value}' 2>/dev/null || true)
     if [[ -n "$IP" ]]; then
       echo "    Found: $IP"
@@ -59,8 +59,8 @@ else
   done
 
   if [[ -z "$IP" ]]; then
-    echo "ERROR: Gateway '$GATEWAY_NAME' in namespace '$NAMESPACE' has no IP after 5 minutes."
-    echo "  Check: kubectl get gateway $GATEWAY_NAME -n $NAMESPACE"
+    echo "ERROR: Gateway '$GATEWAY_NAME' in namespace '$GATEWAY_NAMESPACE' has no IP after 5 minutes."
+    echo "  Check: kubectl get gateway $GATEWAY_NAME -n $GATEWAY_NAMESPACE"
     exit 1
   fi
 fi

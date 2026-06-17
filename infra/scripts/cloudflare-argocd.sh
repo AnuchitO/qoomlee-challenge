@@ -19,15 +19,15 @@
 # Optional env vars:
 #   DOMAIN        — Base domain (default: anuchito.com)
 #   PROXIED       — true/false Cloudflare proxy (default: true)
-#   GATEWAY_NAME  — k8s Gateway resource name (default: qoomlee)
-#   NAMESPACE     — k8s namespace for Gateway (default: qoomlee-team-00-dev)
+#   GATEWAY_NAME  — k8s Gateway resource name (default: argocd)
+#   NAMESPACE     — k8s namespace for Gateway (default: argocd)
 set -euo pipefail
 
 EXPLICIT_IP="${1:-}"
 DOMAIN="${DOMAIN:-anuchito.com}"
 PROXIED="${PROXIED:-true}"
-GATEWAY_NAME="${GATEWAY_NAME:-qoomlee}"
-NAMESPACE="${NAMESPACE:-qoomlee-team-00-dev}"
+GATEWAY_NAME="${GATEWAY_NAME:-argocd}"
+NAMESPACE="${NAMESPACE:-argocd}"
 HOSTNAME="qoomlee-argocd"
 
 if [[ -z "${CF_API_TOKEN:-}" || -z "${CF_ZONE_ID:-}" ]]; then

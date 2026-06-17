@@ -122,6 +122,23 @@ update-manifest:web:
     - 'git diff --cached --quiet || git commit -m "ci: update web to ${CI_COMMIT_SHA} [skip ci]"'
     - 'git push origin HEAD:${CI_DEFAULT_BRANCH}'
 
+# ── list dev image tags (run this first to find what SHA to promote) ───────────
+
+list:dev-tags:
+  stage: promote
+  image: alpine:latest
+  when: manual
+  before_script:
+    - apk add --no-cache git
+    - git fetch origin "${CI_DEFAULT_BRANCH}"
+    - git checkout "${CI_DEFAULT_BRANCH}"
+  script:
+    - echo "=== Current image tags in dev overlay ==="
+    - grep -A1 "name:" infra/k8s/overlays/dev/kustomization.yaml | grep "newTag"
+    - echo ""
+    - echo "=== Recent promotions to prod ==="
+    - git log --oneline --follow infra/k8s/overlays/prod/kustomization.yaml | head -10
+
 # ── promote to prod ────────────────────────────────────────────────────────────
 # Trigger manually: CI/CD → Pipelines → Run pipeline
 # Set QOOMLEE_TAG, PAYMENT_TAG, WEB_TAG to the commit SHA to promote.

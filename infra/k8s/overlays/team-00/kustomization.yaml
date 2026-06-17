@@ -16,6 +16,8 @@ patches:
 - path: patch-httproutes.yaml
 
 images:
+- name: registry.gitlab.com/arise-by-infinitas/devrise-team-00-workshop/payment-service
+  newTag: 6a174d17c3e6c34d6b0b562176060ac530067261
 - name: registry.gitlab.com/arise-by-infinitas/devrise-team-00-workshop/qoomlee-service
   newTag: 6a174d17c3e6c34d6b0b562176060ac530067261
 - name: registry.gitlab.com/arise-by-infinitas/devrise-team-00-workshop/web

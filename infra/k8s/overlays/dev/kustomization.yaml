@@ -4,22 +4,21 @@ kind: Kustomization
 namespace: qoomlee-team-00-dev
 
 labels:
-  - pairs:
-      env: dev
-    includeSelectors: false
+- pairs:
+    env: dev
 
 resources:
-  - ../../base
-  - namespace.yaml
-  - configmaps.yaml
+- ../../base
+- namespace.yaml
+- configmaps.yaml
 
 patches:
-  - path: patch-httproutes.yaml
+- path: patch-httproutes.yaml
 
 images:
-  - name: registry.gitlab.com/arise-by-infinitas/devrise-workshop/qoomlee-service
-    newTag: latest
-  - name: registry.gitlab.com/arise-by-infinitas/devrise-workshop/payment-service
-    newTag: latest
-  - name: registry.gitlab.com/arise-by-infinitas/devrise-workshop/web
-    newTag: latest
+- name: registry.gitlab.com/arise-by-infinitas/devrise-workshop/payment-service
+  newTag: latest
+- name: registry.gitlab.com/arise-by-infinitas/devrise-workshop/qoomlee-service
+  newTag: latest
+- name: registry.gitlab.com/arise-by-infinitas/devrise-workshop/web
+  newTag: 4b9e36845823d0fef591c1c513dff4f3a67bf2b0

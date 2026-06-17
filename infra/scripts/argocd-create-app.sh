@@ -53,7 +53,7 @@ BRANCH="${BRANCH:-main}"
 
 APP_NAME="qoomlee-team-${TEAM}"
 GIT_URL="${GIT_URL_PATTERN//TEAM/${TEAM}}"
-OVERLAY_PATH="infra/k8s/overlays/team-${TEAM}"
+OVERLAY_PATH="infra/k8s/overlays/dev"
 NAMESPACE="qoomlee-team-${TEAM}"
 REGISTRY="registry.gitlab.com/arise-by-infinitas/devrise-team-${TEAM}-workshop"
 

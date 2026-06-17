@@ -4,6 +4,15 @@ set -euo pipefail
 ARGOCD_VERSION="${ARGOCD_VERSION:-v2.14.11}"
 NAMESPACE=argocd
 
+echo "==> Checking ArgoCD installation status..."
+
+# Check if ArgoCD is already installed
+if kubectl get namespace "$NAMESPACE" &>/dev/null; then
+    echo "==> ArgoCD namespace already exists. Skipping installation."
+    echo "    To upgrade ArgoCD, run: kubectl apply -n $NAMESPACE -f https://raw.githubusercontent.com/argoproj/argo-cd/${ARGOCD_VERSION}/manifests/install.yaml"
+    exit 0
+fi
+
 echo "==> Creating namespace ${NAMESPACE}..."
 kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
 

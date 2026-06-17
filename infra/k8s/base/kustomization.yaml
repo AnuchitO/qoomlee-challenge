@@ -20,6 +20,9 @@ resources:
   - gateway/gateway.yaml
   - gateway/httproutes.yaml
 
+# ArgoCD is installed separately for all teams (shared infrastructure)
+# See infra/k8s/install-argocd.sh
+
 generatorOptions:
   disableNameSuffixHash: true
 

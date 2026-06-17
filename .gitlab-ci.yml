@@ -173,7 +173,7 @@ list:dev-tags:
     - git checkout "${CI_DEFAULT_BRANCH}"
   script:
     - echo "=== Current image tags in DEV overlay ==="
-    - grep "\- name:" infra/k8s/overlays/dev/kustomization.yaml | sed 's/.*\- name: *//'
+    - sed -n '/^- name:/{s/^- name: *//;p}' infra/k8s/overlays/dev/kustomization.yaml
     - echo "=== Last 5 prod promotions ==="
     - git log --oneline --follow --max-count=5 infra/k8s/overlays/prod/kustomization.yaml 2>/dev/null
 
@@ -189,7 +189,7 @@ list:prod-tags:
     - git checkout "${CI_DEFAULT_BRANCH}"
   script:
     - echo "=== Current image tags in PROD overlay ==="
-    - grep "\- name:" infra/k8s/overlays/prod/kustomization.yaml | sed 's/.*\- name: *//'
+    - sed -n '/^- name:/{s/^- name: *//;p}' infra/k8s/overlays/prod/kustomization.yaml
 
 # ── promote to prod ────────────────────────────────────────────────────────────
 # Trigger manually: CI/CD → Pipelines → Run pipeline

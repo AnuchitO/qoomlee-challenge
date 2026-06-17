@@ -19,7 +19,6 @@ resources:
   - web/service.yaml
   - pgweb/deployment.yaml
   - pgweb/service.yaml
-  - pgweb/nginx-conf.yaml
   - gateway/httproutes.yaml
 
 # ArgoCD is installed separately for all teams (shared infrastructure)

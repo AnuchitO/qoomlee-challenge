@@ -14,41 +14,11 @@ spec:
       labels:
         app: pgweb
     spec:
-      initContainers:
-        - name: generate-htpasswd
-          image: httpd:2-alpine
-          env:
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: qoomlee-secret
-                  key: POSTGRES_PASSWORD
-          command: ["sh", "-c"]
-          args:
-            - htpasswd -cb /auth/.htpasswd admin "$POSTGRES_PASSWORD"
-          volumeMounts:
-            - name: auth
-              mountPath: /auth
       containers:
-        - name: nginx
-          image: nginx:alpine
-          ports:
-            - containerPort: 8081
-          volumeMounts:
-            - name: nginx-conf
-              mountPath: /etc/nginx/conf.d
-            - name: auth
-              mountPath: /auth
-              readOnly: true
-          resources:
-            requests:
-              cpu: 5m
-              memory: 16Mi
-            limits:
-              cpu: 50m
-              memory: 64Mi
         - name: pgweb
           image: sosedoff/pgweb:latest
+          ports:
+            - containerPort: 8081
           env:
             - name: DATABASE_URL
               valueFrom:
@@ -57,7 +27,7 @@ spec:
                   key: DATABASE_URL
           command: ["sh", "-c"]
           args:
-            - /usr/bin/pgweb --bind=127.0.0.1 --listen=8082 --url="$DATABASE_URL"
+            - /usr/bin/pgweb --bind=0.0.0.0 --listen=8081 --url="$DATABASE_URL"
           resources:
             requests:
               cpu: 10m
@@ -65,9 +35,3 @@ spec:
             limits:
               cpu: 100m
               memory: 128Mi
-      volumes:
-        - name: nginx-conf
-          configMap:
-            name: pgweb-nginx-conf
-        - name: auth
-          emptyDir: {}

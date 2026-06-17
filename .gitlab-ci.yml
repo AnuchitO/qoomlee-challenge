@@ -26,3 +26,16 @@ build:payment:
     - docker build --platform linux/amd64 -t "$CI_REGISTRY_IMAGE/payment-service:$CI_COMMIT_SHA" -t "$CI_REGISTRY_IMAGE/payment-service:latest" services/payment
     - docker push "$CI_REGISTRY_IMAGE/payment-service:$CI_COMMIT_SHA"
     - docker push "$CI_REGISTRY_IMAGE/payment-service:latest"
+
+build:web:
+  extends: .build
+  script:
+    - docker build --platform linux/amd64
+        --build-arg NEXT_PUBLIC_QOOMLEE_API_URL=https://team-00-qoomlee-api.anuchito.com
+        --build-arg NEXT_PUBLIC_PAYMENT_API_URL=https://team-00-payment-api.anuchito.com
+        --build-arg NEXT_PUBLIC_ENABLE_TEST_SCENARIOS=true
+        -t "$CI_REGISTRY_IMAGE/web:$CI_COMMIT_SHA"
+        -t "$CI_REGISTRY_IMAGE/web:latest"
+        app/web
+    - docker push "$CI_REGISTRY_IMAGE/web:$CI_COMMIT_SHA"
+    - docker push "$CI_REGISTRY_IMAGE/web:latest"

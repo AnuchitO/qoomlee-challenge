@@ -5,7 +5,7 @@ metadata:
   name: qoomlee-api
 spec:
   hostnames:
-    - "api.dev.team-00.example.com"
+    - "team-00-qoomlee-api.anuchito.com"
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -13,7 +13,7 @@ metadata:
   name: payment-api
 spec:
   hostnames:
-    - "payment.dev.team-00.example.com"
+    - "team-00-payment-api.anuchito.com"
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -21,4 +21,4 @@ metadata:
   name: web
 spec:
   hostnames:
-    - "app.dev.team-00.example.com"
+    - "team-00-qoomlee-web.anuchito.com"

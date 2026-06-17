@@ -36,7 +36,7 @@ interface DragState {
 export default function QuickFillWidget({
   title,
   options,
-  anchorClassName = "bottom-24 right-4 md:bottom-4",
+  anchorClassName = "bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2",
 }: QuickFillWidgetProps) {
   const [open, setOpen] = useState(false);
   const [panelStyle, setPanelStyle] = useState<CSSProperties>({});

@@ -19,6 +19,17 @@ spec:
           image: sosedoff/pgweb:latest
           ports:
             - containerPort: 8081
+          env:
+            - name: PGWEB_HOST
+              value: "postgres-qoomlee"
+            - name: PGWEB_PORT
+              value: "5432"
+            - name: PGWEB_USER
+              value: "qoomlee"
+            - name: PGWEB_DATABASE
+              value: "qoomlee"
+            - name: PGWEB_SSLMODE
+              value: "disable"
           command: ["/usr/bin/pgweb"]
           args:
             - "--bind=0.0.0.0"

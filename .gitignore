@@ -22,6 +22,9 @@ services/payment-service/payment-service
 infra/k8s/**/secret.env
 infra/k8s/**/secret.payment.env
 
+# GCP service account keys
+*.json
+
 # Coverage
 **/coverage/
 **/*.out

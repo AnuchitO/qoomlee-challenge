@@ -11,8 +11,10 @@ resources:
   - postgres/payment-postgres.yaml
   - qoomlee/deployment.yaml
   - qoomlee/service.yaml
+  - qoomlee/healthcheckpolicy.yaml
   - payment/deployment.yaml
   - payment/service.yaml
+  - payment/healthcheckpolicy.yaml
   - web/deployment.yaml
   - web/service.yaml
   - gateway/gateway.yaml

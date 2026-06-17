@@ -4,7 +4,7 @@
 set -euo pipefail
 
 NAMESPACE=qoomlee-team-00-dev
-OVERLAY=infra/k8s/overlays/dev
+OVERLAY=infra/k8s/overlays/team-00
 ARGOCD_VERSION="${ARGOCD_VERSION:-v2.14.11}"
 
 # ── 1. Gateway API CRDs ───────────────────────────────────────────────────────
@@ -74,10 +74,14 @@ kubectl wait deployment \
   argocd-dex-server argocd-redis \
   -n argocd --for=condition=Available --timeout=300s
 
-# ── 6. Expose ArgoCD via LoadBalancer ─────────────────────────────────────────
+# ── 6. Configure ArgoCD for Gateway routing ──────────────────────────────────
 echo ""
-echo "==> [6/6] Exposing ArgoCD server as LoadBalancer..."
-kubectl patch svc argocd-server -n argocd -p '{"spec":{"type":"LoadBalancer"}}'
+echo "==> [6/6] Configuring ArgoCD server for HTTP (TLS at gateway/Cloudflare)..."
+kubectl patch cm argocd-cmd-params-cm -n argocd \
+  --type merge -p '{"data":{"server.insecure":"true"}}'
+kubectl rollout restart deployment argocd-server -n argocd
+kubectl apply -f infra/k8s/base/argocd/httproute.yaml
+kubectl apply -f infra/k8s/base/argocd/healthcheckpolicy.yaml
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
@@ -88,8 +92,11 @@ kubectl -n argocd get secret argocd-initial-admin-secret \
   -o jsonpath="{.data.password}" | base64 -d
 echo ""
 echo ""
-echo "--- ArgoCD external IP (may still be <pending>) ---"
-kubectl get svc argocd-server -n argocd
+echo "--- Access ---"
+echo "ArgoCD : https://qoomlee-argocd.anuchito.com (user: admin)"
+echo "Web    : https://team-00-qoomlee-web.anuchito.com"
+echo "API    : https://team-00-qoomlee-api.anuchito.com"
+echo "Payment: https://team-00-payment-api.anuchito.com"
 echo ""
 echo "--- App pods ---"
 kubectl get pods -n "$NAMESPACE"

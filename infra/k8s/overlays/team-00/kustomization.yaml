@@ -5,7 +5,7 @@ namespace: qoomlee-team-00-dev
 
 labels:
 - pairs:
-    env: dev
+    team: team-00
 
 resources:
 - ../../base

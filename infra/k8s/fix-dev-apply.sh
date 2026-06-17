@@ -2,7 +2,7 @@
 set -euo pipefail
 
 NAMESPACE=qoomlee-team-00-dev
-OVERLAY=infra/k8s/overlays/dev
+OVERLAY=infra/k8s/overlays/team-00
 
 echo "==> Installing Gateway API CRDs..."
 kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml

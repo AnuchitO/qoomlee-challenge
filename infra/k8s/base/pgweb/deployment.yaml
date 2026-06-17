@@ -20,18 +20,16 @@ spec:
           ports:
             - containerPort: 8081
           env:
-            - name: PGWEB_DATABASE_URL
-              value: "postgresql://qoomlee:$(POSTGRES_PASSWORD)@postgres-qoomlee:5432/qoomlee?sslmode=disable"
-            - name: POSTGRES_PASSWORD
+            - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
                   name: qoomlee-secret
-                  key: POSTGRES_PASSWORD
+                  key: DATABASE_URL
           command: ["/usr/bin/pgweb"]
           args:
             - "--bind=0.0.0.0"
             - "--listen=8081"
-            - "--url=$(PGWEB_DATABASE_URL)"
+            - "--url=$(DATABASE_URL)"
           resources:
             requests:
               cpu: 10m

@@ -11,7 +11,7 @@
 set -euo pipefail
 
 TEAM="${1:-}"
-GIT_URL="${GIT_URL:-https://gitlab.com/arise-by-infinitas/devrise-workshop.git}"
+GIT_URL_PATTERN="${GIT_URL_PATTERN:-https://gitlab.com/arise-by-infinitas/devrise-team-TEAM-workshop.git}"
 CLUSTER_URL="${CLUSTER_URL:-https://kubernetes.default.svc}"
 PROJECT="${PROJECT:-default}"
 BRANCH="${BRANCH:-main}"
@@ -23,6 +23,7 @@ if [[ -z "$TEAM" ]]; then
 fi
 
 APP_NAME="qoomlee-team-${TEAM}"
+GIT_URL="${GIT_URL_PATTERN//TEAM/${TEAM}}"
 OVERLAY_PATH="infra/k8s/overlays/team-${TEAM}"
 NAMESPACE="qoomlee-team-${TEAM}-dev"
 

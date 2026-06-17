@@ -10,8 +10,12 @@
 --     QM102=39(SIN 10:00), QM202=40(HKG 12:00), SC201=41(SIN 14:00), QM402=42(KUL 13:30),
 --     QM301=43(NRT 16:00), QM502=44(CGK 17:00), QM602=45(MNL 19:00),
 --     QM103=46(SIN 21:00), QM203=47(HKG 22:30), QM403=48(KUL 23:00)
---   flights (+3d,  ×1.2 this-week):    ids 6–10
---     QM101=6(SIN), QM201=7(HKG), QM401=8(KUL), QM501=9(CGK), QM601=10(MNL)
+--   flights (+1d,  ×1.4 tomorrow):     ids 84–88  (5 flights, same routes as +0d morning departures)
+--     QM101=84(SIN 08:00), QM201=85(HKG 07:30), QM401=86(KUL 06:15), QM501=87(CGK 08:00), QM601=88(MNL 07:00)
+--   flights (+2d,  ×1.3 day-after):   ids 89–93  (5 flights, same routes)
+--     QM101=89(SIN 08:00), QM201=90(HKG 07:30), QM401=91(KUL 06:15), QM501=92(CGK 08:00), QM601=93(MNL 07:00)
+--   flights (+3d,  ×1.2 this-week):    ids 94–98
+--     QM101=94(SIN), QM201=95(HKG), QM401=96(KUL), QM501=97(CGK), QM601=98(MNL)
 --   flights (+7d to +13d, ×1.1 next-week): ids 49–83  (5 flights/day × 7 days)
 --     each day: QM101(SIN 08:00), QM201(HKG 07:30), QM401(KUL 06:15), QM501(CGK 08:00), QM601(MNL 07:00)
 --   flights (+14d, ×1.0 standard):     ids 11–22  ← booking-test flights
@@ -201,7 +205,24 @@ VALUES
     ('QM201',  2, 2, ((CURRENT_DATE+INTERVAL '13 days')::DATE||' 07:30:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE+INTERVAL '13 days')::DATE||' 11:00:00 +08')::TIMESTAMPTZ,  495000,'THB',166),  -- id=80
     ('QM401',  4, 1, ((CURRENT_DATE+INTERVAL '13 days')::DATE||' 06:15:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE+INTERVAL '13 days')::DATE||' 09:15:00 +08')::TIMESTAMPTZ,  141900,'THB',140),  -- id=81
     ('QM501',  5, 3, ((CURRENT_DATE+INTERVAL '13 days')::DATE||' 08:00:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE+INTERVAL '13 days')::DATE||' 11:30:00 +07')::TIMESTAMPTZ,  317900,'THB',176),  -- id=82
-    ('QM601',  6, 2, ((CURRENT_DATE+INTERVAL '13 days')::DATE||' 07:00:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE+INTERVAL '13 days')::DATE||' 11:00:00 +08')::TIMESTAMPTZ,  352000,'THB',220);  -- id=83
+    ('QM601',  6, 2, ((CURRENT_DATE+INTERVAL '13 days')::DATE||' 07:00:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE+INTERVAL '13 days')::DATE||' 11:00:00 +08')::TIMESTAMPTZ,  352000,'THB',220),  -- id=83
+-- ── +1d  tomorrow     ×1.4 ───────────────────────────────────────────────────
+    ('QM101',   1,     1,    ((CURRENT_DATE + INTERVAL '1 day')::DATE || ' 08:00:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE + INTERVAL '1 day')::DATE || ' 11:30:00 +08')::TIMESTAMPTZ,   490000, 'THB',   55),  -- id=84  ×1.4 → 4900.00 THB  BKK→SIN
+    ('QM201',   2,     2,    ((CURRENT_DATE + INTERVAL '1 day')::DATE || ' 07:30:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE + INTERVAL '1 day')::DATE || ' 11:00:00 +08')::TIMESTAMPTZ,   630000, 'THB',  100),  -- id=85  ×1.4 → 6300.00 THB  BKK→HKG
+    ('QM401',   4,     1,    ((CURRENT_DATE + INTERVAL '1 day')::DATE || ' 06:15:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE + INTERVAL '1 day')::DATE || ' 09:15:00 +08')::TIMESTAMPTZ,   180600, 'THB',   40),  -- id=86  ×1.4 → 1806.00 THB  BKK→KUL
+    ('QM501',   5,     3,    ((CURRENT_DATE + INTERVAL '1 day')::DATE || ' 08:00:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE + INTERVAL '1 day')::DATE || ' 11:30:00 +07')::TIMESTAMPTZ,   404600, 'THB',   75),  -- id=87  ×1.4 → 4046.00 THB  BKK→CGK
+    ('QM601',   6,     2,    ((CURRENT_DATE + INTERVAL '1 day')::DATE || ' 07:00:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE + INTERVAL '1 day')::DATE || ' 11:00:00 +08')::TIMESTAMPTZ,   448000, 'THB',  130),  -- ×1.4 → 4480.00 THB  BKK→MNL
+    ('QM102',   1,     1,    ((CURRENT_DATE + INTERVAL '1 day')::DATE || ' 14:00:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE + INTERVAL '1 day')::DATE || ' 17:30:00 +08')::TIMESTAMPTZ,   392000, 'THB',   60),  -- ×1.4 → 3920.00 THB  BKK→SIN  afternoon
+    ('QM202',   2,     2,    ((CURRENT_DATE + INTERVAL '1 day')::DATE || ' 12:00:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE + INTERVAL '1 day')::DATE || ' 15:30:00 +08')::TIMESTAMPTZ,   686000, 'THB',  110),  -- ×1.4 → 6860.00 THB  BKK→HKG  noon
+    ('QM301',   3,     2,    ((CURRENT_DATE + INTERVAL '1 day')::DATE || ' 23:55:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE + INTERVAL '2 days')::DATE || ' 08:00:00 +09')::TIMESTAMPTZ,  1372000, 'THB',   80),  -- ×1.4 → 13720.00 THB BKK→NRT  overnight
+    ('QM402',   4,     4,    ((CURRENT_DATE + INTERVAL '1 day')::DATE || ' 17:30:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE + INTERVAL '1 day')::DATE || ' 20:30:00 +08')::TIMESTAMPTZ,   259000, 'THB',   55),  -- ×1.4 → 2590.00 THB  BKK→KUL  evening
+    ('SC201',   1,     1,    ((CURRENT_DATE + INTERVAL '1 day')::DATE || ' 21:00:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE + INTERVAL '2 days')::DATE || ' 00:30:00 +08')::TIMESTAMPTZ,   308000, 'THB',   70),  -- ×1.4 → 3080.00 THB  BKK→SIN  late-night
+-- ── +2d  day-after    ×1.3 ───────────────────────────────────────────────────
+    ('QM101',   1,     1,    ((CURRENT_DATE + INTERVAL '2 days')::DATE || ' 08:00:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE + INTERVAL '2 days')::DATE || ' 11:30:00 +08')::TIMESTAMPTZ,   455000, 'THB',   65),  -- id=89  ×1.3 → 4550.00 THB  BKK→SIN
+    ('QM201',   2,     2,    ((CURRENT_DATE + INTERVAL '2 days')::DATE || ' 07:30:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE + INTERVAL '2 days')::DATE || ' 11:00:00 +08')::TIMESTAMPTZ,   585000, 'THB',  120),  -- id=90  ×1.3 → 5850.00 THB  BKK→HKG
+    ('QM401',   4,     1,    ((CURRENT_DATE + INTERVAL '2 days')::DATE || ' 06:15:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE + INTERVAL '2 days')::DATE || ' 09:15:00 +08')::TIMESTAMPTZ,   167700, 'THB',   50),  -- id=91  ×1.3 → 1677.00 THB  BKK→KUL
+    ('QM501',   5,     3,    ((CURRENT_DATE + INTERVAL '2 days')::DATE || ' 08:00:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE + INTERVAL '2 days')::DATE || ' 11:30:00 +07')::TIMESTAMPTZ,   375700, 'THB',   85),  -- id=92  ×1.3 → 3757.00 THB  BKK→CGK
+    ('QM601',   6,     2,    ((CURRENT_DATE + INTERVAL '2 days')::DATE || ' 07:00:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE + INTERVAL '2 days')::DATE || ' 11:00:00 +08')::TIMESTAMPTZ,   416000, 'THB',  140);  -- id=93  ×1.3 → 4160.00 THB  BKK→MNL
 
 -- ── Return flights (X→BKK) — same tiering pattern as outbound, for round-trip search ──
 -- Durations mirror the outbound leg: SIN/HKG 150min, NRT 365min, KUL 120min, CGK 210min, MNL 240min
@@ -214,14 +235,22 @@ VALUES
     ('QM310',   9,     2,    (CURRENT_DATE || ' 10:00:00 +09')::TIMESTAMPTZ, (CURRENT_DATE || ' 14:05:00 +07')::TIMESTAMPTZ,  1470000, 'THB',   75),  -- id=86  ×1.5 → 14700.00 THB NRT→BKK
     ('QM410',  10,     1,    (CURRENT_DATE || ' 14:00:00 +08')::TIMESTAMPTZ, (CURRENT_DATE || ' 15:00:00 +07')::TIMESTAMPTZ,   193500, 'THB',   35),  -- id=87  ×1.5 → 1935.00 THB  KUL→BKK
     ('QM510',  11,     3,    (CURRENT_DATE || ' 13:00:00 +07')::TIMESTAMPTZ, (CURRENT_DATE || ' 16:30:00 +07')::TIMESTAMPTZ,   433500, 'THB',   70),  -- id=88  ×1.5 → 4335.00 THB  CGK→BKK
-    ('QM610',  12,     2,    (CURRENT_DATE || ' 13:00:00 +08')::TIMESTAMPTZ, (CURRENT_DATE || ' 16:00:00 +07')::TIMESTAMPTZ,   480000, 'THB',  120),  -- id=89  ×1.5 → 4800.00 THB  MNL→BKK
+    ('QM610',  12,     2,    (CURRENT_DATE || ' 13:00:00 +08')::TIMESTAMPTZ, (CURRENT_DATE || ' 16:00:00 +07')::TIMESTAMPTZ,   480000, 'THB',  120),  -- ×1.5 → 4800.00 THB  MNL→BKK
+    ('QM112',   7,     1,    (CURRENT_DATE || ' 19:00:00 +08')::TIMESTAMPTZ, (CURRENT_DATE || ' 21:30:00 +07')::TIMESTAMPTZ,   525000, 'THB',   55),  -- ×1.5 → 5250.00 THB  SIN→BKK  evening
+    ('QM212',   8,     2,    (CURRENT_DATE || ' 19:00:00 +08')::TIMESTAMPTZ, (CURRENT_DATE || ' 20:30:00 +07')::TIMESTAMPTZ,   675000, 'THB',   85),  -- ×1.5 → 6750.00 THB  HKG→BKK  evening
+    ('QM412',  10,     1,    (CURRENT_DATE || ' 19:00:00 +08')::TIMESTAMPTZ, (CURRENT_DATE || ' 20:00:00 +07')::TIMESTAMPTZ,   193500, 'THB',   40),  -- ×1.5 → 1935.00 THB  KUL→BKK  evening
+    ('QM512',  11,     3,    (CURRENT_DATE || ' 18:00:00 +07')::TIMESTAMPTZ, (CURRENT_DATE || ' 21:30:00 +07')::TIMESTAMPTZ,   433500, 'THB',   65),  -- ×1.5 → 4335.00 THB  CGK→BKK  evening
 -- ── +1d  tomorrow     ×1.4 ───────────────────────────────────────────────────
-    ('QM110',   7,     1,    ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 13:00:00 +08')::TIMESTAMPTZ, ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 15:30:00 +07')::TIMESTAMPTZ,   490000, 'THB',   60),  -- id=90  ×1.4 → 4900.00 THB  SIN→BKK
+    ('QM110',   7,     1,    ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 13:00:00 +08')::TIMESTAMPTZ, ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 15:30:00 +07')::TIMESTAMPTZ,   490000, 'THB',   60),  -- ×1.4 → 4900.00 THB  SIN→BKK
     ('QM210',   8,     2,    ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 13:00:00 +08')::TIMESTAMPTZ, ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 14:30:00 +07')::TIMESTAMPTZ,   630000, 'THB',  110),  -- id=91  ×1.4 → 6300.00 THB  HKG→BKK
     ('QM310',   9,     2,    ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 10:00:00 +09')::TIMESTAMPTZ, ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 14:05:00 +07')::TIMESTAMPTZ,  1372000, 'THB',   90),  -- id=92  ×1.4 → 13720.00 THB NRT→BKK
     ('QM410',  10,     1,    ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 14:00:00 +08')::TIMESTAMPTZ, ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 15:00:00 +07')::TIMESTAMPTZ,   180600, 'THB',   45),  -- id=93  ×1.4 → 1806.00 THB  KUL→BKK
     ('QM510',  11,     3,    ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 13:00:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 16:30:00 +07')::TIMESTAMPTZ,   404600, 'THB',   85),  -- id=94  ×1.4 → 4046.00 THB  CGK→BKK
-    ('QM610',  12,     2,    ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 13:00:00 +08')::TIMESTAMPTZ, ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 16:00:00 +07')::TIMESTAMPTZ,   448000, 'THB',  135),  -- id=95  ×1.4 → 4480.00 THB  MNL→BKK
+    ('QM610',  12,     2,    ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 13:00:00 +08')::TIMESTAMPTZ, ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 16:00:00 +07')::TIMESTAMPTZ,   448000, 'THB',  135),  -- ×1.4 → 4480.00 THB  MNL→BKK
+    ('QM112',   7,     1,    ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 19:00:00 +08')::TIMESTAMPTZ, ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 21:30:00 +07')::TIMESTAMPTZ,   490000, 'THB',   60),  -- ×1.4 → 4900.00 THB  SIN→BKK  evening
+    ('QM212',   8,     2,    ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 19:00:00 +08')::TIMESTAMPTZ, ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 20:30:00 +07')::TIMESTAMPTZ,   630000, 'THB',  105),  -- ×1.4 → 6300.00 THB  HKG→BKK  evening
+    ('QM412',  10,     1,    ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 19:00:00 +08')::TIMESTAMPTZ, ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 20:00:00 +07')::TIMESTAMPTZ,   180600, 'THB',   50),  -- ×1.4 → 1806.00 THB  KUL→BKK  evening
+    ('QM512',  11,     3,    ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 18:00:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE+INTERVAL '1 day')::DATE||' 21:30:00 +07')::TIMESTAMPTZ,   404600, 'THB',   80),  -- ×1.4 → 4046.00 THB  CGK→BKK  evening
 -- ── +3d  this-week    ×1.2 ───────────────────────────────────────────────────
     ('QM110',   7,     1,    ((CURRENT_DATE+INTERVAL '3 days')::DATE||' 13:00:00 +08')::TIMESTAMPTZ, ((CURRENT_DATE+INTERVAL '3 days')::DATE||' 15:30:00 +07')::TIMESTAMPTZ,   420000, 'THB',   95),  -- id=96  ×1.2 → 4200.00 THB  SIN→BKK
     ('QM210',   8,     2,    ((CURRENT_DATE+INTERVAL '3 days')::DATE||' 13:00:00 +08')::TIMESTAMPTZ, ((CURRENT_DATE+INTERVAL '3 days')::DATE||' 14:30:00 +07')::TIMESTAMPTZ,   540000, 'THB',  145),  -- id=97  ×1.2 → 5400.00 THB  HKG→BKK
@@ -257,6 +286,76 @@ VALUES
     ('QM410',  10,     1,    ((CURRENT_DATE+INTERVAL '95 days')::DATE||' 14:00:00 +08')::TIMESTAMPTZ, ((CURRENT_DATE+INTERVAL '95 days')::DATE||' 15:00:00 +07')::TIMESTAMPTZ,    83850, 'THB',  165),  -- id=123 ×0.65 →  838.50 THB  KUL→BKK
     ('QM510',  11,     3,    ((CURRENT_DATE+INTERVAL '95 days')::DATE||' 13:00:00 +07')::TIMESTAMPTZ, ((CURRENT_DATE+INTERVAL '95 days')::DATE||' 16:30:00 +07')::TIMESTAMPTZ,   187850, 'THB',  245),  -- id=124 ×0.65 → 1878.50 THB  CGK→BKK
     ('QM610',  12,     2,    ((CURRENT_DATE+INTERVAL '95 days')::DATE||' 13:00:00 +08')::TIMESTAMPTZ, ((CURRENT_DATE+INTERVAL '95 days')::DATE||' 16:00:00 +07')::TIMESTAMPTZ,   208000, 'THB',  295);  -- id=125 ×0.65 → 2080.00 THB  MNL→BKK
+
+-- ── Fill +0d, +1d, +2d to 10 flights per route (outbound + return) ───────────
+-- Generates flights at 10 departure times spread across the day.
+-- ON CONFLICT DO NOTHING preserves manually-seeded flights above.
+DO $$
+DECLARE
+    v_route   RECORD;
+    v_day     INT;
+    v_idx     INT;
+    v_mult    NUMERIC;
+    v_dep     TIMESTAMPTZ;
+    v_arr     TIMESTAMPTZ;
+    v_fn      TEXT;
+    v_price   BIGINT;
+    v_seats   INT;
+    v_hours   INT[] := ARRAY[6, 7, 9, 10, 12, 14, 16, 18, 20, 22];
+    v_mins    INT[] := ARRAY[0, 30, 0, 30, 0, 0, 0, 0, 0, 0];
+    v_rdigit  INT;
+BEGIN
+    FOR v_route IN
+        SELECT * FROM (VALUES
+            ( 1, 1, 7, 150, 350000),
+            ( 2, 2, 7, 150, 450000),
+            ( 3, 2, 7, 365, 980000),
+            ( 4, 1, 7, 120, 129000),
+            ( 5, 3, 7, 210, 289000),
+            ( 6, 2, 7, 240, 320000),
+            ( 7, 1, 8, 150, 350000),
+            ( 8, 2, 8, 150, 450000),
+            ( 9, 2, 9, 365, 980000),
+            (10, 1, 8, 120, 129000),
+            (11, 3, 7, 210, 289000),
+            (12, 2, 8, 240, 320000)
+        ) AS t(route_id, acft, dep_tz, dur_min, base_price)
+    LOOP
+        v_rdigit := ((v_route.route_id - 1) % 6) + 1;
+
+        FOR v_day IN 0..2 LOOP
+            v_mult := CASE v_day WHEN 0 THEN 1.5 WHEN 1 THEN 1.4 ELSE 1.3 END;
+
+            FOR v_idx IN 1..10 LOOP
+                IF v_route.route_id <= 6 THEN
+                    v_fn := 'QM' || v_rdigit || LPAD(v_idx::TEXT, 2, '0');
+                ELSE
+                    v_fn := 'QM' || v_rdigit || LPAD((v_idx + 10)::TEXT, 2, '0');
+                END IF;
+
+                v_dep := ((CURRENT_DATE + v_day * INTERVAL '1 day')::DATE
+                          || ' ' || LPAD(v_hours[v_idx]::TEXT, 2, '0')
+                          || ':' || LPAD(v_mins[v_idx]::TEXT, 2, '0')
+                          || ':00 +' || LPAD(v_route.dep_tz::TEXT, 2, '0'))::TIMESTAMPTZ;
+                v_arr := v_dep + (v_route.dur_min * INTERVAL '1 minute');
+
+                v_price := (v_route.base_price * v_mult)::BIGINT
+                           + ((v_idx - 5) * (v_route.base_price / 100))::BIGINT;
+                v_seats := 40 + (v_idx * 12) + (2 - v_day) * 10;
+
+                INSERT INTO flights
+                    (flight_number, route_id, aircraft_type_id,
+                     departure_time, arrival_time,
+                     base_price_minor, currency, available_seats)
+                VALUES
+                    (v_fn, v_route.route_id, v_route.acft,
+                     v_dep, v_arr,
+                     v_price, 'THB', v_seats)
+                ON CONFLICT (flight_number, departure_time) DO NOTHING;
+            END LOOP;
+        END LOOP;
+    END LOOP;
+END $$;
 
 -- ── Seats for QM101 (flight id=11) ────────────────────────────────────────────
 -- Rows 1–4   → BUSINESS  (4 rows × 6 cols = 24 seats)

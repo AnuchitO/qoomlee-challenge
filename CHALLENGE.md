@@ -126,6 +126,13 @@
 | QML-045 | Handle Expiry Mid-Submit | web | ✅ Done |
 | QML-046 | "My Bookings" Backed by Real Data | web + qoomlee-service | ✅ Done |
 
+### EPIC: Check-in & Boarding
+| # | Story | Service | Status |
+|---|-------|---------|--------|
+| QML-049 | Online Check-in | qoomlee-service | ⬜ Todo |
+| QML-050 | View Check-in Status | qoomlee-service | ⬜ Todo |
+| QML-051 | View Boarding Pass | qoomlee-service | ⬜ Todo |
+
 ---
 
 ## What You're Building
@@ -305,6 +312,213 @@ all the way to a confirmed, paid booking.
 | Integration | Positive | Second `POST /api/bookings?bookingToken=same-uuid` returns same `bookingRef` as first |
 | Integration | Positive | Two calls with the same `bookingToken` create exactly one row in `bookings` table |
 | Integration | Positive | Two calls with different `bookingToken` values create two separate bookings |
+
+---
+
+### EPIC: Check-in & Boarding
+
+---
+
+### QML-049 — Online Check-in · ⬜ Todo
+
+> As a passenger, I want to check in online for my confirmed booking so that I can select a seat, declare baggage, and receive a boarding pass without visiting the airport counter.
+
+**Acceptance Criteria**
+
+- **Given** a valid booking reference for a `CONFIRMED` booking
+  **When** I submit a check-in request with a seat number and baggage count
+  **Then** the system creates a check-in record, generates a boarding pass with a unique barcode, and returns both
+- **Given** a booking reference for a `PENDING` or `EXPIRED` booking
+  **When** I attempt to check in
+  **Then** the system returns `409 BOOKING_NOT_CONFIRMED`
+- **Given** a booking reference that already has a check-in
+  **When** I attempt to check in again
+  **Then** the system returns `409 ALREADY_CHECKED_IN`
+- **Given** a booking reference that does not exist
+  **When** I attempt to check in
+  **Then** the system returns `404 BOOKING_NOT_FOUND`
+- **Given** a valid check-in request
+  **When** the system generates the boarding pass
+  **Then** the barcode is a unique string, a gate is assigned, and `boardingTime` is 30 minutes before departure
+
+**Technical Notes**
+
+- Endpoint: `POST /api/checkins`
+- Request body:
+
+```json
+{
+  "bookingRef": "SEED01",
+  "seatNumber": "12A",
+  "baggageCount": 1
+}
+```
+
+- The handler must:
+  1. Look up the booking by ref (JOIN flights, passengers, routes)
+  2. Validate booking status is `CONFIRMED`
+  3. Check no existing checkin for this `booking_id` (UNIQUE constraint)
+  4. In one transaction: INSERT into `checkins` (status=`CHECKED_IN`, checked_in_at=NOW()) and INSERT into `boarding_passes`
+  5. Generate barcode: `"QM-" + bookingRef + "-" + seatNumber + "-" + random6chars` (must be unique)
+  6. Assign gate randomly (e.g. `"A1"` through `"C8"`)
+  7. Set `boarding_time` to `departure_time - 30 minutes`
+
+- Response `201`:
+
+```json
+{
+  "checkin": {
+    "id": 1,
+    "bookingRef": "SEED01",
+    "status": "CHECKED_IN",
+    "baggageCount": 1,
+    "checkedInAt": "2026-06-18T10:00:00Z"
+  },
+  "boardingPass": {
+    "id": 1,
+    "bookingRef": "SEED01",
+    "flightNumber": "QM101",
+    "passengerName": "Seed User",
+    "seatNumber": "12A",
+    "gate": "B3",
+    "boardingTime": "2026-07-02T00:30:00Z",
+    "barcode": "QM-SEED01-12A-X7K2M9",
+    "issuedAt": "2026-06-18T10:00:00Z"
+  }
+}
+```
+
+**Test Cases**
+
+| Layer | Type | Case |
+|---|---|---|
+| Unit | Positive | Valid CONFIRMED booking → 201 with checkin + boarding pass |
+| Unit | Negative | PENDING booking → 409 `BOOKING_NOT_CONFIRMED` |
+| Unit | Negative | EXPIRED booking → 409 `BOOKING_NOT_CONFIRMED` |
+| Unit | Negative | Already checked-in booking → 409 `ALREADY_CHECKED_IN` |
+| Unit | Negative | Unknown booking ref → 404 `BOOKING_NOT_FOUND` |
+| Unit | Positive | Boarding pass barcode is unique |
+| Unit | Negative | Missing `bookingRef` → 400 `MISSING_REQUIRED_FIELD` |
+| Unit | Negative | Missing `seatNumber` → 400 `MISSING_REQUIRED_FIELD` |
+| Integration | Positive | Check-in for SEED01 creates rows in `checkins` + `boarding_passes` |
+| Integration | Negative | Second check-in for same booking fails with 409 (UNIQUE constraint) |
+| Contract | Positive | `POST /api/checkins` with SEED01 → 201; barcode is non-empty |
+
+---
+
+### QML-050 — View Check-in Status · ⬜ Todo
+
+> As a passenger, I want to view my check-in status so that I can confirm my check-in details and seat assignment before heading to the airport.
+
+**Acceptance Criteria**
+
+- **Given** a valid booking reference with a completed check-in
+  **When** I request check-in details
+  **Then** the system returns check-in status, baggage count, checked-in time, and nested booking info (flight number, route, departure time, passenger name)
+- **Given** a booking reference with no check-in record
+  **When** I request check-in details
+  **Then** the system returns `404 CHECKIN_NOT_FOUND`
+
+**Technical Notes**
+
+- Endpoint: `GET /api/checkins/:bookingRef`
+- SQL query:
+
+```sql
+SELECT c.id, c.booking_ref, c.status, c.baggage_count, c.checked_in_at, c.created_at,
+       f.flight_number, r.origin_iata, r.destination_iata,
+       f.departure_time, f.arrival_time,
+       p.first_name, p.last_name
+FROM checkins c
+JOIN bookings b  ON b.id = c.booking_id
+JOIN flights f   ON f.id = b.flight_id
+JOIN routes r    ON r.id = f.route_id
+JOIN passengers p ON p.id = b.passenger_id
+WHERE c.booking_ref = $1
+```
+
+- Response `200`:
+
+```json
+{
+  "id": 1,
+  "bookingRef": "SEED01",
+  "status": "CHECKED_IN",
+  "baggageCount": 1,
+  "checkedInAt": "2026-06-18T10:00:00Z",
+  "flight": {
+    "flightNumber": "QM101",
+    "origin": "BKK",
+    "destination": "SIN",
+    "departureTime": "2026-07-02T01:00:00Z",
+    "arrivalTime": "2026-07-02T03:30:00Z"
+  },
+  "passenger": {
+    "firstName": "Seed",
+    "lastName": "User"
+  }
+}
+```
+
+**Test Cases**
+
+| Layer | Type | Case |
+|---|---|---|
+| Unit | Positive | `GET /api/checkins/SEED01` after check-in returns status and baggage count |
+| Unit | Negative | `GET /api/checkins/XXXXXX` returns 404 `CHECKIN_NOT_FOUND` |
+| Integration | Positive | After check-in, GET returns correct nested flight + passenger info |
+
+---
+
+### QML-051 — View Boarding Pass · ⬜ Todo
+
+> As a passenger, I want to view my boarding pass on my phone so that I can present it at the gate for boarding without printing.
+
+**Acceptance Criteria**
+
+- **Given** a valid booking reference with a completed check-in and boarding pass
+  **When** I request the boarding pass
+  **Then** the system returns boarding pass details including flight number, passenger name, seat number, gate, boarding time, and scannable barcode
+- **Given** a booking reference with no check-in or no boarding pass
+  **When** I request the boarding pass
+  **Then** the system returns `404 BOARDING_PASS_NOT_FOUND`
+
+**Technical Notes**
+
+- Endpoint: `GET /api/checkins/:bookingRef/boarding-pass`
+- SQL query:
+
+```sql
+SELECT bp.id, bp.booking_ref, bp.flight_number, bp.passenger_name,
+       bp.seat_number, bp.gate, bp.boarding_time, bp.barcode, bp.issued_at
+FROM boarding_passes bp
+WHERE bp.booking_ref = $1
+```
+
+- Response `200`:
+
+```json
+{
+  "id": 1,
+  "bookingRef": "SEED01",
+  "flightNumber": "QM101",
+  "passengerName": "Seed User",
+  "seatNumber": "12A",
+  "gate": "B3",
+  "boardingTime": "2026-07-02T00:30:00Z",
+  "barcode": "QM-SEED01-12A-X7K2M9",
+  "issuedAt": "2026-06-18T10:00:00Z"
+}
+```
+
+**Test Cases**
+
+| Layer | Type | Case |
+|---|---|---|
+| Unit | Positive | Returns boarding pass with all fields after check-in |
+| Unit | Negative | No check-in → 404 `BOARDING_PASS_NOT_FOUND` |
+| Contract | Positive | After POST check-in, GET boarding-pass returns matching barcode and seat |
+| Contract | Negative | `GET /api/checkins/XXXXXX/boarding-pass` → 404 |
 
 ---
 
@@ -1809,6 +2023,9 @@ qoomlee-service  :8082
   POST /api/bookings                    Create a booking, receive a 6-char PNR
   GET  /api/bookings/:bookingRef        View booking + passenger + flight info
   PUT  /api/bookings/:bookingRef/status Internal: flip status PENDING→CONFIRMED
+  POST /api/checkins                    Check in for a confirmed booking
+  GET  /api/checkins/:bookingRef        View check-in status
+  GET  /api/checkins/:bookingRef/boarding-pass  View boarding pass
 
 payment-service  :8084
   POST /api/payments/charge             Charge a card via Omise
@@ -2037,6 +2254,17 @@ Step 6 ── GET  /api/bookings/:bookingRef
 
 Step 7 ── GET  /api/payments/:bookingRef
            Returns the payment receipt with paymentProvider, providerChargeId, amount, paidAt.
+
+Step 8 ── POST /api/checkins
+           Check in for a confirmed booking.
+           Creates a checkin record and generates a boarding pass with barcode.
+           Returns checkin + boarding pass.
+
+Step 9 ── GET  /api/checkins/:bookingRef
+           View check-in status with nested flight and passenger info.
+
+Step 10 ─ GET  /api/checkins/:bookingRef/boarding-pass
+           View the boarding pass with barcode for gate scanning.
 ```
 
 ---
@@ -2316,6 +2544,87 @@ LIMIT 1
 ```
 
 Return the most recent payment for the booking (there may be multiple attempts).
+
+---
+
+### 8. `POST /api/checkins`
+
+- **File:** `services/qoomlee/checkin/handler.go` → `Create`
+- **Repo:** `services/qoomlee/checkin/repository.go` → `InsertCheckin`, `InsertBoardingPass`
+
+Two steps in **one transaction**:
+
+```sql
+BEGIN;
+
+-- Step 1: look up the booking (must be CONFIRMED)
+SELECT b.id, b.booking_ref, b.status,
+       f.flight_number, f.departure_time,
+       p.first_name, p.last_name
+FROM bookings b
+JOIN flights f    ON f.id = b.flight_id
+JOIN passengers p ON p.id = b.passenger_id
+WHERE b.booking_ref = $1;
+-- If status != 'CONFIRMED' → ROLLBACK and return 409 BOOKING_NOT_CONFIRMED
+
+-- Step 2: insert check-in
+INSERT INTO checkins (booking_id, booking_ref, status, baggage_count, checked_in_at)
+VALUES ($1, $2, 'CHECKED_IN', $3, NOW()) RETURNING id, checked_in_at;
+-- If UNIQUE violation on booking_id → 409 ALREADY_CHECKED_IN
+
+-- Step 3: insert boarding pass
+INSERT INTO boarding_passes (checkin_id, booking_ref, flight_number, passenger_name,
+                             seat_number, gate, boarding_time, barcode)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;
+
+COMMIT;
+```
+
+Generate the barcode in Go before the transaction:
+
+```go
+barcode := fmt.Sprintf("QM-%s-%s-%s", bookingRef, seatNumber, randomString(6))
+```
+
+Assign a random gate (A1–C8) and set `boarding_time = departure_time - 30 minutes`.
+
+---
+
+### 9. `GET /api/checkins/:bookingRef`
+
+- **File:** `services/qoomlee/checkin/handler.go` → `GetByBookingRef`
+- **Repo:** `services/qoomlee/checkin/repository.go` → `GetByBookingRef`
+
+```sql
+SELECT c.id, c.booking_ref, c.status, c.baggage_count, c.checked_in_at, c.created_at,
+       f.flight_number, r.origin_iata, r.destination_iata,
+       f.departure_time, f.arrival_time,
+       p.first_name, p.last_name
+FROM checkins c
+JOIN bookings b  ON b.id = c.booking_id
+JOIN flights f   ON f.id = b.flight_id
+JOIN routes r    ON r.id = f.route_id
+JOIN passengers p ON p.id = b.passenger_id
+WHERE c.booking_ref = $1
+```
+
+If no row found, return `404 CHECKIN_NOT_FOUND`.
+
+---
+
+### 10. `GET /api/checkins/:bookingRef/boarding-pass`
+
+- **File:** `services/qoomlee/checkin/handler.go` → `GetBoardingPass`
+- **Repo:** `services/qoomlee/checkin/repository.go` → `GetBoardingPass`
+
+```sql
+SELECT bp.id, bp.booking_ref, bp.flight_number, bp.passenger_name,
+       bp.seat_number, bp.gate, bp.boarding_time, bp.barcode, bp.issued_at
+FROM boarding_passes bp
+WHERE bp.booking_ref = $1
+```
+
+If no row found, return `404 BOARDING_PASS_NOT_FOUND`.
 
 ---
 
@@ -2641,6 +2950,18 @@ The internal status endpoint must be verified end-to-end (not just the 403 rejec
 | PUT status value not `CONFIRMED` | 400 | `INVALID_STATUS` |
 | DB error | 500 | `INTERNAL_ERROR` |
 
+**qoomlee-service — check-in endpoints**
+
+| Scenario | Status | `error` |
+|---|---|---|
+| `bookingRef` or `seatNumber` missing | 400 | `MISSING_REQUIRED_FIELD` |
+| Booking not found | 404 | `BOOKING_NOT_FOUND` |
+| Booking not `CONFIRMED` | 409 | `BOOKING_NOT_CONFIRMED` |
+| Already checked in | 409 | `ALREADY_CHECKED_IN` |
+| Check-in not found | 404 | `CHECKIN_NOT_FOUND` |
+| Boarding pass not found | 404 | `BOARDING_PASS_NOT_FOUND` |
+| DB error | 500 | `INTERNAL_ERROR` |
+
 **payment-service**
 
 | Scenario | Status | `error` |
@@ -2669,6 +2990,9 @@ Define a repository **interface**, implement it in production, mock it in tests.
 | qoomlee-service | `CreateBooking` | PNR is 6 chars; passenger insert called; booking insert called with correct `flightId` and `total_amount_minor` copied from flight; repo mock verifies `SELECT FOR UPDATE` called before decrement |
 | qoomlee-service | `GetBookingByRef` | returns nested flight+passenger+paymentProvider+providerChargeId (non-nil when CONFIRMED); unknown ref → ErrNotFound |
 | qoomlee-service | `UpdateBookingStatus` | updates status + paymentProvider + providerChargeId; unknown ref → ErrNotFound |
+| qoomlee-service | `CreateCheckin` | CONFIRMED booking → checkin + boarding pass created; PENDING booking → 409; already checked in → 409; unknown ref → 404; barcode is unique |
+| qoomlee-service | `GetCheckinByRef` | returns nested flight + passenger; unknown ref → 404 |
+| qoomlee-service | `GetBoardingPass` | returns boarding pass with barcode; unknown ref → 404 |
 | payment-service | `Charge` — amount mismatch | qoomlee-service mock returns booking; `req.amountMinor != booking.total_amount_minor`; Omise **never called**; returns 400 `AMOUNT_MISMATCH` |
 | payment-service | `Charge` — success | qoomlee-service mock returns PENDING booking; Omise mock returns successful; DB insert with `status=SUCCEEDED`, `amount_minor` matching booking; qoomlee-service mock `PUT /api/bookings/:ref/status` called once with `{status:CONFIRMED, paymentId:X, paymentProvider:OMISE, providerChargeId:chrg_...}`; returns 201 |
 | payment-service | `Charge` — decline | qoomlee-service mock returns PENDING booking; Omise mock returns failed; DB insert with `status=FAILED`; qoomlee-service `PUT /api/bookings/:ref/status` **never called**; returns 402 with `failureCode` |
@@ -2687,6 +3011,7 @@ Define a repository **interface**, implement it in production, mock it in tests.
 | qoomlee-service | Search returns ≥1 flight for BKK→SIN `date=2026-06-15`; empty slice for unknown route; `GetByID(1)` correct; `GetByID(99999)` ErrNotFound |
 | qoomlee-service | `CreateBooking()` writes to `passengers` + `bookings`; PNR is unique; `total_amount_minor` equals `flights.base_price_minor`; `GetByRef("SEED02")` returns full join (uses pre-seeded PENDING booking) |
 | qoomlee-service | Concurrent `CreateBooking()` — run 2 goroutines simultaneously on a flight with 1 seat; exactly 1 succeeds (201) and 1 returns 409 `NO_SEATS_AVAILABLE`; `available_seats` ends at 0 |
+| qoomlee-service | `CreateCheckin()` for SEED01 writes to `checkins` + `boarding_passes`; second call for same booking fails (UNIQUE constraint); boarding pass has non-empty barcode |
 | payment-service | `Insert()` writes to `payments` with correct `amount_minor`; `FindByBookingRef("SEED01")` returns SUCCEEDED record with matching `amount_minor`; unknown ref → ErrNotFound |
 
 ### Layer 3 — Contract Tests
@@ -2713,6 +3038,13 @@ Run against live `docker compose` stack. All requests must include `Authorizatio
 | `PUT /api/bookings/SEED01/status` — no `X-Internal-Token` | 403 `FORBIDDEN` (no JWT required on this route) |
 | `POST /api/payments/charge` — `amountMinor` differs from booking | 400 `AMOUNT_MISMATCH`; Omise not called |
 | `GET /health/live` + `GET /health/ready` — no `Authorization` header | 200 on both services (health endpoints are unprotected) |
+| `POST /api/checkins` — `bookingRef=SEED01` (CONFIRMED), `seatNumber=12A`, `baggageCount=1` | 201; `boardingPass.barcode` non-empty; `checkin.status=CHECKED_IN` |
+| `POST /api/checkins` — `bookingRef=SEED02` (PENDING) | 409 `BOOKING_NOT_CONFIRMED` |
+| `POST /api/checkins` — `bookingRef=SEED01` again | 409 `ALREADY_CHECKED_IN` |
+| `GET /api/checkins/SEED01` — after check-in | 200; `status=CHECKED_IN`; `flight.flightNumber` present |
+| `GET /api/checkins/XXXXXX` | 404 `CHECKIN_NOT_FOUND` |
+| `GET /api/checkins/SEED01/boarding-pass` — after check-in | 200; `barcode`, `gate`, `seatNumber` present |
+| `GET /api/checkins/XXXXXX/boarding-pass` | 404 `BOARDING_PASS_NOT_FOUND` |
 
 ### Layer 4 — Load Tests (K6)
 
@@ -2799,6 +3131,6 @@ Correct. It's called internally by payment-service after a successful charge to 
 
 `PENDING` = booked, not yet paid. `CONFIRMED` = paid successfully. Payment-service is responsible for calling qoomlee-service to set CONFIRMED.
 
-**Q: Should I build a checkin-service or touch the `checkins` table?**
+**Q: How does the check-in flow work?**
 
-No. Ignore them entirely — out of scope.
+After payment confirms a booking, the passenger can check in via `POST /api/checkins`. This creates a `checkins` row and a `boarding_passes` row in one transaction. The boarding pass includes a unique barcode for gate scanning. Check-in endpoints live in qoomlee-service alongside booking and flight endpoints — no separate service needed. See QML-049 through QML-051 for full details.

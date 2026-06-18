@@ -41,6 +41,7 @@
 | QML-007 | Prevent Overbooking | qoomlee-service | ✅ Done |
 | QML-013 | Passenger Email Validation | qoomlee-service | ⬜ Todo |
 | QML-048 | Prevent Duplicate Bookings on Back Navigation | qoomlee-service + web | ✅ Done |
+| QML-052 | Cancel Booking | qoomlee-service | ⬜ Todo |
 
 ### EPIC: Payment
 | # | Story | Service | Status |
@@ -49,6 +50,7 @@
 | QML-006 | View Payment Receipt | payment-service | ⬜ Todo |
 | QML-008 | Prevent Duplicate Payments | payment-service | ⬜ Todo |
 | QML-009 | Handle Payment Failures Gracefully | payment-service | ⬜ Todo |
+| QML-053 | Refund Payment on Cancellation | payment-service | ⬜ Todo |
 
 ### EPIC: Platform Security & Observability
 | # | Story | Service | Status |
@@ -80,6 +82,7 @@
 | QML-027 | View My Bookings | web | ✅ Done |
 | QML-028 | Pay for a Booking | web | ✅ Done |
 | QML-047 | Pay from Booking Detail | web | ⬜ Todo |
+| QML-054 | Cancel Booking from Manage Trip | web | ⬜ Todo |
 
 ### EPIC: Web — My Trips
 | # | Story | Platform | Status |
@@ -313,6 +316,159 @@ all the way to a confirmed, paid booking.
 | Integration | Positive | Second `POST /api/bookings?bookingToken=same-uuid` returns same `bookingRef` as first |
 | Integration | Positive | Two calls with the same `bookingToken` create exactly one row in `bookings` table |
 | Integration | Positive | Two calls with different `bookingToken` values create two separate bookings |
+
+---
+
+### QML-052 — Cancel Booking · ⬜ Todo
+
+> As a passenger, I want to cancel my booking so that my seat is released and, if I already paid, I receive a full refund of the ticket price.
+
+**Acceptance Criteria**
+
+- **Given** a `PENDING` booking
+  **When** I cancel the booking
+  **Then** the booking status is set to `CANCELLED`, `available_seats` on the flight is incremented by 1, and the response confirms the cancellation
+- **Given** a `CONFIRMED` (paid) booking
+  **When** I cancel the booking
+  **Then** the booking status is set to `CANCELLED`, `available_seats` is incremented by 1, and qoomlee-service calls payment-service `POST /api/payments/:bookingRef/refund` to trigger a full refund (no cancellation fee)
+- **Given** a `CONFIRMED` booking where the refund call to payment-service fails
+  **When** the cancellation is processed
+  **Then** the booking is still set to `CANCELLED` (seat released), the failure is logged, and the response includes `"refundStatus": "FAILED"` so the passenger can contact support
+- **Given** an `EXPIRED` or already `CANCELLED` booking
+  **When** I attempt to cancel
+  **Then** the system returns `409 BOOKING_ALREADY_CANCELLED`
+- **Given** a booking reference that does not exist
+  **When** I attempt to cancel
+  **Then** the system returns `404 BOOKING_NOT_FOUND`
+
+**Technical Notes**
+
+- Endpoint: `PUT /api/bookings/:bookingRef/cancel`
+- The `bookings.status` CHECK constraint must be updated to include `CANCELLED`:
+
+```sql
+ALTER TABLE bookings DROP CONSTRAINT bookings_status_check;
+ALTER TABLE bookings ADD CONSTRAINT bookings_status_check
+    CHECK (status IN ('PENDING', 'CONFIRMED', 'EXPIRED', 'CANCELLED'));
+```
+
+- The cancel must use `SELECT FOR UPDATE` on the flights row (same pattern as booking creation) to safely increment `available_seats`
+- For CONFIRMED bookings, call payment-service's refund endpoint (QML-053) after updating the booking:
+
+```go
+// After setting status = CANCELLED and incrementing seats
+if previousStatus == "CONFIRMED" {
+    refundURL := fmt.Sprintf("%s/api/payments/%s/refund", paymentServiceURL, bookingRef)
+    req, _ := http.NewRequest("POST", refundURL, nil)
+    req.Header.Set("X-Internal-Token", internalToken)
+    resp, err := http.DefaultClient.Do(req)
+    // Log failure but do NOT rollback the cancellation
+}
+```
+
+- Response `200`:
+
+```json
+{
+  "bookingRef": "SEED02",
+  "status": "CANCELLED",
+  "refundStatus": "SUCCEEDED",
+  "refundAmountMinor": 350000,
+  "refundAmount": "3500.00",
+  "currency": "THB"
+}
+```
+
+For PENDING bookings (no payment), `refundStatus` is `null`.
+
+**Test Cases**
+
+| Layer | Type | Case |
+|---|---|---|
+| Unit | Positive | PENDING booking → 200, status=CANCELLED, seats incremented, no refund call |
+| Unit | Positive | CONFIRMED booking → 200, status=CANCELLED, seats incremented, refund triggered |
+| Unit | Positive | CONFIRMED booking + refund fails → 200, status=CANCELLED, refundStatus=FAILED |
+| Unit | Negative | EXPIRED booking → 409 BOOKING_ALREADY_CANCELLED |
+| Unit | Negative | Unknown ref → 404 BOOKING_NOT_FOUND |
+| Integration | Positive | Cancel releases seat: `available_seats` increments by 1 |
+| Integration | Positive | Cancelled booking cannot be cancelled again |
+| Contract | Positive | `PUT /api/bookings/SEED02/cancel` → 200, subsequent GET shows CANCELLED |
+
+---
+
+### QML-053 — Refund Payment on Cancellation · ⬜ Todo
+
+> As the payment system, when a confirmed booking is cancelled I want to refund the full ticket price via Omise so that the passenger gets their money back without any cancellation fee.
+
+**Acceptance Criteria**
+
+- **Given** a booking reference with a `SUCCEEDED` payment
+  **When** payment-service receives a refund request
+  **Then** the system calls Omise's refund API with the original charge ID and the full amount, records the refund, and returns refund details
+- **Given** a successful Omise refund
+  **When** the refund completes
+  **Then** a new payment record is inserted with `status = 'REFUNDED'` and the Omise refund ID is stored
+- **Given** an Omise refund failure
+  **When** the refund fails
+  **Then** a payment record is inserted with `status = 'REFUND_FAILED'` and the failure reason is recorded
+- **Given** a booking reference with no `SUCCEEDED` payment
+  **When** a refund is requested
+  **Then** the system returns `404 PAYMENT_NOT_FOUND`
+- **Given** a booking reference that was already refunded
+  **When** a refund is requested again
+  **Then** the system returns `409 ALREADY_REFUNDED`
+
+**Technical Notes**
+
+- Endpoint: `POST /api/payments/:bookingRef/refund`
+- This endpoint is internal — guarded by `X-Internal-Token` (same as `PUT /api/bookings/:ref/status`)
+- Refund the full amount (no fee): `refundAmount = payment.amountMinor`
+
+```go
+import (
+    omise "github.com/omise/omise-go"
+    "github.com/omise/omise-go/operations"
+)
+
+refund := &omise.Refund{}
+err := client.Do(refund, &operations.CreateRefund{
+    ChargeID: payment.ProviderChargeID,
+    Amount:   payment.AmountMinor,
+})
+```
+
+- Insert a new row in `payments` table:
+
+```sql
+INSERT INTO payments (booking_ref, booking_id, payment_provider, provider_charge_id,
+                      amount_minor, currency, status, paid_at)
+VALUES ($1, $2, 'OMISE', $3, $4, $5, 'REFUNDED', NOW())
+```
+
+- Response `200`:
+
+```json
+{
+  "bookingRef": "SEED01",
+  "status": "REFUNDED",
+  "refundAmountMinor": 350000,
+  "refundAmount": "3500.00",
+  "currency": "THB",
+  "providerRefundId": "rfnd_test_xxxxxxxxxxxx",
+  "refundedAt": "2026-06-18T12:00:00Z"
+}
+```
+
+**Test Cases**
+
+| Layer | Type | Case |
+|---|---|---|
+| Unit | Positive | SUCCEEDED payment → Omise refund called with full amount, status=REFUNDED |
+| Unit | Negative | No SUCCEEDED payment → 404 PAYMENT_NOT_FOUND |
+| Unit | Negative | Already refunded → 409 ALREADY_REFUNDED |
+| Unit | Positive | Omise refund fails → status=REFUND_FAILED with failure reason |
+| Unit | Negative | Missing X-Internal-Token → 403 FORBIDDEN |
+| Integration | Positive | Refund inserts new payment row with status=REFUNDED |
 
 ---
 
@@ -1195,6 +1351,53 @@ api.GET("/bookings/:ref", ...)
 | Component | "Complete Payment" button links to `/payment?ref=<bookingRef>` |
 | Component | Countdown displays minutes remaining derived from `expiresAt` |
 | Component | Trip management actions are hidden for PENDING/EXPIRED bookings |
+
+---
+
+### QML-054 — Cancel Booking from Manage Trip · ⬜ Todo
+
+> As a passenger, I want to cancel my booking from the Manage Your Trip page so that I can release my seat and receive a refund if I already paid.
+
+**Acceptance Criteria**
+
+- **Given** I am on the Manage Your Trip page for a `PENDING` or `CONFIRMED` booking
+  **When** I tap the "Cancel Booking" button
+  **Then** a confirmation dialog appears showing the booking reference, route, and — for CONFIRMED bookings — the refund amount ("You will be refunded ฿3,500.00")
+- **Given** the confirmation dialog is showing
+  **When** I tap "Confirm Cancellation"
+  **Then** the system calls `PUT /api/bookings/:ref/cancel` and, on success, the page updates to show a "Booking Cancelled" state with refund details (if applicable)
+- **Given** the confirmation dialog is showing
+  **When** I tap "Keep Booking"
+  **Then** the dialog closes and no action is taken
+- **Given** the cancellation succeeds for a paid booking with `refundStatus: "SUCCEEDED"`
+  **When** the success state renders
+  **Then** it shows "Refund of ฿3,500.00 has been initiated" with a link back to My Bookings
+- **Given** the cancellation succeeds but the refund fails (`refundStatus: "FAILED"`)
+  **When** the success state renders
+  **Then** it shows "Your booking has been cancelled but the refund could not be processed. Please contact support." with a link to My Bookings
+- **Given** the booking is `EXPIRED` or `CANCELLED`
+  **When** the Manage Your Trip page loads
+  **Then** the "Cancel Booking" button is disabled or hidden
+
+**Technical Notes**
+
+- Wire up the existing `Cancel Booking` button in `ManageBookingPageClient.tsx` (currently a no-op `<button>`)
+- Use a modal/dialog component for the confirmation step
+- Call `PUT /api/bookings/:ref/cancel` (QML-052) — the backend handles both seat release and refund trigger
+- The response includes `refundStatus` (`SUCCEEDED` | `FAILED` | `null`) and `refundAmount` — use these to render the correct success message
+- After cancellation, the booking card on My Bookings should show a "Cancelled" badge (grey, same pattern as "Expired")
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Component | PENDING booking shows Cancel button; confirmation dialog shows no refund amount |
+| Component | CONFIRMED booking shows Cancel button; confirmation dialog shows refund amount |
+| Component | EXPIRED booking does not show Cancel button |
+| Component | "Keep Booking" closes dialog without API call |
+| Component | Successful cancellation with refund shows refund initiated message |
+| Component | Successful cancellation with failed refund shows contact support message |
+| Component | After cancellation, page shows "Booking Cancelled" state |
 
 ---
 

@@ -79,6 +79,7 @@
 | QML-026 | Booking Confirmation with Copy PNR | web | ✅ Done |
 | QML-027 | View My Bookings | web | ✅ Done |
 | QML-028 | Pay for a Booking | web | ✅ Done |
+| QML-047 | Pay from Booking Detail | web | ⬜ Todo |
 
 ### EPIC: Web — My Trips
 | # | Story | Platform | Status |
@@ -1151,6 +1152,49 @@ api.GET("/bookings/:ref", ...)
 |---|---|
 | Component | Payment form displays the total amount from the booking |
 | Component | Success state is rendered after a successful API response |
+
+---
+
+### QML-047 — Pay from Booking Detail · ⬜ Todo
+
+> As a passenger with a pending booking, I want to see a "Complete Payment" button on my booking detail page so that I can pay for my reservation without having to remember the booking reference.
+
+**Acceptance Criteria**
+
+- **Given** I tap a `PENDING` booking card on the My Bookings page
+  **When** the booking detail page loads
+  **Then** a prominent "Complete Payment" button is shown with the total amount and a countdown showing time remaining before the hold expires
+- **Given** the booking detail page shows a `PENDING` booking
+  **When** I tap the "Complete Payment" button
+  **Then** I am navigated to `/payment?ref=<bookingRef>` where I can enter card details and pay
+- **Given** the booking detail page shows a `CONFIRMED` booking
+  **When** the page renders
+  **Then** the "Complete Payment" button is not shown; instead a green "Paid" badge and payment confirmation details (provider, charge ID) are displayed
+- **Given** the booking detail page shows an `EXPIRED` booking
+  **When** the page renders
+  **Then** the "Complete Payment" button is not shown; instead a grey "Expired" message is displayed with a "Search new flights" link back to `/flights`
+- **Given** a `PENDING` booking whose hold expires while I am viewing the detail page
+  **When** the countdown reaches zero
+  **Then** the "Complete Payment" button is replaced by the expired state without a page reload
+
+**Technical Notes**
+
+- The `useManageBooking` hook already fetches the booking via `GET /api/bookings/:ref` which returns `status` and `expiresAt` (for PENDING bookings)
+- Add `totalAmount`, `totalAmountMinor`, `currency`, and `expiresAt` to the `BookingDetail` interface in `useManageBooking.ts`
+- The payment button should be a `Link` to `/payment?ref=${booking.bookingRef}`
+- The countdown logic can reuse the pattern from `PaymentPageClient` (compute `secondsRemaining` from `expiresAt`)
+- On the Trip Management sidebar, hide management actions (Change Flight, Select Seat, etc.) for non-CONFIRMED bookings — they only make sense after payment
+
+**Test Cases**
+
+| Type | Case |
+|---|---|
+| Component | PENDING booking renders "Complete Payment" button with total amount |
+| Component | CONFIRMED booking renders "Paid" badge, no payment button |
+| Component | EXPIRED booking renders expired message with search link, no payment button |
+| Component | "Complete Payment" button links to `/payment?ref=<bookingRef>` |
+| Component | Countdown displays minutes remaining derived from `expiresAt` |
+| Component | Trip management actions are hidden for PENDING/EXPIRED bookings |
 
 ---
 

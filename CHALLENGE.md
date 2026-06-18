@@ -136,6 +136,7 @@
 | QML-049 | Online Check-in | qoomlee-service | ⬜ Todo |
 | QML-050 | View Check-in Status | qoomlee-service | ⬜ Todo |
 | QML-051 | View Boarding Pass | qoomlee-service | ⬜ Todo |
+| QML-055 | Check-in Time Window | qoomlee-service | ⬜ Todo |
 
 ---
 
@@ -676,6 +677,73 @@ WHERE bp.booking_ref = $1
 | Unit | Negative | No check-in → 404 `BOARDING_PASS_NOT_FOUND` |
 | Contract | Positive | After POST check-in, GET boarding-pass returns matching barcode and seat |
 | Contract | Negative | `GET /api/checkins/XXXXXX/boarding-pass` → 404 |
+
+---
+
+### QML-055 — Check-in Time Window · ⬜ Todo
+
+> As the booking system, I want to enforce a check-in time window so that passengers can only check in between 24 hours and 1 hour before departure — not too early (seat assignments aren't final) and not too late (gate is closing).
+
+**Acceptance Criteria**
+
+- **Given** a confirmed booking whose flight departs more than 24 hours from now
+  **When** the passenger attempts to check in
+  **Then** the system returns `409` with `{ "error": "CHECKIN_NOT_OPEN", "message": "Check-in opens 24 hours before departure", "opensAt": "<ISO8601>" }`
+- **Given** a confirmed booking whose flight departs less than 1 hour from now
+  **When** the passenger attempts to check in
+  **Then** the system returns `409` with `{ "error": "CHECKIN_CLOSED", "message": "Check-in has closed for this flight", "closedAt": "<ISO8601>" }`
+- **Given** a confirmed booking whose flight departs between 1 and 24 hours from now
+  **When** the passenger attempts to check in
+  **Then** the check-in proceeds normally (QML-049 flow)
+- **Given** a confirmed booking whose flight has already departed
+  **When** the passenger attempts to check in
+  **Then** the system returns `409 CHECKIN_CLOSED`
+
+**Technical Notes**
+
+- Add the time window check at the top of the `POST /api/checkins` handler, after validating the booking is CONFIRMED and before inserting the checkin record
+- Define the window as named constants:
+
+```go
+const (
+    checkinOpensBeforeDeparture  = 24 * time.Hour
+    checkinClosesBeforeDeparture = 1 * time.Hour
+)
+```
+
+- The check compares `time.Now()` against `flight.DepartureTime`:
+
+```go
+now := time.Now()
+opensAt := flight.DepartureTime.Add(-checkinOpensBeforeDeparture)
+closesAt := flight.DepartureTime.Add(-checkinClosesBeforeDeparture)
+
+if now.Before(opensAt) {
+    c.JSON(409, gin.H{"error": "CHECKIN_NOT_OPEN",
+        "message": "Check-in opens 24 hours before departure",
+        "opensAt": opensAt.Format(time.RFC3339)})
+    return
+}
+if now.After(closesAt) {
+    c.JSON(409, gin.H{"error": "CHECKIN_CLOSED",
+        "message": "Check-in has closed for this flight",
+        "closedAt": closesAt.Format(time.RFC3339)})
+    return
+}
+```
+
+- The `opensAt` / `closedAt` fields in the response let the frontend show "Check-in opens in Xh Ym" or "Check-in closed at HH:MM"
+
+**Test Cases**
+
+| Layer | Type | Case |
+|---|---|---|
+| Unit | Negative | Flight departs in 48 hours → 409 `CHECKIN_NOT_OPEN` with `opensAt` |
+| Unit | Negative | Flight departs in 30 minutes → 409 `CHECKIN_CLOSED` with `closedAt` |
+| Unit | Negative | Flight already departed → 409 `CHECKIN_CLOSED` |
+| Unit | Positive | Flight departs in 12 hours → check-in proceeds |
+| Unit | Positive | Flight departs in exactly 24 hours → check-in proceeds (boundary) |
+| Unit | Positive | Flight departs in exactly 1 hour → check-in proceeds (boundary) |
 
 ---
 
@@ -3207,6 +3275,8 @@ The internal status endpoint must be verified end-to-end (not just the 403 rejec
 | Already checked in | 409 | `ALREADY_CHECKED_IN` |
 | Check-in not found | 404 | `CHECKIN_NOT_FOUND` |
 | Boarding pass not found | 404 | `BOARDING_PASS_NOT_FOUND` |
+| Check-in not yet open (>24h before departure) | 409 | `CHECKIN_NOT_OPEN` |
+| Check-in closed (<1h before departure or departed) | 409 | `CHECKIN_CLOSED` |
 | DB error | 500 | `INTERNAL_ERROR` |
 
 **payment-service**

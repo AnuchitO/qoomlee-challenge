@@ -1,4 +1,3 @@
-# Rebuild all: 2026-06-18
 stages:
   - build
   - update-manifest
@@ -145,9 +144,13 @@ cleanup:registry:
           | jq -r '.path')
         echo "=== Processing $REPO_NAME ==="
 
+        # Never delete "latest" or the tag we just built ($CI_COMMIT_SHA).
+        # The tags-list API returns created_at=null, so sort_by(.created_at) is
+        # unreliable — guarding the current SHA prevents nuking a fresh image
+        # (which caused ImagePullBackOff on rollout).
         TAGS_TO_DELETE=$(curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
           "$CI_API_V4_URL/projects/$CI_PROJECT_ID/registry/repositories/$REPO_ID/tags?per_page=100&order_by=name&sort=desc" \
-          | jq -r '[.[] | select(.name != "latest")] | sort_by(.created_at) | reverse | .['"$KEEP"':][].name')
+          | jq -r --arg keep_sha "$CI_COMMIT_SHA" '[.[] | select(.name != "latest" and .name != $keep_sha)] | sort_by(.created_at) | reverse | .['"$KEEP"':][].name')
 
         if [ -z "$TAGS_TO_DELETE" ]; then
           echo "  Nothing to delete (≤$KEEP tags)."

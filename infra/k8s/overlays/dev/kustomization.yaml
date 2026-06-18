@@ -21,4 +21,4 @@ images:
 - name: registry.gitlab.com/arise-by-infinitas/devrise-team-00-workshop/qoomlee-service
   newTag: de8fcc6e86a3998cfdab77862ce48ee4df571504
 - name: registry.gitlab.com/arise-by-infinitas/devrise-team-00-workshop/web
-  newTag: de8fcc6e86a3998cfdab77862ce48ee4df571504
+  newTag: e312e9974639aef6b054728a2d5fc4f080bf4ea6

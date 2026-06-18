@@ -1,3 +1,4 @@
+# Rebuild all: 2026-06-18
 stages:
   - build
   - update-manifest

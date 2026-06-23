@@ -62,7 +62,7 @@ update-manifest:qoomlee:
     - cd -
     - git add "${OVERLAY_PATH}/kustomization.yaml"
     - 'git diff --cached --quiet || git commit -m "ci: update qoomlee-service to ${CI_COMMIT_SHA} [skip ci]"'
-    - 'git push origin HEAD:${CI_DEFAULT_BRANCH}'
+    - "git push origin HEAD:${CI_DEFAULT_BRANCH}"
 
 # ── payment-service ────────────────────────────────────────────────────────────
 
@@ -92,7 +92,7 @@ update-manifest:payment:
     - cd -
     - git add "${OVERLAY_PATH}/kustomization.yaml"
     - 'git diff --cached --quiet || git commit -m "ci: update payment-service to ${CI_COMMIT_SHA} [skip ci]"'
-    - 'git push origin HEAD:${CI_DEFAULT_BRANCH}'
+    - "git push origin HEAD:${CI_DEFAULT_BRANCH}"
 
 # ── web ────────────────────────────────────────────────────────────────────────
 
@@ -122,49 +122,7 @@ update-manifest:web:
     - cd -
     - git add "${OVERLAY_PATH}/kustomization.yaml"
     - 'git diff --cached --quiet || git commit -m "ci: update web to ${CI_COMMIT_SHA} [skip ci]"'
-    - 'git push origin HEAD:${CI_DEFAULT_BRANCH}'
-
-# ── cleanup: keep only 4 latest tags per image ────────────────────────────────
-
-cleanup:registry:
-  stage: cleanup
-  image: alpine:latest
-  before_script:
-    - apk add --no-cache curl jq
-  script:
-    - |
-      KEEP=4
-      REPO_IDS=$(curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
-        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/registry/repositories?per_page=100" \
-        | jq -r '.[].id')
-
-      for REPO_ID in $REPO_IDS; do
-        REPO_NAME=$(curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
-          "$CI_API_V4_URL/projects/$CI_PROJECT_ID/registry/repositories/$REPO_ID" \
-          | jq -r '.path')
-        echo "=== Processing $REPO_NAME ==="
-
-        # Never delete "latest" or the tag we just built ($CI_COMMIT_SHA).
-        # The tags-list API returns created_at=null, so sort_by(.created_at) is
-        # unreliable — guarding the current SHA prevents nuking a fresh image
-        # (which caused ImagePullBackOff on rollout).
-        TAGS_TO_DELETE=$(curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" \
-          "$CI_API_V4_URL/projects/$CI_PROJECT_ID/registry/repositories/$REPO_ID/tags?per_page=100&order_by=name&sort=desc" \
-          | jq -r --arg keep_sha "$CI_COMMIT_SHA" '[.[] | select(.name != "latest" and .name != $keep_sha)] | sort_by(.created_at) | reverse | .['"$KEEP"':][].name')
-
-        if [ -z "$TAGS_TO_DELETE" ]; then
-          echo "  Nothing to delete (≤$KEEP tags)."
-          continue
-        fi
-
-        echo "$TAGS_TO_DELETE" | while read TAG; do
-          echo "  Deleting tag: $TAG"
-          curl -s --request DELETE \
-            --header "JOB-TOKEN: $CI_JOB_TOKEN" \
-            "$CI_API_V4_URL/projects/$CI_PROJECT_ID/registry/repositories/$REPO_ID/tags/$TAG"
-        done
-      done
-  allow_failure: true
+    - "git push origin HEAD:${CI_DEFAULT_BRANCH}"
 
 # ── list image tags ───────────────────────────────────────────────────────────
 

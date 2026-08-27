@@ -1,0 +1,2868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qoomlee Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   GOOGLE MATERIAL DESIGN 3 — TOKEN SYSTEM
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Primary */
+  --md-primary: #1a73e8;
+  --md-on-primary: #ffffff;
+  --md-primary-container: #d3e3fd;
+  --md-on-primary-container: #041e49;
+  /* Secondary */
+  --md-secondary: #5f6368;
+  --md-secondary-container: #e8eaed;
+  --md-on-secondary-container: #1f1f1f;
+  /* Tertiary */
+  --md-tertiary: #188038;
+  --md-tertiary-container: #ceead6;
+  --md-on-tertiary-container: #072711;
+  /* Error */
+  --md-error: #d93025;
+  --md-error-container: #fce8e6;
+  --md-on-error-container: #410002;
+  /* Surface */
+  --md-surface: #ffffff;
+  --md-surface-dim: #f8f9fa;
+  --md-surface-container: #f1f3f4;
+  --md-surface-container-high: #e8eaed;
+  --md-on-surface: #202124;
+  --md-on-surface-variant: #5f6368;
+  --md-outline: #dadce0;
+  --md-outline-variant: #c4c7c5;
+  /* Status */
+  --md-green: #188038;
+  --md-green-bg: #e6f4ea;
+  --md-amber: #f9ab00;
+  --md-amber-bg: #fef7e0;
+  --md-red: #d93025;
+  --md-red-bg: #fce8e6;
+  --md-purple: #9334e6;
+  --md-purple-bg: #f3e8fd;
+  --md-blue-bg: #e8f0fe;
+  /* Shadows */
+  --md-elevation-1: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+  --md-elevation-2: 0 1px 2px 0 rgba(60,64,67,0.3), 0 2px 6px 2px rgba(60,64,67,0.15);
+  --md-elevation-3: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --md-primary: #8ab4f8;
+    --md-on-primary: #062e6f;
+    --md-primary-container: #0842a0;
+    --md-on-primary-container: #d3e3fd;
+    --md-secondary: #c4c7c5;
+    --md-secondary-container: #3c4043;
+    --md-on-secondary-container: #e8eaed;
+    --md-tertiary: #81c995;
+    --md-tertiary-container: #0d652d;
+    --md-on-tertiary-container: #ceead6;
+    --md-error: #f28b82;
+    --md-error-container: #8c1d18;
+    --md-on-error-container: #fce8e6;
+    --md-surface: #202124;
+    --md-surface-dim: #171717;
+    --md-surface-container: #292a2d;
+    --md-surface-container-high: #303134;
+    --md-on-surface: #e8eaed;
+    --md-on-surface-variant: #9aa0a6;
+    --md-outline: #5f6368;
+    --md-outline-variant: #444746;
+    --md-green: #81c995;
+    --md-green-bg: #0d3018;
+    --md-amber: #fdd663;
+    --md-amber-bg: #3c2e00;
+    --md-red: #f28b82;
+    --md-red-bg: #3c0808;
+    --md-purple: #c58af9;
+    --md-purple-bg: #2d104c;
+    --md-blue-bg: #0d2440;
+    --md-elevation-1: 0 1px 2px 0 rgba(0,0,0,0.3), 0 1px 3px 1px rgba(0,0,0,0.15);
+    --md-elevation-2: 0 1px 2px 0 rgba(0,0,0,0.3), 0 2px 6px 2px rgba(0,0,0,0.15);
+    --md-elevation-3: 0 1px 3px 0 rgba(0,0,0,0.3), 0 4px 8px 3px rgba(0,0,0,0.15);
+  }
+}
+
+:root[data-theme="dark"] {
+  --md-primary: #8ab4f8;
+  --md-on-primary: #062e6f;
+  --md-primary-container: #0842a0;
+  --md-on-primary-container: #d3e3fd;
+  --md-secondary: #c4c7c5;
+  --md-secondary-container: #3c4043;
+  --md-on-secondary-container: #e8eaed;
+  --md-tertiary: #81c995;
+  --md-tertiary-container: #0d652d;
+  --md-on-tertiary-container: #ceead6;
+  --md-error: #f28b82;
+  --md-error-container: #8c1d18;
+  --md-on-error-container: #fce8e6;
+  --md-surface: #202124;
+  --md-surface-dim: #171717;
+  --md-surface-container: #292a2d;
+  --md-surface-container-high: #303134;
+  --md-on-surface: #e8eaed;
+  --md-on-surface-variant: #9aa0a6;
+  --md-outline: #5f6368;
+  --md-outline-variant: #444746;
+  --md-green: #81c995;
+  --md-green-bg: #0d3018;
+  --md-amber: #fdd663;
+  --md-amber-bg: #3c2e00;
+  --md-red: #f28b82;
+  --md-red-bg: #3c0808;
+  --md-purple: #c58af9;
+  --md-purple-bg: #2d104c;
+  --md-blue-bg: #0d2440;
+  --md-elevation-1: 0 1px 2px 0 rgba(0,0,0,0.3), 0 1px 3px 1px rgba(0,0,0,0.15);
+  --md-elevation-2: 0 1px 2px 0 rgba(0,0,0,0.3), 0 2px 6px 2px rgba(0,0,0,0.15);
+  --md-elevation-3: 0 1px 3px 0 rgba(0,0,0,0.3), 0 4px 8px 3px rgba(0,0,0,0.15);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 17px; scroll-behavior: smooth; }
+
+body {
+  font-family: 'Roboto', system-ui, -apple-system, sans-serif;
+  background: var(--md-surface-dim);
+  color: var(--md-on-surface);
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TOP APP BAR
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.top-bar {
+  background: var(--md-surface);
+  border-bottom: 1px solid var(--md-outline);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--md-elevation-1);
+}
+
+.top-bar-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  height: 64px;
+}
+
+.logo {
+  font-family: 'Google Sans', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 500;
+  color: var(--md-on-surface);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  letter-spacing: -0.01em;
+}
+
+.logo-icon {
+  color: var(--md-primary);
+  font-size: 1.5rem;
+}
+
+.theme-toggle {
+  background: none;
+  border: 1px solid var(--md-outline);
+  border-radius: 999px;
+  width: 40px;
+  height: 40px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--md-on-surface-variant);
+  transition: background 0.15s;
+}
+
+.theme-toggle:hover { background: var(--md-surface-container); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   NAVIGATION TABS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.nav-tabs {
+  display: flex;
+  gap: 0;
+  list-style: none;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.nav-tabs::-webkit-scrollbar { display: none; }
+
+.nav-tabs button {
+  background: none;
+  border: none;
+  font-family: 'Google Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--md-on-surface-variant);
+  padding: 0.85rem 1.25rem;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+.nav-tabs button:hover { color: var(--md-on-surface); background: var(--md-surface-container); }
+.nav-tabs button.active { color: var(--md-primary); border-bottom-color: var(--md-primary); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MAIN CONTENT
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TYPOGRAPHY
+   ═══════════════════════════════════════════════════════════════════════ */
+
+h1 {
+  font-family: 'Google Sans', sans-serif;
+  font-size: 2.2rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--md-on-surface);
+  margin-bottom: 0.5rem;
+  line-height: 1.25;
+}
+
+h2 {
+  font-family: 'Google Sans', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  margin: 2.5rem 0 1rem;
+  color: var(--md-on-surface);
+  line-height: 1.3;
+}
+
+h3 {
+  font-family: 'Google Sans', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin: 2rem 0 0.75rem;
+  color: var(--md-on-surface);
+}
+
+h4 {
+  font-family: 'Google Sans', sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 1.25rem 0 0.5rem;
+  color: var(--md-on-surface);
+}
+
+p {
+  margin-bottom: 1rem;
+  color: var(--md-on-surface-variant);
+  max-width: 80ch;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.subhead {
+  font-size: 1.1rem;
+  color: var(--md-on-surface-variant);
+  margin-bottom: 1.5rem;
+  max-width: 72ch;
+  line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CARDS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.card {
+  background: var(--md-surface);
+  border: 1px solid var(--md-outline);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  transition: box-shadow 0.15s;
+}
+
+.card:hover { box-shadow: var(--md-elevation-1); }
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.card-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  gap: 1rem;
+}
+
+.card-title {
+  font-family: 'Google Sans', sans-serif;
+  font-weight: 500;
+  font-size: 1.05rem;
+  color: var(--md-on-surface);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   STATS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat {
+  background: var(--md-surface);
+  border: 1px solid var(--md-outline);
+  border-radius: 12px;
+  padding: 1.25rem;
+  text-align: center;
+}
+
+.stat-value {
+  font-family: 'Google Sans', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 400;
+  color: var(--md-primary);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: var(--md-on-surface-variant);
+  margin-top: 0.35rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CHIPS (Badges)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: 'Google Sans', sans-serif;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.chip-done { background: var(--md-green-bg); color: var(--md-green); }
+.chip-partial { background: var(--md-amber-bg); color: var(--md-amber); }
+.chip-todo { background: var(--md-secondary-container); color: var(--md-on-secondary-container); }
+.chip-future { background: var(--md-purple-bg); color: var(--md-purple); }
+.chip-blue { background: var(--md-blue-bg); color: var(--md-primary); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TABLES
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--md-outline);
+  border-radius: 12px;
+  background: var(--md-surface);
+  margin-bottom: 1.5rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+th {
+  text-align: left;
+  padding: 0.85rem 1.25rem;
+  background: var(--md-surface-container);
+  font-family: 'Google Sans', sans-serif;
+  font-weight: 500;
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  color: var(--md-on-surface-variant);
+  border-bottom: 1px solid var(--md-outline);
+  white-space: nowrap;
+}
+
+td {
+  padding: 0.8rem 1.25rem;
+  border-bottom: 1px solid var(--md-outline);
+  white-space: nowrap;
+  color: var(--md-on-surface);
+}
+
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--md-surface-container); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ENDPOINT ROWS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.endpoint {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  border: 1px solid var(--md-outline);
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  background: var(--md-surface);
+  font-family: 'Roboto Mono', 'SF Mono', monospace;
+  font-size: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.method {
+  font-family: 'Google Sans', sans-serif;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  min-width: 3.2rem;
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+.method-get { background: var(--md-green-bg); color: var(--md-green); }
+.method-post { background: var(--md-blue-bg); color: var(--md-primary); }
+.method-put { background: var(--md-amber-bg); color: #e37400; }
+
+.endpoint-path { color: var(--md-on-surface); font-weight: 500; }
+.endpoint-desc { color: var(--md-on-surface-variant); font-family: 'Roboto', sans-serif; margin-left: auto; font-size: 0.85rem; }
+
+.auth-tag {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-family: 'Google Sans', sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.auth-public { background: var(--md-green-bg); color: var(--md-green); }
+.auth-session { background: var(--md-amber-bg); color: #e37400; }
+.auth-internal { background: var(--md-purple-bg); color: var(--md-purple); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ROADMAP SECTIONS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.priority-section {
+  border-left: 4px solid var(--md-outline);
+  padding-left: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.priority-section.short-term { border-left-color: var(--md-error); }
+.priority-section.medium-term { border-left-color: var(--md-amber); }
+.priority-section.long-term { border-left-color: var(--md-primary); }
+.priority-section.done { border-left-color: var(--md-green); }
+
+.priority-label {
+  font-family: 'Google Sans', sans-serif;
+  font-weight: 500;
+  font-size: 0.9rem;
+  letter-spacing: 0.03em;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.short-term .priority-label { color: var(--md-error); }
+.medium-term .priority-label { color: var(--md-amber); }
+.long-term .priority-label { color: var(--md-primary); }
+.done .priority-label { color: var(--md-green); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DEPENDENCY GRAPH
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.dep-graph {
+  background: var(--md-surface-container);
+  border: 1px solid var(--md-outline);
+  border-radius: 12px;
+  padding: 1.5rem;
+  font-family: 'Roboto Mono', 'SF Mono', monospace;
+  font-size: 0.85rem;
+  line-height: 1.9;
+  white-space: pre;
+  overflow-x: auto;
+  color: var(--md-on-surface);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DIAGRAM SECTION
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.diagram-container {
+  background: var(--md-surface);
+  border: 1px solid var(--md-outline);
+  border-radius: 12px;
+  padding: 1.5rem;
+  overflow-x: auto;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.diagram-container img {
+  max-width: 100%;
+  height: auto;
+}
+
+.diagram-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.diagram-tab {
+  background: var(--md-surface-container);
+  border: 1px solid var(--md-outline);
+  border-radius: 20px;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--md-on-surface-variant);
+  font-family: 'Google Sans', sans-serif;
+  transition: all 0.15s;
+}
+
+.diagram-tab.active {
+  background: var(--md-primary-container);
+  color: var(--md-on-primary-container);
+  border-color: var(--md-primary);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ROLE CARDS (Onboarding)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.role-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.role-tab {
+  background: var(--md-surface-container);
+  border: 1px solid var(--md-outline);
+  border-radius: 20px;
+  padding: 0.6rem 1.4rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--md-on-surface-variant);
+  font-family: 'Google Sans', sans-serif;
+  transition: all 0.15s;
+}
+
+.role-tab.active {
+  background: var(--md-primary);
+  color: var(--md-on-primary);
+  border-color: var(--md-primary);
+}
+
+.role-panel { display: none; }
+.role-panel.active { display: block; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   STORY CARDS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.story-card {
+  background: var(--md-surface);
+  border: 1px solid var(--md-outline);
+  border-radius: 10px;
+  padding: 1.25rem;
+  transition: box-shadow 0.15s;
+}
+
+.story-card:hover { box-shadow: var(--md-elevation-1); }
+
+.story-id {
+  font-family: 'Google Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--md-primary);
+  margin-bottom: 0.35rem;
+}
+
+.story-name {
+  font-family: 'Google Sans', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--md-on-surface);
+  margin-bottom: 0.5rem;
+}
+
+.story-desc {
+  font-size: 0.9rem;
+  color: var(--md-on-surface-variant);
+  line-height: 1.55;
+  margin-bottom: 0.75rem;
+}
+
+.story-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.story-tag {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 6px;
+  background: var(--md-surface-container);
+  color: var(--md-on-surface-variant);
+  font-weight: 500;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CODE BLOCK
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.code-block {
+  background: var(--md-surface-container);
+  border: 1px solid var(--md-outline);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  font-family: 'Roboto Mono', 'SF Mono', monospace;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  overflow-x: auto;
+  white-space: pre;
+  color: var(--md-on-surface);
+  margin-bottom: 1rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   FILE LIST
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.file-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 0.5rem;
+}
+
+.file-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 0.9rem;
+  background: var(--md-surface);
+  border: 1px solid var(--md-outline);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: box-shadow 0.15s;
+}
+
+.file-list li:hover { box-shadow: var(--md-elevation-1); }
+
+.file-icon { font-size: 1.2rem; flex-shrink: 0; }
+.file-name { color: var(--md-on-surface); font-weight: 500; }
+.file-desc { color: var(--md-on-surface-variant); font-size: 0.8rem; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ACCORDION
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.accordion {
+  border: 1px solid var(--md-outline);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+  background: var(--md-surface);
+}
+
+.accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.accordion-header:hover { background: var(--md-surface-container); }
+
+.accordion-title {
+  font-family: 'Google Sans', sans-serif;
+  font-weight: 500;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.accordion-chevron {
+  color: var(--md-on-surface-variant);
+  transition: transform 0.2s;
+  font-size: 1.2rem;
+  font-family: 'Google Sans', sans-serif;
+}
+
+.accordion.open .accordion-chevron { transform: rotate(180deg); }
+
+.accordion-body {
+  display: none;
+  padding: 0 1.25rem 1.25rem;
+  border-top: 1px solid var(--md-outline);
+}
+
+.accordion.open .accordion-body { display: block; padding-top: 1rem; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PILL LIST
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.pill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.pill {
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: 'Google Sans', sans-serif;
+  border: 1px solid var(--md-outline);
+  background: var(--md-surface);
+  color: var(--md-on-surface-variant);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DOCUMENT DRAWER (slide-out panel)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+
+.drawer-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.drawer {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: min(720px, 92vw);
+  background: var(--md-surface);
+  z-index: 201;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--md-elevation-3);
+}
+
+.drawer.open {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--md-outline);
+  flex-shrink: 0;
+}
+
+.drawer-title {
+  font-family: 'Google Sans', sans-serif;
+  font-weight: 500;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.drawer-close {
+  background: none;
+  border: 1px solid var(--md-outline);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: var(--md-on-surface-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.drawer-close:hover { background: var(--md-surface-container); }
+
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.drawer-body h2 { margin-top: 1.5rem; font-size: 1.2rem; }
+.drawer-body h3 { margin-top: 1.25rem; font-size: 1rem; }
+.drawer-body code {
+  background: var(--md-surface-container);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  font-family: 'Roboto Mono', 'SF Mono', monospace;
+  font-size: 0.85em;
+}
+.drawer-body pre {
+  background: var(--md-surface-container);
+  border: 1px solid var(--md-outline);
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+  font-family: 'Roboto Mono', 'SF Mono', monospace;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  white-space: pre-wrap;
+}
+.drawer-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+.drawer-body th {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  background: var(--md-surface-container);
+  font-family: 'Google Sans', sans-serif;
+  font-weight: 500;
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+  color: var(--md-on-surface-variant);
+  border-bottom: 1px solid var(--md-outline);
+}
+.drawer-body td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--md-outline);
+  color: var(--md-on-surface);
+}
+.drawer-body blockquote {
+  border-left: 3px solid var(--md-primary);
+  padding: 0.5rem 1rem;
+  margin: 1rem 0;
+  background: var(--md-primary-container);
+  border-radius: 0 8px 8px 0;
+  color: var(--md-on-primary-container);
+}
+.drawer-body hr { border: none; border-top: 1px solid var(--md-outline); margin: 1.5rem 0; }
+.drawer-body a { color: var(--md-primary); }
+.drawer-body ul, .drawer-body ol { padding-left: 1.5rem; margin-bottom: 1rem; }
+.drawer-body li { margin-bottom: 0.3rem; }
+
+/* Document list items — clickable */
+.doc-clickable {
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.doc-clickable:hover {
+  background: var(--md-primary-container) !important;
+  box-shadow: var(--md-elevation-1);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  html { font-size: 15px; }
+  .top-bar-inner { padding: 0 1rem; }
+  .nav-tabs { padding: 0 0.5rem; }
+  .nav-tabs button { padding: 0.7rem 0.8rem; font-size: 0.8rem; }
+  .main { padding: 1.25rem 1rem; }
+  .card-grid, .card-grid-3 { grid-template-columns: 1fr; }
+  .stat-grid { grid-template-columns: repeat(3, 1fr); }
+  .file-list { grid-template-columns: 1fr; }
+  h1 { font-size: 1.7rem; }
+  h2 { font-size: 1.3rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- TOP APP BAR                                                       -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div class="top-bar">
+  <div class="top-bar-inner">
+    <div class="logo">
+      <span class="logo-icon">✈</span>
+      Qoomlee Docs
+    </div>
+    <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle light/dark theme">☀</button>
+  </div>
+  <nav>
+    <ul class="nav-tabs" id="navTabs">
+      <li><button class="active" data-tab="overview">Overview</button></li>
+      <li><button data-tab="architecture">Architecture</button></li>
+      <li><button data-tab="api">API Reference</button></li>
+      <li><button data-tab="roadmap">Roadmap</button></li>
+      <li><button data-tab="onboarding">Onboarding</button></li>
+      <li><button data-tab="documents">Documents</button></li>
+    </ul>
+  </nav>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- MAIN CONTENT                                                      -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div class="main">
+
+<!-- ─────────────────────────────────────────────────────────────────── -->
+<!-- TAB: OVERVIEW                                                       -->
+<!-- ─────────────────────────────────────────────────────────────────── -->
+<div class="tab-panel active" id="tab-overview">
+
+  <h1>Qoomlee Airline System</h1>
+  <p class="subhead">A modular airline booking platform — 2 Go services, a Next.js frontend, and 2 PostgreSQL databases. Search flights, book seats, pay via Omise, and get a boarding pass.</p>
+
+  <div class="stat-grid">
+    <div class="stat">
+      <div class="stat-value">2</div>
+      <div class="stat-label">Backend Services</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">7</div>
+      <div class="stat-label">API Endpoints</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">2</div>
+      <div class="stat-label">Databases</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">45</div>
+      <div class="stat-label">Stories Done</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">12</div>
+      <div class="stat-label">Web Screens</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">164+</div>
+      <div class="stat-label">Tests</div>
+    </div>
+  </div>
+
+  <div class="pill-list">
+    <span class="pill">Go 1.26</span>
+    <span class="pill">Gin</span>
+    <span class="pill">Next.js 16</span>
+    <span class="pill">TypeScript</span>
+    <span class="pill">PostgreSQL 16</span>
+    <span class="pill">Omise Payments</span>
+    <span class="pill">Docker</span>
+    <span class="pill">Playwright</span>
+    <span class="pill">Vitest</span>
+    <span class="pill">testify</span>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">qoomlee-service</span>
+        <span class="chip chip-blue">Go + Gin :9988</span>
+      </div>
+      <p>Core service — flight search (public), flight detail, booking CRUD, booking status updates. Session auth, internal token guard, structured logging, correlation IDs, security headers. <strong>6 endpoints + 2 health checks.</strong></p>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">payment-service</span>
+        <span class="chip chip-blue">Go + Gin :9984</span>
+      </div>
+      <p>Payment service — card charges via Omise, payment receipt lookup. Rate-limited at 10 req/s. Inter-service calls to qoomlee-service for booking validation and status update. <strong>2 endpoints + 2 health checks.</strong></p>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Next.js Web App</span>
+        <span class="chip chip-blue">TypeScript :3000</span>
+      </div>
+      <p>Flight search, results, booking form, payment page, my bookings, check-in, boarding passes, login, profile, support. Server-side rendered. <strong>12 screens implemented</strong> (of 38 planned).</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Data & Infrastructure</span>
+        <span class="chip chip-blue">PostgreSQL</span>
+      </div>
+      <p>Two isolated PostgreSQL instances — qoomlee (flights, routes, passengers, bookings, checkins, boarding_passes) and payment (payments). Both services: <strong>structured JSON logging, correlation IDs, graceful shutdown, health checks.</strong></p>
+    </div>
+  </div>
+
+  <h2>User Journey</h2>
+  <div class="dep-graph">
+Search Flights → Pick a Flight → Book a Seat → Pay via Omise → Get Confirmation → Check In → Boarding Pass</div>
+
+  <h2>Key Design Decisions</h2>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:30%">Decision</th><th>Implementation</th></tr>
+      <tr><td>Monolith-friendly modularity</td><td>2 services, not 8. Each owns its domain end-to-end.</td></tr>
+      <tr><td>Layered architecture</td><td>Handler → Service → Repository with interface-driven testability.</td></tr>
+      <tr><td>Lazy booking expiry</td><td>PENDING bookings expire on read — no background sweeper needed.</td></tr>
+      <tr><td>Overbooking prevention</td><td>SELECT FOR UPDATE locks seat rows under concurrent requests.</td></tr>
+      <tr><td>Duplicate booking guard</td><td>bookingToken UUID — same token, same result (idempotency).</td></tr>
+      <tr><td>Session auth</td><td>Opaque Bearer tokens (JWT RS256 upgrade planned).</td></tr>
+      <tr><td>Service-to-service auth</td><td>X-Internal-Token with constant-time comparison.</td></tr>
+      <tr><td>Payment idempotency</td><td>One charge per bookingRef — duplicate attempts return existing receipt.</td></tr>
+      <tr><td>Payment → Booking coupling</td><td>If PUT status fails after successful charge, logs and returns 201 anyway.</td></tr>
+    </table>
+  </div>
+
+  <h2>Quick Start</h2>
+  <div class="code-block">cp .env.example .env
+# Edit .env — set OMISE_PUBLIC_KEY and OMISE_SECRET_KEY
+docker compose up --build
+
+# Frontend
+cd app/web && bun install && bun run dev   # → http://localhost:3000
+
+# Get a test JWT
+make jwt-token</div>
+
+  <h2>Documentation Map</h2>
+  <ul class="file-list">
+    <li data-doc-key="CHALLENGE.md"><span class="file-icon">📋</span><span class="file-name">CHALLENGE.md</span> <span class="file-desc">— All 50+ user stories</span></li>
+    <li data-doc-key="01-documentation/ROADMAP.md"><span class="file-icon">📋</span><span class="file-name">ROADMAP.md</span> <span class="file-desc">— Feature status & priorities</span></li>
+    <li><span class="file-icon">🏗️</span><span class="file-name">02-architecture/</span> <span class="file-desc">— C4 diagrams, API ref, architecture overview</span></li>
+    <li data-doc-key="API_SPECS.md"><span class="file-icon">🔌</span><span class="file-name">API_SPECS.md</span> <span class="file-desc">— Full API contract with examples</span></li>
+    <li data-doc-key="SCORECARD.md"><span class="file-icon">📊</span><span class="file-name">SCORECARD.md</span> <span class="file-desc">— 100-point scoring rubric</span></li>
+    <li data-doc-key="01-documentation/flight-search-review.md"><span class="file-icon">🔍</span><span class="file-name">flight-search-review.md</span> <span class="file-desc">— Code review (33 findings)</span></li>
+    <li data-doc-key="01-documentation/stitch_ui_prompt.md"><span class="file-icon">🎨</span><span class="file-name">stitch_ui_prompt.md</span> <span class="file-desc">— 38-screen UI design spec</span></li>
+    <li><span class="file-icon">📘</span><span class="file-name">reference/</span> <span class="file-desc">— Aspirational docs (future architecture)</span></li>
+    <li data-doc-key="TDG.md"><span class="file-icon">🧪</span><span class="file-name">TDG.md</span> <span class="file-desc">— Test-Driven Development config</span></li>
+    <li><span class="file-icon">📐</span><span class="file-name">diagrams/</span> <span class="file-desc">— Sequence & use case D2 diagrams</span></li>
+  </ul>
+</div>
+
+<!-- ─────────────────────────────────────────────────────────────────── -->
+<!-- TAB: ARCHITECTURE                                                   -->
+<!-- ─────────────────────────────────────────────────────────────────── -->
+<div class="tab-panel" id="tab-architecture">
+
+  <h1>Architecture</h1>
+  <p class="subhead">C4 model diagrams at three levels of detail. Click the tabs to switch views.</p>
+
+  <div class="diagram-tabs">
+    <button class="diagram-tab active" data-diagram="l1">Level 1 — System Context</button>
+    <button class="diagram-tab" data-diagram="l2">Level 2 — Containers</button>
+    <button class="diagram-tab" data-diagram="l3">Level 3 — Components</button>
+  </div>
+
+  <div class="diagram-container" id="diagram-view">
+    <img src="02-architecture/c4/Qoomlee_C4_L1_Context.svg" alt="C4 Level 1: System Context" id="diagram-l1">
+    <img src="02-architecture/c4/Qoomlee_C4_L2_Container.svg" alt="C4 Level 2: Container" id="diagram-l2" style="display:none">
+    <img src="02-architecture/c4/Qoomlee_C4_L3_Component.svg" alt="C4 Level 3: Component" id="diagram-l3" style="display:none">
+  </div>
+
+  <h2>Service Details</h2>
+
+  <h3>qoomlee-service (Go + Gin, :9988)</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:25%">Component</th><th>Responsibility</th></tr>
+      <tr><td>FlightHandler → FlightService → FlightRepo</td><td>Flight search (public), flight detail by ID</td></tr>
+      <tr><td>BookingHandler → BookingService → BookingRepo</td><td>Create booking (seat decrement, PNR), get by ref, list all, update status</td></tr>
+      <tr><td>Middleware: SessionAuth</td><td>Extract Bearer token → userSub in Gin context</td></tr>
+      <tr><td>Middleware: InternalToken</td><td>Validate X-Internal-Token for service-to-service calls</td></tr>
+      <tr><td>Middleware: SecurityHeaders</td><td>CORS, Cache-Control, X-Content-Type-Options, X-Frame-Options</td></tr>
+      <tr><td>Middleware: RequestID</td><td>Generate correlation ID per request</td></tr>
+    </table>
+  </div>
+
+  <h3>payment-service (Go + Gin, :9984)</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:25%">Component</th><th>Responsibility</th></tr>
+      <tr><td>PaymentHandler → PaymentService → PaymentRepo</td><td>Charge card, get receipt</td></tr>
+      <tr><td>OmiseClient</td><td>Create charge via Omise API</td></tr>
+      <tr><td>BookingClient</td><td>GET booking detail + PUT status update on qoomlee-service</td></tr>
+      <tr><td>Middleware: RateLimit</td><td>Token bucket — 10 req/s on charge endpoint</td></tr>
+      <tr><td>Middleware: SessionAuth</td><td>Same pattern as qoomlee-service</td></tr>
+    </table>
+  </div>
+
+  <h2>Payment Data Flow</h2>
+  <div class="dep-graph">
+1. payment-service receives POST /api/payments/charge
+2. └─ GET /api/bookings/:ref (qoomlee-service) → fetch booking details
+3.    └─ Validate amount matches booking.totalAmountMinor
+4.       └─ Create charge via Omise API (synchronous)
+5.          └─ INSERT into payments table (payment-service DB)
+6.             └─ PUT /api/bookings/:ref/status (qoomlee-service) → CONFIRMED
+7.                └─ Return payment receipt to caller</div>
+
+  <h2>Booking Status Lifecycle</h2>
+  <div class="dep-graph">
+PENDING ──── charge succeeds ──► CONFIRMED
+PENDING ──── charge fails ─────► PENDING (can retry)
+PENDING ──── expires (15 min) ─► EXPIRED (lazy, on read)
+CONFIRMED ── cancel ───────────► CANCELLED (planned)</div>
+</div>
+
+<!-- ─────────────────────────────────────────────────────────────────── -->
+<!-- TAB: API REFERENCE                                                  -->
+<!-- ─────────────────────────────────────────────────────────────────── -->
+<div class="tab-panel" id="tab-api">
+
+  <h1>API Reference</h1>
+  <p class="subhead">All 7 endpoints across 2 services. See <code>API_SPECS.md</code> for full request/response examples.</p>
+
+  <h2>qoomlee-service <span style="font-weight:400;font-size:0.85rem;color:var(--md-on-surface-variant)">— port 9988</span></h2>
+
+  <h3>Public (no auth)</h3>
+  <div class="endpoint">
+    <span class="method method-get">GET</span>
+    <span class="endpoint-path">/health/live</span>
+    <span class="endpoint-desc">Liveness probe</span>
+    <span class="auth-tag auth-public">public</span>
+  </div>
+  <div class="endpoint">
+    <span class="method method-get">GET</span>
+    <span class="endpoint-path">/health/ready</span>
+    <span class="endpoint-desc">Readiness probe (DB ping)</span>
+    <span class="auth-tag auth-public">public</span>
+  </div>
+  <div class="endpoint">
+    <span class="method method-get">GET</span>
+    <span class="endpoint-path">/api/flights/search</span>
+    <span class="endpoint-desc">Search flights by origin, destination, date, passengers</span>
+    <span class="auth-tag auth-public">public</span>
+  </div>
+
+  <h3>Authenticated (Bearer token)</h3>
+  <div class="endpoint">
+    <span class="method method-get">GET</span>
+    <span class="endpoint-path">/api/flights/:id</span>
+    <span class="endpoint-desc">Get flight detail by ID</span>
+    <span class="auth-tag auth-session">session</span>
+  </div>
+  <div class="endpoint">
+    <span class="method method-post">POST</span>
+    <span class="endpoint-path">/api/bookings</span>
+    <span class="endpoint-desc">Create booking (optional ?bookingToken= for dedup)</span>
+    <span class="auth-tag auth-session">session</span>
+  </div>
+  <div class="endpoint">
+    <span class="method method-get">GET</span>
+    <span class="endpoint-path">/api/bookings</span>
+    <span class="endpoint-desc">List all bookings</span>
+    <span class="auth-tag auth-session">session</span>
+  </div>
+  <div class="endpoint">
+    <span class="method method-get">GET</span>
+    <span class="endpoint-path">/api/bookings/:bookingRef</span>
+    <span class="endpoint-desc">Get booking detail (lazy expiry on read)</span>
+    <span class="auth-tag auth-session">session</span>
+  </div>
+
+  <h3>Internal (X-Internal-Token)</h3>
+  <div class="endpoint">
+    <span class="method method-put">PUT</span>
+    <span class="endpoint-path">/api/bookings/:bookingRef/status</span>
+    <span class="endpoint-desc">Update booking status → CONFIRMED (called by payment-service)</span>
+    <span class="auth-tag auth-internal">internal</span>
+  </div>
+
+  <h2>payment-service <span style="font-weight:400;font-size:0.85rem;color:var(--md-on-surface-variant)">— port 9984</span></h2>
+
+  <h3>Authenticated (Bearer token)</h3>
+  <div class="endpoint">
+    <span class="method method-post">POST</span>
+    <span class="endpoint-path">/api/payments/charge</span>
+    <span class="endpoint-desc">Charge a card via Omise (rate-limited: 10 req/s)</span>
+    <span class="auth-tag auth-session">session</span>
+  </div>
+  <div class="endpoint">
+    <span class="method method-get">GET</span>
+    <span class="endpoint-path">/api/payments/:bookingRef</span>
+    <span class="endpoint-desc">Get payment receipt for a booking</span>
+    <span class="auth-tag auth-session">session</span>
+  </div>
+
+  <h2>Auth Details</h2>
+  <div class="table-wrap">
+    <table>
+      <tr><th style="width:20%">Mechanism</th><th>How it works</th></tr>
+      <tr><td><strong>Session token</strong></td><td>Opaque Bearer token from <code>Authorization</code> header. Set as <code>userSub</code> in Gin context. No JWT verification (yet — QML-010 planned).</td></tr>
+      <tr><td><strong>Internal token</strong></td><td>Shared secret in <code>X-Internal-Token</code> header. Compared with <code>crypto/subtle.ConstantTimeCompare</code> to prevent timing attacks.</td></tr>
+      <tr><td><strong>Public routes</strong></td><td><code>/api/flights/search</code> and health endpoints — no auth required.</td></tr>
+    </table>
+  </div>
+
+  <h2>Response Format</h2>
+  <div class="code-block">// Success
+{ "data": {}, "success": true, "message": "..." }
+
+// Error
+{ "error": "ERROR_CODE", "message": "Human-readable description." }</div>
+
+  <h2>Monetary Convention</h2>
+  <div class="card">
+    <p>All money is stored as BIGINT minor units (satang). 1 THB = 100 satang. 3,500 THB → stored as <code>350000</code>. Every monetary field appears as a triple: <code>*Minor</code> (integer satang), <code>currency</code>, and <code>*</code> (string display value). Handlers compute <code>int64 ÷ 100</code> to produce the display string. <strong>Never return or accept a JSON float for money.</strong></p>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────────────────────────────── -->
+<!-- TAB: ROADMAP                                                        -->
+<!-- ─────────────────────────────────────────────────────────────────── -->
+<div class="tab-panel" id="tab-roadmap">
+
+  <h1>Roadmap</h1>
+  <p class="subhead">Feature status and priorities. Last updated 2026-08-27.</p>
+
+  <div class="stat-grid">
+    <div class="stat">
+      <div class="stat-value" style="color:var(--md-green)">45</div>
+      <div class="stat-label">Done</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" style="color:var(--md-amber)">4</div>
+      <div class="stat-label">Partial</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" style="color:var(--md-on-surface-variant)">9</div>
+      <div class="stat-label">Todo</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" style="color:var(--md-purple)">12</div>
+      <div class="stat-label">Improvements</div>
+    </div>
+  </div>
+
+  <!-- 🔴 SHORT-TERM -->
+  <div class="priority-section short-term">
+    <div class="priority-label">🔴 Short-term — Next Sprint</div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">QML-010: Upgrade auth to JWT RS256</span>
+        <span class="chip chip-todo">P0 · S</span>
+      </div>
+      <p>Replace session token (opaque Bearer) with real JWT RS256 verification. <code>golang-jwt/jwt/v5</code> already in dependencies. Swap session extraction for <code>jwt.ParseWithClaims</code>.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">QML-012: Rate limiting on qoomlee-service</span>
+        <span class="chip chip-todo">P0 · XS</span>
+      </div>
+      <p>Port the <code>ratelimit.go</code> pattern from payment-service. Protect search and booking endpoints.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">QML-047: Pay from Booking Detail</span>
+        <span class="chip chip-todo">P1 · XS</span>
+      </div>
+      <p>Wire "Complete Payment" button on booking detail page → <code>/payment?ref=X</code>. Reuse existing payment page.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">QML-013: Passenger email validation</span>
+        <span class="chip chip-todo">P1 · XS</span>
+      </div>
+      <p>Add email format validation in <code>POST /api/bookings</code> handler.</p>
+    </div>
+  </div>
+
+  <!-- 🟡 MEDIUM-TERM -->
+  <div class="priority-section medium-term">
+    <div class="priority-label">🟡 Medium-term — 2–3 Sprints</div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">QML-052/053/054: Cancel & Refund</span>
+        <span class="chip chip-todo">P2 · M–S</span>
+      </div>
+      <p>Cancel booking backend (seat release, status update), refund payment via Omise, cancel confirmation dialog in web UI.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">QML-049/050/051/055: Check-in</span>
+        <span class="chip chip-todo">P3 · M–S</span>
+      </div>
+      <p>Online check-in endpoint, check-in status, boarding pass, time window validation (24h–1h before departure).</p>
+    </div>
+  </div>
+
+  <!-- 🟢 LONG-TERM -->
+  <div class="priority-section long-term">
+    <div class="priority-label">🟢 Long-term — Future</div>
+
+    <div class="card-grid-3">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Seat Module</span><span class="chip chip-future">new service</span></div>
+        <p>Seat configuration per aircraft, inventory per flight, 8-min TTL locks, interactive seat map UI.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Notifications</span><span class="chip chip-future">new service</span></div>
+        <p>Email confirmations, SMS alerts, push notifications via Redis Streams.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Observability</span><span class="chip chip-future">infra</span></div>
+        <p>Prometheus metrics, Grafana dashboards, Jaeger distributed tracing.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Mobile Apps</span><span class="chip chip-future">new</span></div>
+        <p>iOS (Swift/SwiftUI) and Android (Kotlin/Jetpack Compose).</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Additional Payments</span><span class="chip chip-future">extend</span></div>
+        <p>PromptPay QR, bank transfer, payment method selection UI.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Passenger Experience</span><span class="chip chip-future">extend</span></div>
+        <p>Travel insurance, special meals, mobility assistance, visa checker.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ DONE STORIES -->
+  <div class="priority-section done">
+    <div class="priority-label">✅ Completed Stories — 45 Done</div>
+
+    <h3>Flight Discovery</h3>
+    <div class="card-grid-3">
+      <div class="story-card">
+        <div class="story-id">QML-001</div>
+        <div class="story-name">Search Flights</div>
+        <div class="story-desc">GET /api/flights/search — public endpoint. Search by origin, destination, date, passengers. Returns matching flights with flight number, departure/arrival times, price, available seats.</div>
+        <div class="story-meta"><span class="story-tag">qoomlee-service</span><span class="story-tag">13 pts</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-002</div>
+        <div class="story-name">View Flight Details</div>
+        <div class="story-desc">GET /api/flights/:id — returns complete flight details including flight number, route, departure/arrival times, duration, price, available seats.</div>
+        <div class="story-meta"><span class="story-tag">qoomlee-service</span></div>
+      </div>
+    </div>
+
+    <h3>Booking</h3>
+    <div class="card-grid-3">
+      <div class="story-card">
+        <div class="story-id">QML-003</div>
+        <div class="story-name">Create a Booking</div>
+        <div class="story-desc">POST /api/bookings — creates booking, returns 6-char PNR. Decrements available_seats with SELECT FOR UPDATE. Prevents overbooking.</div>
+        <div class="story-meta"><span class="story-tag">qoomlee-service</span><span class="story-tag">frontend</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-004</div>
+        <div class="story-name">View Booking Details</div>
+        <div class="story-desc">GET /api/bookings/:ref — returns booking with nested passenger + flight info. Includes payment provider and charge ID for CONFIRMED bookings.</div>
+        <div class="story-meta"><span class="story-tag">qoomlee-service</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-007</div>
+        <div class="story-name">Prevent Overbooking</div>
+        <div class="story-desc">SELECT FOR UPDATE on seat count — concurrent bookings are serialized. Exactly 1 succeeds on a 1-seat flight.</div>
+        <div class="story-meta"><span class="story-tag">qoomlee-service</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-048</div>
+        <div class="story-name">Prevent Duplicate Bookings</div>
+        <div class="story-desc">bookingToken UUID pattern. Same token → same booking returned. Prevents duplicate PENDING bookings on back navigation.</div>
+        <div class="story-meta"><span class="story-tag">qoomlee-service</span><span class="story-tag">web</span></div>
+      </div>
+    </div>
+
+    <h3>Payment</h3>
+    <div class="card-grid-3">
+      <div class="story-card">
+        <div class="story-id">QML-005</div>
+        <div class="story-name">Pay for Booking</div>
+        <div class="story-desc">POST /api/payments/charge — Omise SDK, amount validation, CONFIRMED flip. Amount mismatch → 400. Success → 201 with charge ID.</div>
+        <div class="story-meta"><span class="story-tag">payment-service</span><span class="story-tag">7 tests</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-006</div>
+        <div class="story-name">View Payment Receipt</div>
+        <div class="story-desc">GET /api/payments/:bookingRef — receipt with status, provider, charge ID, amount. paidAt null for FAILED payments.</div>
+        <div class="story-meta"><span class="story-tag">payment-service</span><span class="story-tag">4 tests</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-008</div>
+        <div class="story-name">Prevent Duplicate Payments</div>
+        <div class="story-desc">Unique partial index on payments. Second charge attempt on CONFIRMED booking → 409 ALREADY_PAID.</div>
+        <div class="story-meta"><span class="story-tag">payment-service</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-009</div>
+        <div class="story-name">Handle Payment Failures</div>
+        <div class="story-desc">Failed charges persist as FAILED payment records. Surface failureCode + failureMessage in receipt. Booking stays PENDING — can retry.</div>
+        <div class="story-meta"><span class="story-tag">payment-service</span></div>
+      </div>
+    </div>
+
+    <h3>Booking Expiry & Status</h3>
+    <div class="card-grid-3">
+      <div class="story-card">
+        <div class="story-id">QML-041</div>
+        <div class="story-name">Record Seat-Hold Expiry</div>
+        <div class="story-desc">expires_at timestamp set at booking creation. PENDING bookings expire after 15 minutes.</div>
+        <div class="story-meta"><span class="story-tag">qoomlee-service</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-042</div>
+        <div class="story-name">Lazily Expire Stale Bookings</div>
+        <div class="story-desc">PENDING bookings expire on read — no background sweeper. If expires_at < now, status flips to EXPIRED on GET.</div>
+        <div class="story-meta"><span class="story-tag">qoomlee-service</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-043</div>
+        <div class="story-name">Reject Charges for Expired</div>
+        <div class="story-desc">Both services reject charges and status updates for EXPIRED bookings. payment-service returns 409 before calling Omise.</div>
+        <div class="story-meta"><span class="story-tag">both services</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-044</div>
+        <div class="story-name">Payment Countdown</div>
+        <div class="story-desc">Server-derived countdown timer on booking detail page. Shows remaining time before expiry.</div>
+        <div class="story-meta"><span class="story-tag">web</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-045</div>
+        <div class="story-name">Handle Expiry Mid-Submit</div>
+        <div class="story-desc">If booking expires during payment form submission, user sees appropriate error message.</div>
+        <div class="story-meta"><span class="story-tag">web</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-046</div>
+        <div class="story-name">My Bookings with Real Data</div>
+        <div class="story-desc">My Bookings page backed by real API data. Shows all bookings with status, payment info, flight details.</div>
+        <div class="story-meta"><span class="story-tag">web</span><span class="story-tag">qoomlee-service</span></div>
+      </div>
+    </div>
+
+    <h3>Security & Observability</h3>
+    <div class="card-grid-3">
+      <div class="story-card">
+        <div class="story-id">QML-011</div>
+        <div class="story-name">Internal Token Guard</div>
+        <div class="story-desc">X-Internal-Token header on PUT /bookings/:ref/status. Constant-time comparison. Service refuses to start if INTERNAL_TOKEN is empty.</div>
+        <div class="story-meta"><span class="story-tag">qoomlee-service</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-014</div>
+        <div class="story-name">Request Correlation ID</div>
+        <div class="story-desc">X-Request-ID generated per request. Propagated through all service calls. Included in all log lines.</div>
+        <div class="story-meta"><span class="story-tag">both services</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-015</div>
+        <div class="story-name">Structured Request Logging</div>
+        <div class="story-desc">JSON logs via slog. method, path, status, latency_ms, request_id per request. Error logs include context.</div>
+        <div class="story-meta"><span class="story-tag">both services</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-039</div>
+        <div class="story-name">HTTP Security Headers (API)</div>
+        <div class="story-desc">CORS, Cache-Control, X-Content-Type-Options, X-Frame-Options, Referrer-Policy on both services.</div>
+        <div class="story-meta"><span class="story-tag">both services</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-040</div>
+        <div class="story-name">HTTP Security Headers (Web)</div>
+        <div class="story-desc">Security headers + CSP on Next.js app. Protects against XSS, clickjacking, MIME sniffing.</div>
+        <div class="story-meta"><span class="story-tag">web</span></div>
+      </div>
+    </div>
+
+    <h3>Web Frontend</h3>
+    <div class="card-grid-3">
+      <div class="story-card">
+        <div class="story-id">QML-016–018</div>
+        <div class="story-name">Flight Search Form</div>
+        <div class="story-desc">Core behavior + desktop + mobile layouts. Origin/destination autocomplete, date picker, passenger selector.</div>
+        <div class="story-meta"><span class="story-tag">web</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-019–021</div>
+        <div class="story-name">Date Range Picker</div>
+        <div class="story-desc">Core behavior + desktop + mobile. Past dates disabled. Round-trip and one-way modes.</div>
+        <div class="story-meta"><span class="story-tag">web</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-022</div>
+        <div class="story-name">Flight Search Results</div>
+        <div class="story-desc">Flight cards with price, duration, departure/arrival times. Sort by price, duration, departure. Outbound → return flow.</div>
+        <div class="story-meta"><span class="story-tag">web</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-023–024</div>
+        <div class="story-name">Travelers & Class Selector</div>
+        <div class="story-desc">Desktop + mobile. Adults/children/infants counters. Cabin class dropdown (Economy, Premium Economy, Business).</div>
+        <div class="story-meta"><span class="story-tag">web</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-025</div>
+        <div class="story-name">Create Booking Form</div>
+        <div class="story-desc">Passenger details form with validation. Flight summary sidebar. bookingToken generation for dedup.</div>
+        <div class="story-meta"><span class="story-tag">web</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-026</div>
+        <div class="story-name">Booking Confirmation</div>
+        <div class="story-desc">PNR display with copy button. Flight summary, passenger info, payment status. 14 Playwright E2E tests.</div>
+        <div class="story-meta"><span class="story-tag">web</span><span class="story-tag">14 e2e tests</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-027</div>
+        <div class="story-name">View My Bookings</div>
+        <div class="story-desc">List of all bookings with status badges. Links to booking detail, payment, check-in.</div>
+        <div class="story-meta"><span class="story-tag">web</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-028</div>
+        <div class="story-name">Pay for Booking</div>
+        <div class="story-desc">Payment form with card details. Omise tokenization. Success/error handling. Amount display.</div>
+        <div class="story-meta"><span class="story-tag">web</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-029–030</div>
+        <div class="story-name">Check-in & Boarding Passes UI</div>
+        <div class="story-desc">Check-in flow UI and boarding pass display. Frontend exists — needs backend (QML-049–051).</div>
+        <div class="story-meta"><span class="story-tag">web</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-031–032</div>
+        <div class="story-name">Login, Register & Profile</div>
+        <div class="story-desc">Authentication pages and profile management. Registration with email/password. Profile editing.</div>
+        <div class="story-meta"><span class="story-tag">web</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-033–034</div>
+        <div class="story-name">Airport Select</div>
+        <div class="story-desc">Desktop dropdown + mobile bottom sheet. IATA code + city name. Search/filter.</div>
+        <div class="story-meta"><span class="story-tag">web</span></div>
+      </div>
+      <div class="story-card">
+        <div class="story-id">QML-035–038</div>
+        <div class="story-name">Discovery & App Shell</div>
+        <div class="story-desc">Popular destinations, travel tips, flight status lookup, travel requirements, app navigation.</div>
+        <div class="story-meta"><span class="story-tag">web</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Improvement Stories (from code review)</h2>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Story</th><th>Area</th><th>Severity</th><th>What</th></tr>
+      <tr><td>QML-069</td><td>Money</td><td><span class="chip chip-partial">HIGH</span></td><td>Fix float64 in price formatting (use integer division)</td></tr>
+      <tr><td>QML-070</td><td>UI</td><td><span class="chip chip-partial">BUG</span></td><td>FlightCard shows status as cabin class label</td></tr>
+      <tr><td>QML-071</td><td>Tests</td><td><span class="chip chip-partial">HIGH</span></td><td>Mock argument verification in handler tests</td></tr>
+      <tr><td>QML-072</td><td>Arch</td><td><span class="chip chip-todo">MEDIUM</span></td><td>Move timezone conversion to service layer</td></tr>
+      <tr><td>QML-073</td><td>Validation</td><td><span class="chip chip-todo">LOW</span></td><td>Add IATA format + passengers bounds validation</td></tr>
+      <tr><td>QML-075</td><td>Error</td><td><span class="chip chip-todo">MEDIUM</span></td><td>Results page error handling (NaN, fragile reload)</td></tr>
+    </table>
+  </div>
+
+  <h2>Dependency Graph</h2>
+  <div class="dep-graph">
+Short-term (no blockers)
+├── QML-010 (JWT) ── independent
+├── QML-012 (Rate limit) ── independent
+├── QML-047 (Pay from detail) ── independent
+└── QML-013 (Email validation) ── independent
+
+Medium-term
+├── QML-052 (Cancel booking) ── independent
+│   └── QML-053 (Refund) ── needed by QML-052 (for CONFIRMED bookings)
+├── QML-054 (Cancel UI) ── depends on QML-052
+├── QML-049 (Check-in) ── independent
+│   └── QML-055 (Time window) ── extends QML-049
+├── QML-050 (Check-in status) ── depends on QML-049
+└── QML-051 (Boarding pass) ── depends on QML-049
+
+Long-term
+├── Seat Module ── independent (new service or new package)
+├── Notifications ── independent
+├── Observability ── independent
+└── Mobile Apps ── independent</div>
+</div>
+
+<!-- ─────────────────────────────────────────────────────────────────── -->
+<!-- TAB: ONBOARDING                                                     -->
+<!-- ─────────────────────────────────────────────────────────────────── -->
+<div class="tab-panel" id="tab-onboarding">
+
+  <h1>Onboarding</h1>
+  <p class="subhead">Everything a new team member needs to get productive. Pick your role.</p>
+
+  <div class="role-tabs">
+    <button class="role-tab active" data-role="dev">👨‍💻 Developer</button>
+    <button class="role-tab" data-role="qa">🧪 QA Engineer</button>
+    <button class="role-tab" data-role="ba">📊 Business Analyst</button>
+  </div>
+
+  <!-- ═══ DEVELOPER ═══ -->
+  <div class="role-panel active" id="role-dev">
+
+    <h2>Developer Onboarding</h2>
+
+    <div class="accordion open">
+      <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="accordion-title">1. Prerequisites</span>
+        <span class="accordion-chevron">▾</span>
+      </div>
+      <div class="accordion-body">
+        <div class="pill-list">
+          <span class="pill">🐳 Docker Desktop</span>
+          <span class="pill">🟢 Node.js 20+ or Bun</span>
+          <span class="pill">🐹 Go 1.23+</span>
+          <span class="pill">🔑 Omise test keys</span>
+          <span class="pill">🛠️ make</span>
+        </div>
+        <p>Get free Omise test keys at <strong>dashboard.omise.co</strong> → sign up → API Keys → Test keys.</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="accordion-title">2. Clone & Configure</span>
+        <span class="accordion-chevron">▾</span>
+      </div>
+      <div class="accordion-body">
+        <div class="code-block">git clone https://github.com/anuchito/qoomlee-challenge.git
+cd qoomlee-challenge
+cp .env.example .env
+# Edit .env — set OMISE_PUBLIC_KEY and OMISE_SECRET_KEY
+# JWT keys and INTERNAL_TOKEN are pre-filled for dev</div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="accordion-title">3. Start the Full Stack</span>
+        <span class="accordion-chevron">▾</span>
+      </div>
+      <div class="accordion-body">
+        <div class="code-block">docker compose up --build</div>
+        <p>4 containers: postgres-qoomlee (:5433), postgres-payment (:5434), qoomlee-service (:8082), payment-service (:8084)</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="accordion-title">4. Start Frontend</span>
+        <span class="accordion-chevron">▾</span>
+      </div>
+      <div class="accordion-body">
+        <div class="code-block">cd app/web
+bun install          # or: npm install
+bun run dev          # → http://localhost:3000</div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="accordion-title">5. Verify It Works</span>
+        <span class="accordion-chevron">▾</span>
+      </div>
+      <div class="accordion-body">
+        <div class="code-block"># Health checks
+curl http://localhost:8082/health/live
+curl http://localhost:8084/health/live
+
+# Get a JWT token
+make jwt-token
+
+# Search flights
+TOKEN=$(make jwt-token -s)
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8082/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15"</div>
+      </div>
+    </div>
+
+    <h3>Project Structure</h3>
+    <div class="dep-graph">
+├── services/
+│   ├── qoomlee/            Go + Gin, port 9988 (flights + bookings)
+│   │   ├── cmd/            main.go — entry point
+│   │   ├── flight/         Handler → Service → Repository
+│   │   ├── booking/        Handler → Service → Repository
+│   │   └── middleware/      SessionAuth, InternalToken, SecurityHeaders, RequestID
+│   └── payment/            Go + Gin, port 9984
+│       ├── cmd/            main.go — entry point
+│       ├── payment/         Handler → Service → Repository
+│       ├── omise/           Omise API client
+│       └── booking/         Booking service HTTP client
+├── app/web/                Next.js 16 (App Router) + TypeScript + Tailwind
+│   ├── app/flights/        Search, results, status
+│   ├── app/bookings/        New, confirmation, detail, my bookings
+│   ├── app/payment/         Payment form
+│   ├── app/checkin/         Check-in flow
+│   ├── app/passes/          Boarding passes
+│   └── e2e/                 Playwright tests
+├── infra/db/
+│   ├── qoomlee/             Schema + seed data for qoomlee-service
+│   └── qoomlee-payment/     Schema + seed data for payment-service
+├── diagrams/                Sequence & use case D2 diagrams
+├── tests/k6/                K6 load test scripts
+└── scripts/                 Smoke, contract, check-all scripts</div>
+
+    <h3>Code Patterns</h3>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-title">Layered Architecture</div>
+        <p>Handler (HTTP) → Service (business logic) → Repository (SQL). Interfaces defined for repos — enables mocking in unit tests. No SQL in handlers.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Error Handling</div>
+        <p>Every db.Query, Omise call, and HTTP call checks <code>err != nil</code>. Errors returned, never silently dropped. HTTP semantics: 201 create, 200 read, 404 not-found, 400 bad input, 402 decline, 409 conflict, 429 rate limit.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Build & Test Commands</div>
+        <div class="code-block"># Build
+cd services/qoomlee && go build ./...
+cd services/payment && go build ./...
+
+# Unit tests
+cd services/qoomlee && go test ./... -short -count=1
+cd services/payment && go test ./... -short -count=1
+
+# Single test
+cd services/qoomlee && go test ./... -run TestSearchFlights -v
+
+# Integration tests (requires Docker)
+make test-integration
+
+# Frontend
+cd app/web && bun run test       # Vitest
+cd app/web && bun run test:e2e   # Playwright</div>
+      </div>
+    </div>
+
+    <h3>Conventions</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Convention</th><th>Rule</th></tr>
+        <tr><td>Commits</td><td>Conventional commits: <code>feat:</code>, <code>fix:</code>, <code>refactor:</code>, <code>test:</code>, <code>chore:</code></td></tr>
+        <tr><td>Go naming</td><td>Idiomatic Go — no magic numbers, no debug <code>fmt.Println</code>, <code>slog</code> for logging</td></tr>
+        <tr><td>Config</td><td>All from <code>os.Getenv()</code> — no hardcoded DB DSN, Omise keys, or service URLs</td></tr>
+        <tr><td>Secrets</td><td>Never in source code — <code>grep -rn "skey_test\|pkey_test" .</code> must return zero results in .go files</td></tr>
+        <tr><td>Money</td><td>BIGINT minor units (satang). Triple: <code>*Minor</code> (int), <code>currency</code>, <code>*</code> (string display). Never float.</td></tr>
+        <tr><td>Tests</td><td>Co-located with source. Mocks via testify/mock interfaces. Integration tests use testcontainers-go.</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ QA ENGINEER ═══ -->
+  <div class="role-panel" id="role-qa">
+
+    <h2>QA Engineer Onboarding</h2>
+
+    <h3>Testing Strategy</h3>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-title">Unit Tests</div>
+        <p><strong>Go:</strong> testify + testify/mock. All DB and HTTP calls mocked. Co-located with source (<code>*_test.go</code>).</p>
+        <div class="code-block">cd services/qoomlee && go test ./... -v
+cd services/payment && go test ./... -v</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Integration Tests</div>
+        <p>testcontainers-go spins up real PostgreSQL. Tagged with <code>//go:build integration</code>.</p>
+        <div class="code-block">make test-integration
+# or per service:
+cd services/qoomlee && go test ./... -run Integration</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Contract Tests</div>
+        <p>Run against live docker compose stack. Verify HTTP status codes, response shapes, auth behavior.</p>
+        <div class="code-block"># See SCORECARD.md Pillar 2 Layer 3
+# 17 contract checks covering all endpoints</div>
+      </div>
+      <div class="card">
+        <div class="card-title">E2E Tests (Playwright)</div>
+        <p>5 test files in <code>app/web/e2e/</code>. Full user journeys: search → book → pay.</p>
+        <div class="code-block">cd app/web && bun run test:e2e</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Load Tests (K6)</div>
+        <p>Scripts in <code>tests/k6/</code>. Search: 50 VUs × 30s. Booking flow: 20 VUs × 60s.</p>
+        <div class="code-block"># Run against live stack
+k6 run tests/k6/search.js
+k6 run tests/k6/booking-flow.js</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Frontend Tests (Vitest)</div>
+        <p>132 tests across 15 test files. Components, hooks, utilities.</p>
+        <div class="code-block">cd app/web && bun run test
+cd app/web && bun run test:coverage</div>
+      </div>
+    </div>
+
+    <h3>Test Commands Cheat Sheet</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>What</th><th>Command</th></tr>
+        <tr><td>All unit tests (backend)</td><td><code>make test-unit</code></td></tr>
+        <tr><td>Single test</td><td><code>cd services/qoomlee && go test ./... -run TestSearchFlights -v</code></td></tr>
+        <tr><td>Integration tests</td><td><code>make test-integration</code></td></tr>
+        <tr><td>Coverage (Go)</td><td><code>cd services/qoomlee && go test ./... -cover</code></td></tr>
+        <tr><td>Frontend tests</td><td><code>cd app/web && bun run test</code></td></tr>
+        <tr><td>E2E tests</td><td><code>cd app/web && bun run test:e2e</code></td></tr>
+        <tr><td>Load tests</td><td><code>k6 run tests/k6/search.js</code></td></tr>
+        <tr><td>Go vet</td><td><code>go vet ./...</code> (in each service)</td></tr>
+        <tr><td>No hardcoded secrets</td><td><code>grep -rn "skey_test\|pkey_test" .</code> — zero results in .go files</td></tr>
+      </table>
+    </div>
+
+    <h3>Scoring (100 points)</h3>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-title">Pillar 1: Working Software (25 pts)</div>
+        <p>All 7 endpoints work end-to-end. 6 automated smoke tests (3 pts each = 18 pts) + 4 manual scenarios (2 pts each = 8 pts, capped at 7).</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Pillar 2: Testing (35 pts)</div>
+        <p>Unit tests (12 pts), integration tests (10 pts), contract tests (8 pts), K6 load tests (5 pts). Tests are specifications, not afterthoughts.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Pillar 3: Code Quality (20 pts)</div>
+        <p>Layered architecture, interface-based repos, error propagation, HTTP semantics, no hardcoded config, payment traceability, readable Go.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Pillar 4: Infrastructure (20 pts)</div>
+        <p>Health checks (4 pts), rate limiting (6 pts), graceful shutdown (3 pts), structured logging (3 pts), security/auth (4 pts).</p>
+      </div>
+    </div>
+
+    <h3>Key Test Scenarios</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Scenario</th><th>Expected</th></tr>
+        <tr><td>Search BKK→SIN on 2026-06-15</td><td>200, ≥1 flight in <code>flights</code> array</td></tr>
+        <tr><td>Search with missing origin</td><td>400 MISSING_REQUIRED_FIELD</td></tr>
+        <tr><td>Create booking on valid flight</td><td>201, 6-char bookingRef, bookingId is integer</td></tr>
+        <tr><td>Book sold-out flight (QM999)</td><td>409 NO_SEATS_AVAILABLE</td></tr>
+        <tr><td>Concurrent bookings on 1-seat flight</td><td>Exactly 1 succeeds, 1 returns 409</td></tr>
+        <tr><td>Charge with success card (4242…)</td><td>201, providerChargeId non-empty, status=SUCCEEDED</td></tr>
+        <tr><td>Charge with decline card (4111…)</td><td>402, failureCode present, booking still PENDING</td></tr>
+        <tr><td>Charge already-paid booking (SEED01)</td><td>409 ALREADY_PAID</td></tr>
+        <tr><td>Charge with mismatched amount</td><td>400 AMOUNT_MISMATCH</td></tr>
+        <tr><td>Rate limit exceeded</td><td>429 RATE_LIMIT_EXCEEDED</td></tr>
+        <tr><td>Missing JWT on /api/*</td><td>401 UNAUTHORIZED</td></tr>
+        <tr><td>Missing X-Internal-Token on PUT status</td><td>403 FORBIDDEN</td></tr>
+        <tr><td>Health endpoints</td><td>/health/live=200 always, /health/ready=200 when DB up, 503 when DB down</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ BUSINESS ANALYST ═══ -->
+  <div class="role-panel" id="role-ba">
+
+    <h2>Business Analyst Onboarding</h2>
+
+    <h3>What is Qoomlee?</h3>
+    <p>Qoomlee is an airline booking platform. The product mission: enable passengers to search flights, reserve seats, and pay securely — all in one digital journey. Zero phone calls, zero queues, instant booking confirmation.</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-title">✈️ Product Vision</div>
+        <p>Seamless airline booking from search to boarding pass. Southeast Asian tier-2 cities to Australian gateways.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">🤖 The Challenge</div>
+        <p>Can structured AI skills dramatically accelerate delivery quality? Team A (agent + skills) vs Team B (agent only). Same codebase skeleton. Same 2-hour window. Measured on 4 quality pillars.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">🎯 Impact Goal</div>
+        <p>Production-grade system in 2 hours — complete with auth, rate limiting, structured logging, and end-to-end tests.</p>
+      </div>
+    </div>
+
+    <h3>Passenger Journey</h3>
+    <div class="dep-graph">
+1. Search Flights  →  origin, destination, date, passengers
+2. Select Flight   →  review price, duration, seats available
+3. Book Seat       →  enter passenger details, get 6-char PNR
+4. Pay via Omise   →  enter card details, charge processed
+5. Get Confirmation →  booking status flips to CONFIRMED
+6. Check In        →  select seat, declare baggage (planned)
+7. Boarding Pass   →  barcode, gate, boarding time (planned)</div>
+
+    <h3>Feature Board — All Epics</h3>
+
+    <div class="accordion">
+      <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="accordion-title">Epic: Flight Discovery (2 stories, ✅ all done)</span>
+        <span class="accordion-chevron">▾</span>
+      </div>
+      <div class="accordion-body">
+        <p><strong>QML-001 Search Flights</strong> — Public endpoint. Search by origin, destination, date, passengers. Returns matching flights.</p>
+        <p><strong>QML-002 View Flight Details</strong> — Get complete flight info: route, times, duration, price, seats.</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="accordion-title">Epic: Booking (6 stories, 4 ✅ done, 2 ⬜ todo)</span>
+        <span class="accordion-chevron">▾</span>
+      </div>
+      <div class="accordion-body">
+        <p><strong>✅ QML-003 Create Booking</strong> — PNR generation, seat decrement with SELECT FOR UPDATE.</p>
+        <p><strong>✅ QML-004 View Booking Details</strong> — Nested passenger + flight + payment info.</p>
+        <p><strong>✅ QML-007 Prevent Overbooking</strong> — Concurrent booking serialization.</p>
+        <p><strong>✅ QML-048 Prevent Duplicate Bookings</strong> — bookingToken UUID dedup pattern.</p>
+        <p><strong>⬜ QML-013 Passenger Email Validation</strong> — Email format check.</p>
+        <p><strong>⬜ QML-052 Cancel Booking</strong> — Seat release + refund trigger.</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="accordion-title">Epic: Payment (5 stories, 4 ✅ done, 1 ⬜ todo)</span>
+        <span class="accordion-chevron">▾</span>
+      </div>
+      <div class="accordion-body">
+        <p><strong>✅ QML-005 Pay for Booking</strong> — Omise charge, amount validation, CONFIRMED flip.</p>
+        <p><strong>✅ QML-006 View Payment Receipt</strong> — Receipt with status, provider, charge ID.</p>
+        <p><strong>✅ QML-008 Prevent Duplicate Payments</strong> — 409 ALREADY_PAID.</p>
+        <p><strong>✅ QML-009 Handle Payment Failures</strong> — FAILED records, retry support.</p>
+        <p><strong>⬜ QML-053 Refund on Cancellation</strong> — Full refund via Omise.</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="accordion-title">Epic: Platform Security & Observability (5 stories, 3 ✅ done, 2 ⚠️ partial)</span>
+        <span class="accordion-chevron">▾</span>
+      </div>
+      <div class="accordion-body">
+        <p><strong>✅ QML-011 Internal Token Guard</strong> — Constant-time compare for service-to-service calls.</p>
+        <p><strong>✅ QML-014 Correlation IDs</strong> — X-Request-ID on all requests.</p>
+        <p><strong>✅ QML-015 Structured Logging</strong> — JSON slog output.</p>
+        <p><strong>⚠️ QML-010 JWT Auth</strong> — Uses session tokens, JWT RS256 upgrade planned.</p>
+        <p><strong>⚠️ QML-012 Rate Limiting</strong> — Done in payment-service only. qoomlee-service pending.</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="accordion-title">Epic: Web Frontend (23 stories, ✅ all done)</span>
+        <span class="accordion-chevron">▾</span>
+      </div>
+      <div class="accordion-body">
+        <p>All 23 web stories are complete: search form (desktop + mobile), date picker, results, travelers selector, booking form, confirmation, my bookings, payment, check-in UI, boarding passes UI, login/register, profile, airport select, popular destinations, flight status, travel requirements, app navigation, payment countdown, expiry handling, real data integration.</p>
+        <p><strong>⬜ QML-047 Pay from Booking Detail</strong> — Wire "Complete Payment" button.</p>
+        <p><strong>⬜ QML-054 Cancel from Manage Trip</strong> — Cancel confirmation dialog.</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+        <span class="accordion-title">Epic: Check-in & Boarding (4 stories, ⬜ all todo)</span>
+        <span class="accordion-chevron">▾</span>
+      </div>
+      <div class="accordion-body">
+        <p><strong>⬜ QML-049 Online Check-in</strong> — POST /api/checkins with seat + baggage.</p>
+        <p><strong>⬜ QML-050 View Check-in Status</strong> — GET /api/checkins/:ref.</p>
+        <p><strong>⬜ QML-051 View Boarding Pass</strong> — GET /api/checkins/:ref/boarding-pass.</p>
+        <p><strong>⬜ QML-055 Check-in Time Window</strong> — 24h before to 1h before departure.</p>
+      </div>
+    </div>
+
+    <h3>Key Documents for BA</h3>
+    <ul class="file-list">
+      <li data-doc-key="CHALLENGE.md"><span class="file-icon">📋</span><span class="file-name">CHALLENGE.md</span> <span class="file-desc">— All 50+ user stories with acceptance criteria</span></li>
+      <li data-doc-key="01-documentation/ROADMAP.md"><span class="file-icon">📋</span><span class="file-name">ROADMAP.md</span> <span class="file-desc">— Prioritized short/medium/long term plan</span></li>
+      <li data-doc-key="01-documentation/stitch_ui_prompt.md"><span class="file-icon">🎨</span><span class="file-name">stitch_ui_prompt.md</span> <span class="file-desc">— 38-screen UI design spec</span></li>
+      <li data-doc-key="SCORECARD.md"><span class="file-icon">📊</span><span class="file-name">SCORECARD.md</span> <span class="file-desc">— 100-point evaluation rubric</span></li>
+      <li data-doc-key="01-documentation/flight-search-review.md"><span class="file-icon">🔍</span><span class="file-name">flight-search-review.md</span> <span class="file-desc">— Code review findings</span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────────────────────────────── -->
+<!-- TAB: DOCUMENTS                                                      -->
+<!-- ─────────────────────────────────────────────────────────────────── -->
+<div class="tab-panel" id="tab-documents">
+
+  <h1>Project Documents</h1>
+  <p class="subhead">Every document in the project, organized by directory.</p>
+
+  <h2>Root Level</h2>
+  <ul class="file-list">
+    <li data-doc-key="README.md"><span class="file-icon">📘</span><span class="file-name">README.md</span> <span class="file-desc">— Project overview, quick start, structure</span></li>
+    <li data-doc-key="CHALLENGE.md"><span class="file-icon">📋</span><span class="file-name">CHALLENGE.md</span> <span class="file-desc">— What to build, user stories, implementation hints</span></li>
+    <li data-doc-key="API_SPECS.md"><span class="file-icon">🔌</span><span class="file-name">API_SPECS.md</span> <span class="file-desc">— Request/response contract for every endpoint</span></li>
+    <li data-doc-key="SCORECARD.md"><span class="file-icon">📊</span><span class="file-name">SCORECARD.md</span> <span class="file-desc">— 100-point scoring rubric across 4 pillars</span></li>
+    <li data-doc-key="TECHNOLOGY_STACK_SUMMARY.md"><span class="file-icon">📋</span><span class="file-name">TECHNOLOGY_STACK_SUMMARY.md</span> <span class="file-desc">— Stack reference, Go patterns, env vars</span></li>
+    <li data-doc-key="TDG.md"><span class="file-icon">🧪</span><span class="file-name">TDG.md</span> <span class="file-desc">— Test-Driven Development config & commands</span></li>
+    <li data-doc-key="DETAILS.md"><span class="file-icon">📝</span><span class="file-name">DETAILS.md</span> <span class="file-desc">— UI details (date picker, autocomplete, timezone, currency)</span></li>
+    <li><span class="file-icon">🤖</span><span class="file-name">CLAUDE.md</span> <span class="file-desc">— Claude Code context-mode routing rules</span></li>
+    <li><span class="file-icon">🌐</span><span class="file-name">docs-browser.html</span> <span class="file-desc">— This page</span></li>
+    <li><span class="file-icon">🌐</span><span class="file-name">ONBOARDING.html</span> <span class="file-desc">— Developer onboarding guide (dark theme)</span></li>
+  </ul>
+
+  <h2>01-documentation/</h2>
+  <ul class="file-list">
+    <li data-doc-key="01-documentation/flight-search-review.md"><span class="file-icon">🔍</span><span class="file-name">flight-search-review.md</span> <span class="file-desc">— Vertical slice code review: 33 findings, 12 improvement stories</span></li>
+    <li data-doc-key="01-documentation/ROADMAP.md"><span class="file-icon">📋</span><span class="file-name">ROADMAP.md</span> <span class="file-desc">— Feature status by domain, prioritized roadmap, dependency graph</span></li>
+    <li data-doc-key="01-documentation/stitch_ui_prompt.md"><span class="file-icon">🎨</span><span class="file-name">stitch_ui_prompt.md</span> <span class="file-desc">— 38-screen UI design spec (aspirational; ~12 implemented)</span></li>
+  </ul>
+
+  <h2>02-architecture/</h2>
+  <ul class="file-list">
+    <li data-doc-key="02-architecture/README.md"><span class="file-icon">🏗️</span><span class="file-name">README.md</span> <span class="file-desc">— Architecture overview: services, data stores, key concepts</span></li>
+    <li data-doc-key="02-architecture/api/API_REFERENCE.md"><span class="file-icon">🔌</span><span class="file-name">api/API_REFERENCE.md</span> <span class="file-desc">— All 7 endpoints with auth requirements</span></li>
+    <li><span class="file-icon">📐</span><span class="file-name">c4/Qoomlee_C4_L1_Context.d2</span> <span class="file-desc">— C4 Level 1: System Context (D2 source)</span></li>
+    <li><span class="file-icon">📐</span><span class="file-name">c4/Qoomlee_C4_L2_Container.d2</span> <span class="file-desc">— C4 Level 2: Container diagram (D2 source)</span></li>
+    <li><span class="file-icon">📐</span><span class="file-name">c4/Qoomlee_C4_L3_Component.d2</span> <span class="file-desc">— C4 Level 3: Component diagram (D2 source)</span></li>
+    <li><span class="file-icon">🌐</span><span class="file-name">docs-browser.html</span> <span class="file-desc">— Architecture-focused doc browser (original)</span></li>
+  </ul>
+
+  <h2>02-architecture/reference/ <span style="font-weight:400;font-size:0.85rem;color:var(--md-on-surface-variant)">— aspirational, future architecture</span></h2>
+  <ul class="file-list">
+    <li data-doc-key="02-architecture/reference/README.md"><span class="file-icon">📘</span><span class="file-name">README.md</span> <span class="file-desc">— Explains this directory is future reference</span></li>
+    <li><span class="file-icon">📘</span><span class="file-name">TECH_STACK_ONBOARDING.md</span> <span class="file-desc">— Full developer onboarding guide (aspirational)</span></li>
+    <li data-doc-key="TECHNOLOGY_STACK_SUMMARY.md"><span class="file-icon">🔧</span><span class="file-name">TECHNOLOGY_STACK_SUMMARY.md</span> <span class="file-desc">— Module-by-module tech stack (aspirational)</span></li>
+    <li><span class="file-icon">🔍</span><span class="file-name">Missing_Modules_Analysis.md</span> <span class="file-desc">— Gaps in aspirational architecture</span></li>
+    <li><span class="file-icon">📘</span><span class="file-name">api/api_documentation.md</span> <span class="file-desc">— Full API spec for all planned services</span></li>
+    <li><span class="file-icon">💺</span><span class="file-name">api/seat_api_spec.md</span> <span class="file-desc">— Seat service API spec</span></li>
+    <li><span class="file-icon">🏗️</span><span class="file-name">modules/SEAT_MODULE.md</span> <span class="file-desc">— Seat module architecture (Kotlin/Spring Boot)</span></li>
+  </ul>
+
+  <h2>diagrams/</h2>
+  <ul class="file-list">
+    <li><span class="file-icon">📐</span><span class="file-name">sequence-happy-path.d2</span> <span class="file-desc">— Happy path sequence diagram</span></li>
+    <li><span class="file-icon">📐</span><span class="file-name">sequence-payment-failure.d2</span> <span class="file-desc">— Payment failure sequence diagram</span></li>
+    <li><span class="file-icon">📐</span><span class="file-name">use-case.d2</span> <span class="file-desc">— Use case diagram</span></li>
+  </ul>
+
+  <h2>00-planning/</h2>
+  <ul class="file-list">
+    <li data-doc-key="README.md"><span class="file-icon">📋</span><span class="file-name">README.md</span> <span class="file-desc">— Planning directory overview</span></li>
+    <li><span class="file-icon">📋</span><span class="file-name">01-project_tracking_board_detailed.md</span> <span class="file-desc">— Project tracking board</span></li>
+    <li><span class="file-icon">📋</span><span class="file-name">02-epic_stories_detailed.md</span> <span class="file-desc">— Epic stories breakdown</span></li>
+    <li><span class="file-icon">📋</span><span class="file-name">03-sprint_planning_detailed.md</span> <span class="file-desc">— Sprint planning</span></li>
+    <li><span class="file-icon">📋</span><span class="file-name">04-definition_of_done.md</span> <span class="file-desc">— Definition of done</span></li>
+    <li><span class="file-icon">📋</span><span class="file-name">05-mvp_checklist.md</span> <span class="file-desc">— MVP checklist</span></li>
+    <li><span class="file-icon">📋</span><span class="file-name">06-seat_module_epic_backlog.md</span> <span class="file-desc">— Seat module epic backlog</span></li>
+    <li><span class="file-icon">📋</span><span class="file-name">08-passenger-ux-backlog.md</span> <span class="file-desc">— Passenger UX backlog</span></li>
+    <li><span class="file-icon">📋</span><span class="file-name">backlog_refinement.md</span> <span class="file-desc">— Backlog refinement</span></li>
+    <li><span class="file-icon">📋</span><span class="file-name">backlog_refinement_operations.md</span> <span class="file-desc">— Operations backlog refinement</span></li>
+    <li><span class="file-icon">📋</span><span class="file-name">sprint_zero_tasks.md</span> <span class="file-desc">— Sprint zero tasks</span></li>
+  </ul>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- DOCUMENT DRAWER                                                      -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <span class="drawer-title" id="drawerTitle"></span>
+    <button class="drawer-close" id="drawerClose" aria-label="Close drawer">✕</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════════════════════════
+document.querySelectorAll('#navTabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#navTabs button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// DIAGRAM SWITCHING
+// ═══════════════════════════════════════════════════════════════════════
+document.querySelectorAll('.diagram-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.diagram-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#diagram-view img').forEach(i => i.style.display = 'none');
+    btn.classList.add('active');
+    document.getElementById('diagram-' + btn.dataset.diagram).style.display = '';
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// ROLE SWITCHING (Onboarding)
+// ═══════════════════════════════════════════════════════════════════════
+document.querySelectorAll('.role-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.role-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.role-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('role-' + btn.dataset.role).classList.add('active');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// THEME TOGGLE
+// ═══════════════════════════════════════════════════════════════════════
+(function() {
+  const saved = localStorage.getItem('qoomlee-docs-theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+  const btn = document.getElementById('themeToggle');
+  const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark' ||
+    (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const updateIcon = () => { btn.textContent = isDark() ? '☀' : '☾'; };
+  updateIcon();
+  btn.addEventListener('click', () => {
+    const next = isDark() ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('qoomlee-docs-theme', next);
+    updateIcon();
+  });
+})();
+
+// ═══════════════════════════════════════════════════════════════════════
+// DOCUMENT CONTENT STORE
+// ═══════════════════════════════════════════════════════════════════════
+const docContents = {
+  "README.md": `# Qoomlee Airline — Agent Skills Challenge
+
+## Overview — At a Glance
+
+**What:** Build a REST API backend for a the airline called Qoomlee.
+
+The user journey:
+\`\`\`
+Search Flights → Book a Seat → Pay → Get Confirmation
+\`\`\`
+
+**2 services, 7 endpoints:**
+- qoomlee-service :9988 — search flights, get flight detail, create booking, view booking, update status (internal)
+- payment-service :9984 — charge a card, view payment receipt
+
+Plus 6 infrastructure requirements on both services: health checks, rate limiting, graceful shutdown, structured logging, JWT auth, internal token
+
+**What's given to you:** schema, seed data, API specs, Docker Compose, test scripts — but zero business logic. You build everything from scratch.
+
+**Stack:** Go + Gin, PostgreSQL (2 instances), Omise for payments.
+
+## Key Documents
+
+| File | Purpose |
+|------|---------|
+| CHALLENGE.md | What to build, implementation hints, requirements |
+| API_SPECS.md | Request/response contract for every endpoint |
+| SCORECARD.md | Scoring rubric — 100 pts across 4 pillars |
+| TECHNOLOGY_STACK_SUMMARY.md | Stack reference, Go patterns, env vars |
+
+## Quick Start
+
+\`\`\`bash
+# 1. Get free Omise test keys → https://dashboard.omise.co
+cp .env.example .env
+# Edit .env — set OMISE_PUBLIC_KEY and OMISE_SECRET_KEY
+
+# 2. Start the stack
+docker compose up --build
+
+# 3. Verify postgres is up
+curl "http://localhost:9988/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15"
+\`\`\`
+
+## JWT Development Guide
+
+All API endpoints require JWT authentication. For development:
+
+1. **Default keys included**: The \`.env.example\` file contains development JWT keys for immediate testing
+2. **Generate tokens**: Use \`make jwt-token\` to generate valid test tokens
+3. **Use in requests**: Include in headers as \`Authorization: Bearer <token>\`
+
+\`\`\`bash
+TOKEN=$(make jwt-token -s)
+curl -H "Authorization: Bearer $TOKEN" \\
+  "http://localhost:9988/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15"
+\`\`\`
+
+## Project Structure
+
+\`\`\`
+├── services/
+│   ├── qoomlee/            Go + Gin, port 9988 (flights + bookings)
+│   └── payment/            Go + Gin + Omise SDK, port 9984
+├── infra/
+│   └── db/
+│       ├── qoomlee/        Schema + seed data for qoomlee-service
+│       └── qoomlee-payment/ Schema + seed data for payment-service
+├── tests/k6/               K6 load test scripts
+└── scripts/                Smoke, contract, and check-all scripts
+\`\`\`
+
+## Omise Test Cards
+
+| Card number | Result |
+|---|---|
+| 4242 4242 4242 4242 | Successful charge |
+| 4111 1111 1111 1111 | Declined — insufficient_fund |
+
+Use any future expiry (e.g. 12/2028) and any 3-digit CVV.`,
+
+  "CHALLENGE.md": `# Qoomlee Challenge
+
+## What to Build
+
+Build a REST API backend for Qoomlee airline. The user journey: Search Flights → Book a Seat → Pay → Get Confirmation.
+
+## Stories
+
+### Flight Discovery
+**QML-001 Search Flights** (13 pts) ✅ — GET /api/flights/search. Public endpoint. Search by origin, destination, date, passengers. BKK date → UTC range conversion. Returns flights with flight number, departure/arrival times, price, available seats.
+
+**QML-002 View Flight Details** ✅ — GET /api/flights/:id. Returns complete flight details.
+
+### Booking
+**QML-003 Create Booking** ✅ — POST /api/bookings. Creates booking, returns 6-char PNR. Decrements available_seats with SELECT FOR UPDATE. Prevents overbooking.
+
+**QML-004 View Booking Details** ✅ — GET /api/bookings/:ref. Returns booking with nested passenger + flight info. Includes payment details for CONFIRMED bookings.
+
+**QML-007 Prevent Overbooking** ✅ — SELECT FOR UPDATE on seat count. Concurrent bookings are serialized. Exactly 1 succeeds on a 1-seat flight.
+
+**QML-048 Prevent Duplicate Bookings** ✅ — bookingToken UUID pattern. Same token → same booking returned.
+
+### Payment
+**QML-005 Pay for Booking** ✅ — POST /api/payments/charge. Omise SDK, amount validation, CONFIRMED flip.
+
+**QML-006 View Payment Receipt** ✅ — GET /api/payments/:bookingRef.
+
+**QML-008 Prevent Duplicate Payments** ✅ — Unique partial index. Second charge → 409 ALREADY_PAID.
+
+**QML-009 Handle Payment Failures** ✅ — Failed charges persist as FAILED. Booking stays PENDING — can retry.
+
+### Booking Expiry
+**QML-041 Record Seat-Hold Expiry** ✅ — expires_at at booking creation.
+**QML-042 Lazily Expire Stale Bookings** ✅ — PENDING bookings expire on read.
+**QML-043 Reject Charges for Expired** ✅ — Both services reject expired bookings.
+**QML-044 Payment Countdown** ✅ — Timer on booking detail page.
+**QML-045 Handle Expiry Mid-Submit** ✅ — Error message on expired booking.
+**QML-046 My Bookings with Real Data** ✅ — Real API integration.
+
+### Security & Observability
+**QML-011 Internal Token Guard** ✅ — X-Internal-Token, constant-time comparison.
+**QML-014 Correlation IDs** ✅ — X-Request-ID on all requests.
+**QML-015 Structured Logging** ✅ — JSON slog output.
+**QML-039 HTTP Security Headers (API)** ✅ — CORS, CSP on both services.
+**QML-040 HTTP Security Headers (Web)** ✅ — Security headers on Next.js.
+
+### Web Frontend (QML-016–038)
+All 23 web stories ✅ — search form, date picker, results, travelers selector, booking form, confirmation, my bookings, payment, check-in UI, boarding passes, login/register, profile, airport select, discovery, app shell.
+
+### Pending
+**QML-010 JWT RS256** ⬜ — Replace session tokens.
+**QML-012 Rate Limiting qoomlee** ⬜ — Port from payment-service.
+**QML-013 Email Validation** ⬜ — Format check on booking.
+**QML-047 Pay from Detail** ⬜ — Wire "Complete Payment" button.
+**QML-049–051 Check-in Backend** ⬜ — Online check-in, status, boarding pass.
+**QML-052–054 Cancel & Refund** ⬜ — Cancel booking, refund, UI.
+**QML-055 Check-in Time Window** ⬜ — 24h–1h before departure.`,
+
+  "API_SPECS.md": `# Qoomlee Airline — API Specifications
+
+## Services
+- qoomlee-service: http://localhost:9988 (flight + booking endpoints)
+- payment-service: http://localhost:9984
+
+## Monetary Convention
+All money is stored as BIGINT minor units (satang). 1 THB = 100 satang. Every monetary field is a triple: *Minor (integer satang), currency, and * (string display). Never return or accept a JSON float.
+
+## Authentication
+Most endpoints require a JWT RS256 bearer token. Exception: GET /api/flights/search is public. Tokens signed with RSA private key, verified with RSA public key from JWT_PUBLIC_KEY env var.
+
+### Internal endpoint guard
+PUT /api/bookings/:bookingRef/status is called only by payment-service. Uses X-Internal-Token shared secret. No JWT needed.
+
+## Booking Service :9988
+
+### GET /api/flights/search
+Public. Query params: origin (IATA), destination (IATA), date (YYYY-MM-DD), passengers (optional, default 1). Returns { flights: [...] } with flight details. All times UTC. Empty array when no flights match.
+
+### GET /api/flights/:id
+Auth required. Returns full flight detail. 404 if not found.
+
+### POST /api/bookings
+Auth required. Creates booking with 6-char PNR. bookingToken query param for dedup. Required: flightId, totalAmountMinor, passenger.firstName, passenger.lastName, passenger.email. Returns 201 with bookingRef and bookingId. 409 if no seats.
+
+### GET /api/bookings/:bookingRef
+Auth required. Returns booking with nested passenger + flight info. Lazy expiry on read. paymentProvider and providerChargeId null when PENDING.
+
+### PUT /api/bookings/:bookingRef/status — internal only
+Called by payment-service. X-Internal-Token required. Body: { status, paymentId, paymentProvider, providerChargeId }. Only CONFIRMED accepted. 403 if missing/wrong token.
+
+## Payment Service :9984
+
+### POST /api/payments/charge
+Auth required. Rate-limited: 10 req/s. Body: { bookingRef, omiseToken, amountMinor, currency, amount }. Validates amount against booking. 201 on success, 402 on decline, 409 if already paid.
+
+### GET /api/payments/:bookingRef
+Auth required. Returns payment receipt. 404 if no payment attempt.
+
+## Health Endpoints
+GET /health/live → 200 always. GET /health/ready → 200 when DB up, 503 when DB down.
+
+## Error Format
+{ "error": "ERROR_CODE", "message": "Human-readable description." }
+
+## Booking Status Lifecycle
+PENDING → charge succeeds → CONFIRMED
+PENDING → charge fails → PENDING (can retry)`,
+
+  "SCORECARD.md": `# Qoomlee Challenge — Scorecard (100 Points)
+
+## Scoring Overview
+
+| Pillar | Points | What it measures |
+|--------|--------|-----------------|
+| [1] Working Software | 25 | All 7 endpoints work end-to-end |
+| [2] Testing | 35 | Unit → Integration → Contract → K6 Load |
+| [3] Code Quality | 20 | Architecture, error handling, clean Go |
+| [4] Infrastructure & Shippable | 20 | Health checks, rate limiting, graceful shutdown, logging, security |
+
+## Pillar 1 — Working Software (25 pts)
+
+### Automated smoke tests (18 pts)
+6 tests × 3 pts: search, flight detail, create booking, charge card, booking confirmation, payment receipt.
+
+### Manual scenarios (7 pts, 4 scenarios)
+- Payment failure path (402, booking stays PENDING)
+- Retry payment (decline → success → CONFIRMED)
+- Duplicate payment guard (409 ALREADY_PAID)
+- Rate limit enforced (429 RATE_LIMIT_EXCEEDED)
+
+## Pillar 2 — Testing (35 pts)
+
+### Unit Tests (12 pts)
+17 criteria across qoomlee-service (5), payment-service (6), and middleware (2). Scale: (raw/34) × 12.
+
+### Integration Tests (10 pts)
+7 criteria with testcontainers-go. Concurrent booking test required.
+
+### Contract Tests (8 pts)
+17 checks against live stack. Capped at 8.
+
+### Load Tests (5 pts)
+K6 scripts: search (50 VUs × 30s), booking flow (20 VUs × 60s).
+
+## Pillar 3 — Code Quality (20 pts)
+
+### Automated (6 pts)
+- go vet clean
+- No hardcoded secrets
+- All services build
+
+### Code Review (14 pts, capped)
+8 criteria: layered architecture, interface-based repos, error propagation, HTTP semantics, no hardcoded config, payment→booking coupling, payment traceability, readable code.
+
+## Pillar 4 — Infrastructure (20 pts)
+
+### Health Checks (4 pts)
+Two separate endpoints. Live always 200. Ready 200/503.
+
+### Rate Limiting (6 pts)
+charge: 10 req/min, bookings: 30 req/min, search: 100 req/min. Health endpoints also rate-limited.
+
+### Graceful Shutdown (3 pts)
+http.Server + signal.Notify + srv.Shutdown with 10s timeout.
+
+### Structured Logging (3 pts)
+slog JSON output. method, path, status, latency_ms per request.
+
+### Security/Auth (4 pts)
+JWT RS256 verification. Internal token with ConstantTimeCompare. Service refuses to start if INTERNAL_TOKEN empty.`,
+
+  "TDG.md": `# TDG Configuration
+
+## Go Backend
+
+- Language: Go 1.26.1
+- Framework: Gin
+- Test Framework: go test + testify + testify/mock + testcontainers-go
+- Services: services/qoomlee, services/payment
+
+### Build
+\`\`\`bash
+make go-build
+cd services/qoomlee && go build ./...
+cd services/payment && go build ./...
+\`\`\`
+
+### Unit Tests
+\`\`\`bash
+make test-unit
+cd services/qoomlee && go test ./... -short -count=1
+cd services/payment && go test ./... -short -count=1
+\`\`\`
+
+### Single Test
+\`\`\`bash
+cd services/qoomlee && go test ./... -run TestSearchFlights -v -count=1
+cd services/payment && go test ./... -run TestCharge -v -count=1
+\`\`\`
+
+### Coverage
+\`\`\`bash
+cd services/qoomlee && go test ./... -cover -count=1
+cd services/payment && go test ./... -cover -count=1
+\`\`\`
+
+### Integration Tests
+\`\`\`bash
+make test-integration
+cd services/qoomlee && go test ./... -run Integration -count=1
+cd services/payment && go test ./... -run Integration -count=1
+\`\`\`
+
+## Frontend (app/web)
+
+- Language: TypeScript
+- Framework: Next.js 16 (App Router)
+- Test Framework: Vitest + React Testing Library
+
+### Build
+\`\`\`bash
+cd app/web && bun run build
+\`\`\`
+
+### Test
+\`\`\`bash
+cd app/web && bun run test
+cd app/web && bun run test -- useFlightSearch
+cd app/web && bun run test:coverage
+\`\`\``,
+
+  "DETAILS.md": `# UI Details
+
+## Implementation Notes
+- API does not allow search for past dates — disable past dates in date picker
+- Auto-complete for origin and destination inputs
+- Time display in 24h format and in local timezone
+- Display price in local currency format`,
+
+  "TECHNOLOGY_STACK_SUMMARY.md": `# Qoomlee Technology Stack
+
+## Backend (Go + Gin)
+- Go 1.26.1, Gin web framework
+- PostgreSQL 16 (2 instances)
+- Omise payment gateway
+- testify + testify/mock for testing
+- testcontainers-go for integration tests
+- slog for structured logging
+- JWT RS256 for authentication
+
+## Frontend (Next.js)
+- TypeScript, Next.js 16 (App Router)
+- React 19, Tailwind CSS
+- Vitest + React Testing Library
+- Playwright for E2E tests
+
+## Infrastructure
+- Docker + Docker Compose
+- K6 for load testing
+- D2 for architecture diagrams
+- Make for build automation`,
+
+  "01-documentation/ROADMAP.md": `# Qoomlee Airline System — Roadmap
+
+## Feature Status by Domain
+
+### Core Booking Flow
+| Story | Feature | Status |
+|-------|---------|--------|
+| QML-001 | Search flights (public, no auth) | ✅ |
+| QML-002 | View flight details | ✅ |
+| QML-003 | Create booking (seat decrement, PNR) | ✅ |
+| QML-004 | View booking details (with payment info) | ✅ |
+| QML-007 | Prevent overbooking (SELECT FOR UPDATE) | ✅ |
+| QML-048 | Prevent duplicate bookings (bookingToken) | ✅ |
+| QML-041 | Record seat-hold expiry | ✅ |
+| QML-042 | Lazily expire stale PENDING bookings | ✅ |
+| QML-043 | Reject charges for expired bookings | ✅ |
+| QML-052 | Cancel booking | 🔲 |
+| QML-013 | Passenger email validation | 🔲 |
+
+### Payment
+| Story | Feature | Status |
+|-------|---------|--------|
+| QML-005 | Charge card via Omise | ✅ |
+| QML-006 | View payment receipt | ✅ |
+| QML-008 | Prevent duplicate payments | ✅ |
+| QML-009 | Handle payment failures | ✅ |
+| QML-053 | Refund on cancellation | 🔲 |
+| QML-047 | Pay from booking detail page | 🔲 |
+| QML-054 | Cancel from Manage Trip | 🔲 |
+
+### Security & Observability
+| Story | Feature | Status |
+|-------|---------|--------|
+| QML-011 | Internal token guard | ✅ |
+| QML-014 | Correlation IDs | ✅ |
+| QML-015 | Structured logging | ✅ |
+| QML-039 | HTTP security headers (API) | ✅ |
+| QML-040 | HTTP security headers (Web) | ✅ |
+| QML-010 | JWT RS256 | ⚠️ |
+| QML-012 | Rate limiting on qoomlee-service | ⚠️ |
+
+### Web Frontend
+All 23 web stories (QML-016–038) ✅ complete.
+
+### Check-in & Boarding
+QML-049–051, QML-055 — all 🔲 todo.
+
+## Prioritized Roadmap
+
+### Short-term (Next Sprint)
+- QML-010: JWT RS256 upgrade
+- QML-012: Rate limiting on qoomlee-service
+- QML-047: Pay from booking detail
+- QML-013: Email validation
+
+### Medium-term (2–3 Sprints)
+- QML-052/053/054: Cancel & Refund
+- QML-049/050/051/055: Check-in backend
+
+### Long-term (Future)
+- Seat module (new service)
+- Notifications (email/SMS)
+- Observability (Prometheus + Grafana)
+- Mobile apps (iOS + Android)`,
+
+  "01-documentation/flight-search-review.md": `# Flight Search — Vertical Slice Review
+
+> **⚠️ Generated 2026-06-23** (~2 months ago). Some findings may be resolved. Verify before acting.
+
+## At a Glance
+
+| Metric | Count |
+|--------|-------|
+| Stories completed | 14 of 17 |
+| Improvement stories | 12 (QML-069 – QML-080) |
+| Backend tests (Go) | 27 (18 unit + 9 integration) |
+| Frontend tests (Vitest) | 132 across 15 test files |
+| E2E tests (Playwright) | 5 |
+| **Total tests** | **164** |
+| Review findings | 33 (3 HIGH, 1 BUG, 10 MEDIUM, 12 LOW, 7 NICE) |
+
+## Architecture
+
+The flight search vertical slice spans 3 layers:
+- **Frontend:** SearchForm → useFlightSearch hook → fetchFlights → sortFlights → FlightCard
+- **Backend:** Handler.Search → Service.Search → Repository.Search → SQL JOIN flights + routes
+- **Database:** flights + routes tables, TIMESTAMPTZ, BIGINT satang, 100+ seed flights
+
+## Key Findings
+
+### HIGH Severity
+- **QML-069:** Float64 in price formatting — use integer division instead
+- **QML-071:** Mock argument verification missing in handler tests
+
+### BUG
+- **QML-070:** FlightCard shows status as cabin class label
+
+### Improvement Stories
+QML-069 through QML-080 cover: money formatting, UI bugs, test coverage, timezone handling, validation, error handling, and E2E test reliability.
+
+## 12 Improvement Stories
+
+| Story | Area | Severity |
+|-------|------|----------|
+| QML-069 | Money | HIGH |
+| QML-070 | UI | BUG |
+| QML-071 | Tests | HIGH |
+| QML-072 | Arch | MEDIUM |
+| QML-073 | Validation | LOW |
+| QML-074 | Tests | MEDIUM |
+| QML-075 | Error | MEDIUM |
+| QML-076 | E2E | LOW |
+| QML-077 | E2E | LOW |
+| QML-078 | Arch | LOW |
+| QML-079 | Arch | LOW |
+| QML-080 | Arch | LOW |`,
+
+  "01-documentation/stitch_ui_prompt.md": `# Qoomlee UI Design Spec
+
+> **⚠️ Aspirational** — 38 screens envisioned, ~12 implemented. See roadmap for UI priorities.
+
+## Overview
+Full UI design spec for the Qoomlee airline booking platform. Covers passenger-facing flows, agent tools, and admin dashboards.
+
+## Screens Implemented (~12)
+- Flight Search + Results
+- Flight Status
+- Booking Form + Confirmation
+- Booking Detail + My Bookings
+- Payment
+- Login + Register
+- Profile
+- Support
+
+## Screens Planned (26)
+- Seat Map (interactive)
+- Check-in Flow
+- Boarding Pass
+- Manage Booking
+- Cancel Booking
+- Admin Dashboard
+- Passenger List
+- Gate Manifest
+- Notification Center
+- Travel Insurance
+- Special Meals
+- Mobility Assistance
+- Visa Checker
+- Vaccination Upload
+- And 12 more...
+
+## Design System
+- Google Material Design 3 tokens
+- Google Sans + Roboto typeface
+- Light/dark mode support
+- Responsive (mobile-first)`,
+
+  "02-architecture/README.md": `# Architecture Directory
+
+## Overview
+This directory contains system architecture documentation and diagrams for the Qoomlee Airline System, reflecting the actual implemented architecture — 2 Go services, a Next.js frontend, and 2 PostgreSQL databases.
+
+## C4 Model Diagrams
+
+| File | Level | What it shows |
+|------|-------|---------------|
+| c4/Qoomlee_C4_L1_Context.d2 | System Context | Passengers, agents, Qoomlee system, Omise |
+| c4/Qoomlee_C4_L2_Container.d2 | Container | Next.js, qoomlee-service, payment-service, 2 PostgreSQL |
+| c4/Qoomlee_C4_L3_Component.d2 | Component | Handlers, services, repositories, middleware, clients |
+
+## Core Services
+
+| Service | Language | Port | Responsibility |
+|---------|----------|------|----------------|
+| Next.js Web App | TypeScript | 3000 | Flight search, booking, payment, check-in UI |
+| qoomlee-service | Go + Gin | 9988 | Flights + bookings, session auth |
+| payment-service | Go + Gin | 9984 | Omise charges, rate limiting |
+
+## Key Concepts
+- Handler → Service → Repository layered architecture
+- Lazy booking expiry on read
+- SELECT FOR UPDATE for overbooking prevention
+- bookingToken dedup pattern
+- Session auth (JWT RS256 upgrade planned)`,
+
+  "02-architecture/api/API_REFERENCE.md": `# Qoomlee API Reference
+
+## qoomlee-service (:9988)
+
+### Public (no auth)
+- GET /health/live — Liveness probe
+- GET /health/ready — Readiness probe (DB ping)
+- GET /api/flights/search — Search flights by origin, destination, date, passengers
+
+### Authenticated (Bearer token)
+- GET /api/flights/:id — Flight detail by ID
+- POST /api/bookings — Create booking (?bookingToken= for dedup)
+- GET /api/bookings — List all bookings
+- GET /api/bookings/:bookingRef — Booking detail (lazy expiry)
+
+### Internal (X-Internal-Token)
+- PUT /api/bookings/:bookingRef/status — Update status to CONFIRMED
+
+## payment-service (:9984)
+
+### Public
+- GET /health/live, GET /health/ready
+
+### Authenticated (Bearer token)
+- POST /api/payments/charge — Charge via Omise (rate-limited: 10 req/s)
+- GET /api/payments/:bookingRef — Payment receipt
+
+## Auth Details
+- Session token: opaque Bearer from Authorization header
+- Internal token: X-Internal-Token with ConstantTimeCompare
+- Flight search is public
+
+## Error Format
+{ "error": "ERROR_CODE", "message": "Human-readable description." }`,
+
+  "02-architecture/reference/README.md": `# Reference — Aspirational Architecture Docs
+
+> ⚠️ **All files in this directory describe a future vision, not the current system.**
+> These were originally in 02-architecture/ but were moved here because they document a multi-service Kotlin/Spring Boot architecture that doesn't exist yet. Use them as reference for long-term roadmap planning.
+
+## What's here
+
+| File | Content | Future use |
+|------|---------|-------------|
+| api/api_documentation.md | Full API spec for all planned services | Reference when adding new endpoints |
+| api/seat_api_spec.md | Seat service API spec | Reference when implementing seat module |
+| modules/SEAT_MODULE.md | Seat module architecture (Kotlin/Spring Boot) | Reference when implementing seat module |
+| TECH_STACK_ONBOARDING.md | Full developer onboarding guide | Reference for team expansion |
+| TECHNOLOGY_STACK_SUMMARY.md | Module-by-module tech stack | Reference for future service design |
+| Missing_Modules_Analysis.md | Gaps in the aspirational architecture | Reference for infrastructure planning |
+
+> **Note:** The original C4 diagrams (aspirational 8+ microservices) and TECHNOLOGY_STACK_DETAILED.md were lost when the files were deleted and could not be recovered from git.
+
+## Current system
+See the parent 02-architecture/ directory for docs reflecting the actual 2-service Go + Gin system. See 01-documentation/ROADMAP.md for the prioritized implementation plan.`
+};
+
+// ═══════════════════════════════════════════════════════════════════════
+// DOCUMENT DRAWER
+// ═══════════════════════════════════════════════════════════════════════
+(function() {
+  const overlay = document.getElementById('drawerOverlay');
+  const drawer = document.getElementById('drawer');
+  const title = document.getElementById('drawerTitle');
+  const body = document.getElementById('drawerBody');
+  const closeBtn = document.getElementById('drawerClose');
+
+  function open(filename, content) {
+    title.textContent = '📄 ' + filename;
+    // Simple markdown-to-HTML-ish rendering
+    body.innerHTML = content
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+      .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+      .replace(/^---$/gm, '<hr>')
+      .replace(/`{3}(\w*)\n?([\s\S]*?)`{3}/g, '<pre><code>$2</code></pre>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/^\| (.+) \|$/gm, function(m) {
+        const cells = m.split('|').filter(c => c.trim()).map(c => '<td>' + c.trim() + '</td>');
+        return '<tr>' + cells.join('') + '</tr>';
+      })
+      .replace(/(<tr>.*<\/tr>\n)(<tr>)/, '$1</thead><tbody>$2')
+      .replace(/(<tr>.*<\/tr>\n?)+/g, function(m) {
+        if (m.includes('</thead>')) return m;
+        return '<table>' + m + '</table>';
+      })
+      .replace(/<\/tbody><\/table>/g, '</tbody></table>')
+      .replace(/<table>(?!.*<thead>)/g, '<table><tbody>')
+      .replace(/<\/table>(?!.*<\/tbody>)/g, '</tbody></table>')
+      .replace(/^\* (.+)$/gm, '<li>$1</li>')
+      .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+      .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
+      .replace(/\n\n/g, '</p><p>')
+      .replace(/^(?!<[\/]?(h[1-3]|table|thead|tbody|tr|td|th|blockquote|hr|pre|ul|ol|li|p|code|strong))/gm, '<p>$&');
+
+    overlay.classList.add('open');
+    drawer.classList.add('open');
+    body.scrollTop = 0;
+  }
+
+  function close() {
+    overlay.classList.remove('open');
+    drawer.classList.remove('open');
+  }
+
+  overlay.addEventListener('click', close);
+  closeBtn.addEventListener('click', close);
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && drawer.classList.contains('open')) close();
+  });
+
+  // Attach click handlers to all document list items
+  document.querySelectorAll('.file-list li[data-doc-key]').forEach(function(li) {
+    var key = li.getAttribute('data-doc-key');
+    if (docContents[key]) {
+      li.classList.add('doc-clickable');
+      li.addEventListener('click', function(e) {
+        open(key, docContents[key]);
+      });
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

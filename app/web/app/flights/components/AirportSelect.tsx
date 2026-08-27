@@ -125,9 +125,8 @@ export default function AirportSelect({
           key={airport.code}
           type="button"
           onClick={() => handleSelect(airport)}
-          className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-container-high transition-colors text-left ${
-            airport.code === value ? "bg-primary-container/40" : ""
-          }`}
+          className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-container-high transition-colors text-left ${airport.code === value ? "bg-primary-container/40" : ""
+            }`}
         >
           <span className="material-symbols-outlined text-on-surface-variant shrink-0 text-[20px]">
             flight
@@ -145,9 +144,8 @@ export default function AirportSelect({
       ))
     );
 
-  const triggerBoxed = `border rounded-xl px-md min-h-[70px] bg-surface-bright hover:border-outline ${
-    open ? "border-primary ring-1 ring-primary" : error ? "border-error" : "border-outline-variant"
-  }`;
+  const triggerBoxed = `border rounded-xl px-md min-h-[70px] bg-surface-bright hover:border-outline ${open ? "border-primary ring-1 ring-primary" : error ? "border-error" : "border-outline-variant"
+    }`;
 
   return (
     <div ref={containerRef} className="relative w-full">
@@ -216,9 +214,8 @@ export default function AirportSelect({
             {/* Sheet — ref lets the outside-click handler know clicks here are intentional */}
             <div
               ref={sheetRef}
-              className={`relative bg-surface-container-lowest rounded-t-2xl flex flex-col max-h-[78vh] transition-transform duration-300 ease-out ${
-                sheetVisible ? "translate-y-0" : "translate-y-full"
-              }`}
+              className={`relative bg-surface-container-lowest rounded-t-2xl flex flex-col max-h-[78vh] transition-transform duration-300 ease-out ${sheetVisible ? "translate-y-0" : "translate-y-full"
+                }`}
             >
               {/* Drag handle */}
               <div className="flex justify-center pt-3 pb-2 shrink-0">

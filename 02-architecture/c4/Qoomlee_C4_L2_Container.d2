@@ -1,0 +1,105 @@
+direction: right
+
+title: |md
+  # Qoomlee — C4 Level 2: Container Diagram
+  *What are the deployable units and how do they communicate?*
+|
+
+# ── External Actors ───────────────────────────────────────────────────────────
+
+passenger: Passenger {
+  shape: person
+  style.fill: "#1A3557"
+  style.font-color: "#FFFFFF"
+  style.stroke: "#0D2137"
+}
+
+# ── Qoomlee System Boundary ───────────────────────────────────────────────────
+
+qoomlee: Qoomlee Airline Platform {
+  style.fill: "#EBF2FA"
+  style.stroke: "#2E6DA4"
+  style.stroke-width: 2
+  style.border-radius: 12
+
+  web: Next.js Web App {
+    shape: rectangle
+    style.fill: "#1A3557"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 6
+    tooltip: "TypeScript / Next.js — Flight search, booking form, payment page, my bookings, check-in, boarding passes. Server-side rendered. 12 screens."
+  }
+
+  qoomlee_svc: qoomlee-service {
+    shape: rectangle
+    style.fill: "#1E5F8C"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 6
+    tooltip: "Go + Gin, port 9988 — Flight search (public), flight detail, booking CRUD, booking status update (internal). Session auth + internal token guard. Structured logging, correlation IDs, security headers."
+  }
+
+  payment_svc: payment-service {
+    shape: rectangle
+    style.fill: "#1E5F8C"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 6
+    tooltip: "Go + Gin, port 9984 — Card charge via Omise, payment receipt lookup. Rate-limited (10 req/s). Session auth. Structured logging, correlation IDs, security headers."
+  }
+
+  postgres_qoomlee: PostgreSQL (qoomlee) {
+    shape: cylinder
+    style.fill: "#DBEAFE"
+    style.stroke: "#2E6DA4"
+    style.font-color: "#1A3557"
+    tooltip: "Database for qoomlee-service — flights, routes, passengers, bookings, checkins, boarding_passes tables."
+  }
+
+  postgres_payment: PostgreSQL (payment) {
+    shape: cylinder
+    style.fill: "#DBEAFE"
+    style.stroke: "#2E6DA4"
+    style.font-color: "#1A3557"
+    tooltip: "Database for payment-service — payments table. Isolated from qoomlee database."
+  }
+}
+
+# ── External Systems ──────────────────────────────────────────────────────────
+
+omise: Omise API {
+  shape: rectangle
+  style.fill: "#6B7280"
+  style.font-color: "#FFFFFF"
+  style.border-radius: 6
+  style.stroke: "#374151"
+  tooltip: "Thai payment gateway — credit/debit card processing"
+}
+
+# ── Connections ───────────────────────────────────────────────────────────────
+
+passenger -> qoomlee.web: "HTTPS — web browser" {
+  style.stroke: "#1A3557"
+}
+
+qoomlee.web -> qoomlee.qoomlee_svc: "HTTPS REST — API calls\n[Authorization: Bearer <token>]" {
+  style.stroke: "#2E6DA4"
+}
+
+qoomlee.web -> qoomlee.payment_svc: "HTTPS REST — payment calls\n[Authorization: Bearer <token>]" {
+  style.stroke: "#2E6DA4"
+}
+
+qoomlee.qoomlee_svc -> qoomlee.postgres_qoomlee: "SQL — read/write flights,\nbookings, passengers, checkins" {
+  style.stroke: "#2E6DA4"
+}
+
+qoomlee.payment_svc -> qoomlee.postgres_payment: "SQL — read/write payments" {
+  style.stroke: "#2E6DA4"
+}
+
+qoomlee.payment_svc -> qoomlee.qoomlee_svc: "GET /api/bookings/:ref (fetch booking)\nPUT /api/bookings/:ref/status (confirm)\n[internal, X-Internal-Token]" {
+  style.stroke: "#E8A020"
+}
+
+qoomlee.payment_svc -> omise: "Create charge\n[HTTPS REST]" {
+  style.stroke: "#E8A020"
+}

@@ -1,0 +1,325 @@
+direction: down
+
+title: |md
+  # Qoomlee — C4 Level 3: Component Diagram
+  *Internal components of qoomlee-service and payment-service*
+|
+
+# ── qoomlee-service Components ─────────────────────────────────────────────────
+
+qoomlee_svc: qoomlee-service (Go + Gin, :9988) {
+  style.fill: "#EBF2FA"
+  style.stroke: "#1E5F8C"
+  style.stroke-width: 2
+  style.border-radius: 12
+
+  flight_handler: Flight Handler {
+    shape: rectangle
+    style.fill: "#2E6DA4"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 4
+    tooltip: "HTTP layer — Search (GET /api/flights/search), GetByID (GET /api/flights/:id). Validates query params, converts BKK date → UTC range."
+  }
+
+  booking_handler: Booking Handler {
+    shape: rectangle
+    style.fill: "#2E6DA4"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 4
+    tooltip: "HTTP layer — Create (POST /api/bookings), GetByRef (GET /api/bookings/:ref), GetAll (GET /api/bookings), UpdateStatus (PUT /api/bookings/:ref/status)."
+  }
+
+  flight_service: Flight Service {
+    shape: rectangle
+    style.fill: "#1E5F8C"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 4
+    tooltip: "Business logic — Search delegates to repo, enriches flights (price string + duration), ensures nil→[]."
+  }
+
+  booking_service: Booking Service {
+    shape: rectangle
+    style.fill: "#1E5F8C"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 4
+    tooltip: "Business logic — Create (PNR gen, seat decrement with SELECT FOR UPDATE, bookingToken dedup), GetByRef (lazy expiry), UpdateStatus."
+  }
+
+  flight_repo: Flight Repository {
+    shape: rectangle
+    style.fill: "#0D2137"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 4
+    tooltip: "SQL layer — Search (JOIN flights + routes), GetByID. Uses scanner interface for shared scanFlight."
+  }
+
+  booking_repo: Booking Repository {
+    shape: rectangle
+    style.fill: "#0D2137"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 4
+    tooltip: "SQL layer — Create (INSERT booking + passenger in tx), GetByRef (JOIN flights + passengers + routes), GetAll, UpdateStatus."
+  }
+
+  middleware: Middleware Stack {
+    shape: rectangle
+    style.fill: "#374151"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 4
+    tooltip: "SessionAuth (opaque Bearer token), InternalToken (X-Internal-Token for PUT /status), SecurityHeaders, CORS, CorrelationID, RequestLogger."
+  }
+}
+
+# ── payment-service Components ─────────────────────────────────────────────────
+
+payment_svc: payment-service (Go + Gin, :9984) {
+  style.fill: "#EBF2FA"
+  style.stroke: "#1E5F8C"
+  style.stroke-width: 2
+  style.border-radius: 12
+
+  payment_handler: Payment Handler {
+    shape: rectangle
+    style.fill: "#2E6DA4"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 4
+    tooltip: "HTTP layer — Charge (POST /api/payments/charge), GetByBookingRef (GET /api/payments/:ref). Validates request body, maps errors to HTTP status."
+  }
+
+  payment_service: Payment Service {
+    shape: rectangle
+    style.fill: "#1E5F8C"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 4
+    tooltip: "Business logic — Charge (check duplicate, fetch booking, validate amount, call Omise, record result, confirm booking). GetByBookingRef."
+  }
+
+  payment_repo: Payment Repository {
+    shape: rectangle
+    style.fill: "#0D2137"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 4
+    tooltip: "SQL layer — Insert (INSERT INTO payments), GetByBookingRef (SELECT latest payment)."
+  }
+
+  booking_client: Booking Client (HTTP) {
+    shape: rectangle
+    style.fill: "#0D2137"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 4
+    tooltip: "HTTP client — GET /api/bookings/:ref (fetch booking details), PUT /api/bookings/:ref/status (confirm after charge). Uses X-Internal-Token."
+  }
+
+  omise_client: Omise Client {
+    shape: rectangle
+    style.fill: "#0D2137"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 4
+    tooltip: "Omise SDK wrapper — CreateCharge (tokenize card + charge), returns ChargeResult (status, charge ID, failure code)."
+  }
+
+  payment_middleware: Middleware Stack {
+    shape: rectangle
+    style.fill: "#374151"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 4
+    tooltip: "SessionAuth, RateLimit (10 req/s on charge), SecurityHeaders, CORS, CorrelationID, RequestLogger."
+  }
+}
+
+# ── Next.js Web Frontend ────────────────────────────────────────────────────────
+
+nextjs: Next.js Web App (TypeScript, :3000) {
+  style.fill: "#FEF3C7"
+  style.stroke: "#D97706"
+  style.stroke-width: 2
+  style.border-radius: 12
+
+  flight_pages: Flight Pages {
+    shape: rectangle
+    style.fill: "#D97706"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 4
+    tooltip: "Search form (origin/destination autocomplete, date picker, passenger selector), search results (flight cards, sort), flight status."
+  }
+
+  booking_pages: Booking Pages {
+    shape: rectangle
+    style.fill: "#D97706"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 4
+    tooltip: "Booking form (passenger details, validation), confirmation (PNR display, copy), my bookings (list, status badges), booking detail."
+  }
+
+  payment_page: Payment Page {
+    shape: rectangle
+    style.fill: "#D97706"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 4
+    tooltip: "Omise card form, tokenization, amount display, success/error handling, countdown timer."
+  }
+
+  checkin_pages: Check-in & Passes {
+    shape: rectangle
+    style.fill: "#D97706"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 4
+    tooltip: "Check-in flow UI, boarding pass display (UI ready — backend QML-049–051 pending)."
+  }
+
+  auth_pages: Auth & Profile {
+    shape: rectangle
+    style.fill: "#D97706"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 4
+    tooltip: "Login, register, profile management. Passport, contact, preferences."
+  }
+
+  shared_components: Shared Components {
+    shape: rectangle
+    style.fill: "#92400E"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 4
+    tooltip: "AirportSelect (dropdown + bottom sheet), date range picker, travelers selector, cabin class selector, navigation shell."
+  }
+
+  e2e_tests: E2E Tests (Playwright) {
+    shape: rectangle
+    style.fill: "#92400E"
+    style.font-color: "#FFFFFF"
+    style.border-radius: 4
+    tooltip: "5 test files: booking-token, flights-search, payment, traveller-booking-flow. Pages + fixtures + mocks pattern."
+  }
+}
+
+# ── Data Stores ────────────────────────────────────────────────────────────────
+
+postgres_qoomlee: PostgreSQL (qoomlee) {
+  shape: cylinder
+  style.fill: "#DBEAFE"
+  style.stroke: "#2E6DA4"
+  style.font-color: "#1A3557"
+  tooltip: "Tables: flights, routes, passengers, bookings, checkins, boarding_passes"
+}
+
+postgres_payment: PostgreSQL (payment) {
+  shape: cylinder
+  style.fill: "#DBEAFE"
+  style.stroke: "#2E6DA4"
+  style.font-color: "#1A3557"
+  tooltip: "Tables: payments"
+}
+
+omise: Omise API {
+  shape: rectangle
+  style.fill: "#6B7280"
+  style.font-color: "#FFFFFF"
+  style.border-radius: 6
+  style.stroke: "#374151"
+}
+
+# ── Internal Connections ───────────────────────────────────────────────────────
+
+qoomlee_svc.flight_handler -> qoomlee_svc.flight_service: "Calls service methods" {
+  style.stroke: "#2E6DA4"
+}
+qoomlee_svc.flight_service -> qoomlee_svc.flight_repo: "Calls repo methods" {
+  style.stroke: "#1E5F8C"
+}
+qoomlee_svc.flight_repo -> postgres_qoomlee: "SQL queries" {
+  style.stroke: "#2E6DA4"
+}
+
+qoomlee_svc.booking_handler -> qoomlee_svc.booking_service: "Calls service methods" {
+  style.stroke: "#2E6DA4"
+}
+qoomlee_svc.booking_service -> qoomlee_svc.booking_repo: "Calls repo methods" {
+  style.stroke: "#1E5F8C"
+}
+qoomlee_svc.booking_repo -> postgres_qoomlee: "SQL queries" {
+  style.stroke: "#2E6DA4"
+}
+
+qoomlee_svc.middleware -> qoomlee_svc.flight_handler: "Wraps GET /api/flights/:id" {
+  style.stroke: "#6B7280"
+  style.stroke-dash: 3
+}
+qoomlee_svc.middleware -> qoomlee_svc.booking_handler: "Wraps all /api/bookings routes" {
+  style.stroke: "#6B7280"
+  style.stroke-dash: 3
+}
+
+payment_svc.payment_handler -> payment_svc.payment_service: "Calls service methods" {
+  style.stroke: "#2E6DA4"
+}
+payment_svc.payment_service -> payment_svc.payment_repo: "Calls repo methods" {
+  style.stroke: "#1E5F8C"
+}
+payment_svc.payment_service -> payment_svc.booking_client: "Fetches booking, confirms after charge" {
+  style.stroke: "#E8A020"
+}
+payment_svc.payment_service -> payment_svc.omise_client: "Creates charge" {
+  style.stroke: "#E8A020"
+}
+payment_svc.payment_repo -> postgres_payment: "SQL queries" {
+  style.stroke: "#2E6DA4"
+}
+payment_svc.payment_middleware -> payment_svc.payment_handler: "Wraps /api/payments routes" {
+  style.stroke: "#6B7280"
+  style.stroke-dash: 3
+}
+
+# ── User ───────────────────────────────────────────────────────────────────────
+
+passenger: Passenger {
+  shape: person
+  style.fill: "#6B7280"
+  style.font-color: "#FFFFFF"
+  style.border-radius: 8
+  tooltip: "End user — searches flights, books seats, pays via Omise, checks in, views boarding pass."
+}
+
+# ── Frontend → Backend Connections ─────────────────────────────────────────────
+
+passenger -> nextjs.flight_pages: "Searches, browses" {
+  style.stroke: "#6B7280"
+  style.stroke-dash: 3
+}
+passenger -> nextjs.booking_pages: "Books, views" {
+  style.stroke: "#6B7280"
+  style.stroke-dash: 3
+}
+passenger -> nextjs.payment_page: "Enters card details" {
+  style.stroke: "#6B7280"
+  style.stroke-dash: 3
+}
+passenger -> nextjs.auth_pages: "Logs in, registers" {
+  style.stroke: "#6B7280"
+  style.stroke-dash: 3
+}
+
+nextjs.flight_pages -> qoomlee_svc.flight_handler: "GET /api/flights/search\nGET /api/flights/:id\n[HTTPS, Bearer token]" {
+  style.stroke: "#D97706"
+}
+nextjs.booking_pages -> qoomlee_svc.booking_handler: "POST /api/bookings\nGET /api/bookings/:ref\nGET /api/bookings\n[HTTPS, Bearer token]" {
+  style.stroke: "#D97706"
+}
+nextjs.payment_page -> payment_svc.payment_handler: "POST /api/payments/charge\nGET /api/payments/:ref\n[HTTPS, Bearer token]" {
+  style.stroke: "#D97706"
+}
+nextjs.checkin_pages -> qoomlee_svc.booking_handler: "GET /api/bookings/:ref\n[HTTPS, Bearer token]" {
+  style.stroke: "#D97706"
+}
+nextjs.auth_pages -> qoomlee_svc.middleware: "Auth requests\n[HTTPS, Bearer token]" {
+  style.stroke: "#D97706"
+}
+
+# ── Cross-Service Connections ──────────────────────────────────────────────────
+
+payment_svc.booking_client -> qoomlee_svc.booking_handler: "GET /api/bookings/:ref\nPUT /api/bookings/:ref/status\n[internal, X-Internal-Token]" {
+  style.stroke: "#E8A020"
+}
+
+payment_svc.omise_client -> omise: "Create charge\n[HTTPS REST]" {
+  style.stroke: "#E8A020"
+}

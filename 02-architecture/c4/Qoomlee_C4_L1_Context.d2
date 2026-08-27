@@ -1,0 +1,78 @@
+direction: right
+
+title: |md
+  # Qoomlee — C4 Level 1: System Context
+  *Who uses the system and what external systems does it talk to?*
+|
+
+vars: {
+  person-fill: "#1A3557"
+  person-stroke: "#0D2137"
+  system-fill: "#2E6DA4"
+  system-stroke: "#1A3557"
+  ext-fill: "#6B7280"
+  ext-stroke: "#374151"
+  label-color: "#FFFFFF"
+}
+
+# ── Actors ───────────────────────────────────────────────────────────────────
+
+passenger: Passenger {
+  shape: person
+  style.fill: "#1A3557"
+  style.font-color: "#FFFFFF"
+  style.stroke: "#0D2137"
+  tooltip: "Traveller searching for flights, creating bookings, and making payments through the web app"
+}
+
+ground_agent: Ground Agent {
+  shape: person
+  style.fill: "#4B5563"
+  style.font-color: "#FFFFFF"
+  style.stroke: "#374151"
+  tooltip: "Airline staff who can create and manage bookings on behalf of passengers"
+}
+
+# ── Core System ───────────────────────────────────────────────────────────────
+
+qoomlee: Qoomlee Airline System {
+  shape: rectangle
+  style.fill: "#2E6DA4"
+  style.font-color: "#FFFFFF"
+  style.stroke: "#1A3557"
+  style.border-radius: 8
+  tooltip: "Airline booking platform — search flights, book seats, process payments, confirm bookings"
+}
+
+# ── External Systems ──────────────────────────────────────────────────────────
+
+omise: Omise Payment Gateway {
+  shape: rectangle
+  style.fill: "#6B7280"
+  style.font-color: "#FFFFFF"
+  style.stroke: "#374151"
+  style.border-radius: 8
+  tooltip: "Thai payment gateway — credit/debit card processing"
+}
+
+# ── Connections ───────────────────────────────────────────────────────────────
+
+passenger -> qoomlee: "Search flights, create booking,\npay for booking, view confirmation\n[HTTPS / Web App]" {
+  style.stroke: "#2E6DA4"
+  style.font-color: "#1A3557"
+}
+
+ground_agent -> qoomlee: "Search flights, create booking\non behalf of passenger\n[HTTPS / Web App]" {
+  style.stroke: "#4B5563"
+  style.font-color: "#374151"
+}
+
+qoomlee -> omise: "Charge credit card\n[HTTPS / REST]" {
+  style.stroke: "#E8A020"
+  style.font-color: "#92540A"
+}
+
+omise -> qoomlee: "Payment result (success / decline)\n[HTTPS Response]" {
+  style.stroke: "#E8A020"
+  style.font-color: "#92540A"
+}

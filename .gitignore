@@ -35,6 +35,11 @@ infra/k8s/**/secret.payment.env
 .vscode/
 *.iml
 
+# Tool artifacts
+.code-vision/
+.playwright-mcp/
+graphify-out/
+
 # OS
 .DS_Store
 

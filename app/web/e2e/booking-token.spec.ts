@@ -17,7 +17,10 @@ test.describe("Booking token deduplication (QML-048)", () => {
     expect(bookingPage.getTokenFromUrl()).toMatch(UUID_RE);
   });
 
-  test("generates a fresh bookingToken for each new booking session", async ({ page, bookingPage }) => {
+  test("generates a fresh bookingToken for each new booking session", async ({
+    page,
+    bookingPage,
+  }) => {
     await bookingPage.goto();
     await bookingPage.waitForToken();
     const token1 = bookingPage.getTokenFromUrl();

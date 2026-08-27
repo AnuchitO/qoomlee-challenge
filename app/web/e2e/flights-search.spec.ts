@@ -43,7 +43,10 @@ test.describe("Flight search form", () => {
     await expect(flightSearchPage.bottomSheetTitle).not.toBeVisible({ timeout: 10000 });
   });
 
-  test("navigates to results page on valid one-way search (desktop)", async ({ page, flightSearchPage }) => {
+  test("navigates to results page on valid one-way search (desktop)", async ({
+    page,
+    flightSearchPage,
+  }) => {
     test.skip(flightSearchPage.isMobile, "desktop only");
 
     await flightSearchPage.selectOrigin("Suvarnabhumi Airport");

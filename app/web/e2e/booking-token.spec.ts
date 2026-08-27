@@ -1,121 +1,70 @@
-/**
- * QML-048 — Prevent Duplicate Bookings on Back Navigation
- *
- * These tests verify the bookingToken mechanism end-to-end:
- * - a UUID is stamped into the /bookings/new URL on first load
- * - the same token survives back-navigation from /payment
- * - both "Continue to Payment" clicks send the same ?bookingToken= to the API
- *   so the backend can return the existing booking instead of creating a new one
- */
+import { test, expect } from "./fixtures";
+import { mockCreateBooking } from "./mocks";
+import { UUID_RE } from "./pages/booking.page";
 
-import { test, expect } from "@playwright/test";
-
-const BOOKING_URL =
-  "/bookings/new?" +
-  "flightId=1" +
-  "&flightNumber=QQ101" +
-  "&origin=BKK" +
-  "&destination=SIN" +
-  "&departureTime=2026-10-24T08%3A00%3A00Z" +
-  "&price=810000" +
-  "&currency=THB" +
-  "&passengers=1";
-
-const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
-
-/** Intercept POST /api/bookings* and return a fake successful booking. */
-async function mockCreateBooking(page: import("@playwright/test").Page) {
-  await page.route("**/api/bookings*", (route) => {
-    if (route.request().method() !== "POST") return route.continue();
-    void route.fulfill({
-      status: 201,
-      contentType: "application/json",
-      body: JSON.stringify({
-        bookingId: 1,
-        bookingRef: "QM7X2K",
-        expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-      }),
-    });
-  });
-}
-
-async function fillAndSubmitBookingForm(page: import("@playwright/test").Page) {
-  await page.getByPlaceholder("e.g. John").fill("John");
-  await page.getByPlaceholder("e.g. Doe").fill("Doe");
-  await page.getByPlaceholder("john.doe@example.com").fill("john@example.com");
-  await page.getByPlaceholder("000 000 000").fill("0812345678");
-  await page.getByRole("button", { name: /continue to payment/i }).click();
-}
-
-/**
- * Wait for BookingPageClient's useEffect to stamp the bookingToken into the URL.
- * `networkidle` fires before router.replace completes under parallel load, so we
- * poll the URL directly instead.
- */
-async function waitForToken(page: import("@playwright/test").Page) {
-  await page.waitForURL(/bookingToken=/, { timeout: 10000 });
-}
+const DEFAULT_PASSENGER = {
+  firstName: "John",
+  lastName: "Doe",
+  email: "john@example.com",
+  phone: "0812345678",
+};
 
 test.describe("Booking token deduplication (QML-048)", () => {
-  // ── token injection ─────────────────────────────────────────────────────────
+  test("injects a UUID bookingToken into the URL on first load", async ({ bookingPage }) => {
+    await bookingPage.goto();
+    await bookingPage.waitForToken();
 
-  test("injects a UUID bookingToken into the URL on first load", async ({ page }) => {
-    await page.goto(BOOKING_URL);
-    await waitForToken(page);
-
-    const url = new URL(page.url());
-    const token = url.searchParams.get("bookingToken");
-
-    expect(token).toMatch(UUID_RE);
+    expect(bookingPage.getTokenFromUrl()).toMatch(UUID_RE);
   });
 
-  test("generates a fresh bookingToken for each new booking session", async ({ page }) => {
-    await page.goto(BOOKING_URL);
-    await waitForToken(page);
-    const token1 = new URL(page.url()).searchParams.get("bookingToken");
+  test("generates a fresh bookingToken for each new booking session", async ({ page, bookingPage }) => {
+    await bookingPage.goto();
+    await bookingPage.waitForToken();
+    const token1 = bookingPage.getTokenFromUrl();
 
     await page.goto("/flights");
-    await page.goto(BOOKING_URL);
-    await waitForToken(page);
-    const token2 = new URL(page.url()).searchParams.get("bookingToken");
+
+    await bookingPage.goto();
+    await bookingPage.waitForToken();
+    const token2 = bookingPage.getTokenFromUrl();
 
     expect(token1).toMatch(UUID_RE);
     expect(token2).toMatch(UUID_RE);
     expect(token1).not.toBe(token2);
   });
 
-  // ── back navigation preserves token ────────────────────────────────────────
-
-  test("bookingToken in URL is unchanged after navigating back from payment", async ({ page }) => {
+  test("bookingToken in URL is unchanged after navigating back from payment", async ({
+    page,
+    bookingPage,
+    paymentPage,
+  }) => {
     await mockCreateBooking(page);
-    await page.goto(BOOKING_URL);
-    await waitForToken(page);
+    await bookingPage.goto();
+    await bookingPage.waitForToken();
 
-    const tokenBeforeSubmit = new URL(page.url()).searchParams.get("bookingToken");
+    const tokenBeforeSubmit = bookingPage.getTokenFromUrl();
     expect(tokenBeforeSubmit).toMatch(UUID_RE);
 
-    await fillAndSubmitBookingForm(page);
-    await expect(page).toHaveURL(/\/payment/, { timeout: 5000 });
+    await bookingPage.fillAndSubmit(DEFAULT_PASSENGER);
+    await paymentPage.expectOnPaymentPage();
 
     await page.goBack();
-    await waitForToken(page);
+    await bookingPage.waitForToken();
 
-    const tokenAfterBack = new URL(page.url()).searchParams.get("bookingToken");
-    expect(tokenAfterBack).toBe(tokenBeforeSubmit);
+    expect(bookingPage.getTokenFromUrl()).toBe(tokenBeforeSubmit);
   });
-
-  // ── no double booking ───────────────────────────────────────────────────────
 
   test("sends the same bookingToken on both API calls when user goes back and continues again", async ({
     page,
+    bookingPage,
+    paymentPage,
   }) => {
     const capturedTokens: string[] = [];
 
     await page.route("**/api/bookings*", (route) => {
       if (route.request().method() !== "POST") return route.continue();
       const url = new URL(route.request().url());
-      const token = url.searchParams.get("bookingToken") ?? "";
-      capturedTokens.push(token);
+      capturedTokens.push(url.searchParams.get("bookingToken") ?? "");
       void route.fulfill({
         status: 201,
         contentType: "application/json",
@@ -127,40 +76,33 @@ test.describe("Booking token deduplication (QML-048)", () => {
       });
     });
 
-    // First visit — fill and submit
-    await page.goto(BOOKING_URL);
-    await waitForToken(page);
-    await fillAndSubmitBookingForm(page);
-    await expect(page).toHaveURL(/\/payment/, { timeout: 5000 });
+    await bookingPage.goto();
+    await bookingPage.waitForToken();
+    await bookingPage.fillAndSubmit(DEFAULT_PASSENGER);
+    await paymentPage.expectOnPaymentPage();
 
-    // Navigate back and submit again.
-    // React state (form fields) may be reset on back navigation under load; re-fill.
     await page.goBack();
-    await waitForToken(page);
-    await fillAndSubmitBookingForm(page);
-    await expect(page).toHaveURL(/\/payment/, { timeout: 5000 });
+    await bookingPage.waitForToken();
+    await bookingPage.fillAndSubmit(DEFAULT_PASSENGER);
+    await paymentPage.expectOnPaymentPage();
 
-    // Two POST calls were made
     expect(capturedTokens).toHaveLength(2);
-
-    // Both must carry the same bookingToken — backend deduplicates on this key
     expect(capturedTokens[0]).toMatch(UUID_RE);
     expect(capturedTokens[0]).toBe(capturedTokens[1]);
   });
 
   test("does not navigate to payment when API call is still in flight (button disabled while submitting)", async ({
     page,
+    bookingPage,
   }) => {
     let resolveRequest!: () => void;
     const requestPending = new Promise<void>((resolve) => {
       resolveRequest = resolve;
     });
 
-    // Hold the response so we can inspect the interim UI state
     await page.route("**/api/bookings*", async (route) => {
       if (route.request().method() !== "POST") return route.continue();
       resolveRequest();
-      // Wait 2 s before responding so the button stays disabled
       await new Promise((r) => setTimeout(r, 2000));
       void route.fulfill({
         status: 201,
@@ -169,15 +111,13 @@ test.describe("Booking token deduplication (QML-048)", () => {
       });
     });
 
-    await page.goto(BOOKING_URL);
-    await waitForToken(page);
-    await fillAndSubmitBookingForm(page);
+    await bookingPage.goto();
+    await bookingPage.waitForToken();
+    await bookingPage.fillAndSubmit(DEFAULT_PASSENGER);
 
-    // Wait until the request has been received before asserting
     await requestPending;
 
-    const continueBtn = page.getByRole("button", { name: /continue to payment/i });
-    await expect(continueBtn).toBeDisabled();
-    await expect(page).toHaveURL(/\/bookings\/new/);
+    await expect(bookingPage.continueButton).toBeDisabled();
+    await bookingPage.expectOnBookingPage();
   });
 });

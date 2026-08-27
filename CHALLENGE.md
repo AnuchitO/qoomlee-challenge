@@ -2332,7 +2332,7 @@ You are **not** given any working business logic. Build everything from scratch.
 ### API Endpoints (all 7)
 
 ```
-qoomlee-service  :8082
+qoomlee-service  :9988
   GET  /api/flights/search              Search flights by route + date
   GET  /api/flights/:id                 View a single flight's details
   POST /api/bookings                    Create a booking, receive a 6-char PNR
@@ -2342,7 +2342,7 @@ qoomlee-service  :8082
   GET  /api/checkins/:bookingRef        View check-in status
   GET  /api/checkins/:bookingRef/boarding-pass  View boarding pass
 
-payment-service  :8084
+payment-service  :9984
   POST /api/payments/charge             Charge a card via Omise
   GET  /api/payments/:bookingRef        View payment receipt
 ```
@@ -2391,7 +2391,7 @@ docker compose up --build
 # 4. Get a JWT and verify the stack is up
 make jwt-token     # prints a Bearer token — save it as TOKEN=...
 curl -H "Authorization: Bearer $TOKEN" \
-  "http://localhost:8082/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"
+  "http://localhost:9988/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"
 # Expected before implementation: HTTP 501
 # Expected after implementation:  HTTP 200 with flights array
 ```
@@ -2402,10 +2402,10 @@ curl -H "Authorization: Bearer $TOKEN" \
 
 | Service | Language | Framework | Port |
 |---|---|---|---|
-| qoomlee-service | Go | Gin | 8082 |
-| payment-service | Go | Gin + Omise SDK | 8084 |
-| postgres-qoomlee | — | PostgreSQL 16 | 5433 (host) |
-| postgres-qoomlee-payment | — | PostgreSQL 16 | 5434 (host) |
+| qoomlee-service | Go | Gin | 9988 |
+| payment-service | Go | Gin + Omise SDK | 9984 |
+| postgres-qoomlee | — | PostgreSQL 16 | 9933 (host) |
+| postgres-qoomlee-payment | — | PostgreSQL 16 | 9934 (host) |
 
 - **Unit tests:** `go test ./...` with `testify` + `testify/mock`
 - **Integration tests:** `testcontainers-go` (real PostgreSQL container)

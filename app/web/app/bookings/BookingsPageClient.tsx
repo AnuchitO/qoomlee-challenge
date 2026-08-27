@@ -61,7 +61,7 @@ export default function BookingsPageClient() {
   const [bookings, setBookings] = useState<Summary[] | null>(null);
 
   useEffect(() => {
-    const apiBase = process.env.NEXT_PUBLIC_QOOMLEE_API_URL ?? "http://localhost:8082";
+    const apiBase = process.env.NEXT_PUBLIC_QOOMLEE_API_URL ?? "http://localhost:9988";
 
     getJson<Summary[]>(`${apiBase}/api/bookings`, { headers: authHeaders() }).then((result) => {
       setBookings(result.ok ? result.value : []);

@@ -40,7 +40,7 @@ export function useManageBooking() {
     }
 
     let cancelled = false;
-    const apiBase = process.env.NEXT_PUBLIC_QOOMLEE_API_URL ?? "http://localhost:8082";
+    const apiBase = process.env.NEXT_PUBLIC_QOOMLEE_API_URL ?? "http://localhost:9988";
 
     getJson<BookingDetail>(`${apiBase}/api/bookings/${ref}`, {
       headers: authHeaders(),

@@ -211,13 +211,13 @@ done
 # ── Running containers ───────────────────────────────────────────────────
 section "Docker containers"
 if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
-  for port in 3000 8082 8084 5433 5434; do
+  for port in 3000 9988 9984 9933 9934; do
     case $port in
       3000) svc_name="frontend        (Next.js)" ;;
-      8082) svc_name="qoomlee-service  (Go API)" ;;
-      8084) svc_name="payment-service  (Go API)" ;;
-      5433) svc_name="postgres-qoomlee (DB)" ;;
-      5434) svc_name="postgres-payment (DB)" ;;
+      9988) svc_name="qoomlee-service  (Go API)" ;;
+      9984) svc_name="payment-service  (Go API)" ;;
+      9933) svc_name="postgres-qoomlee (DB)" ;;
+      9934) svc_name="postgres-payment (DB)" ;;
       *)    svc_name="unknown" ;;
     esac
     cid=$(docker ps --filter "publish=$port" -q | head -1)

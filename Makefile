@@ -24,8 +24,8 @@ COMPOSE := $(shell \
   fi)
 
 # ── Config ───────────────────────────────────────────────────────────────────
-QOOMLEE_SERVICE_URL ?= http://localhost:8082
-PAYMENT_SERVICE_URL ?= http://localhost:8084
+QOOMLEE_SERVICE_URL ?= http://localhost:9988
+PAYMENT_SERVICE_URL ?= http://localhost:9984
 FRONTEND_URL        ?= http://localhost:3000
 DATE      ?= 2026-06-15
 SERVICES  := qoomlee payment

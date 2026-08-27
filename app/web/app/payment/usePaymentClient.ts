@@ -112,7 +112,7 @@ export function usePaymentClient({
     }
 
     let cancelled = false;
-    const apiBase = process.env.NEXT_PUBLIC_QOOMLEE_API_URL ?? "http://localhost:8082";
+    const apiBase = process.env.NEXT_PUBLIC_QOOMLEE_API_URL ?? "http://localhost:9988";
 
     getJson<BookingResponse>(`${apiBase}/api/bookings/${bookingRef}`, {
       headers: authHeaders(),
@@ -255,7 +255,7 @@ export function usePaymentClient({
     setSubmitting(true);
 
     const [month = "", shortYear = ""] = expiry.split("/");
-    const apiBase = process.env.NEXT_PUBLIC_PAYMENT_API_URL ?? "http://localhost:8084";
+    const apiBase = process.env.NEXT_PUBLIC_PAYMENT_API_URL ?? "http://localhost:9984";
     const result = await postJson<ChargeResponse>(
       `${apiBase}/api/payments/charge`,
       {

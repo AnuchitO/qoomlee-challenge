@@ -14,7 +14,7 @@ BOOKINGS_API="$QOOMLEE_SERVICE_URL"
 PAYMENTS_API="$PAYMENT_SERVICE_URL"
 
 # ─── Flight Endpoints (served by qoomlee-service) ─────────────────────────────
-section "Flight Endpoints (:8082)"
+section "Flight Endpoints (:9988)"
 
 FLIGHTS=$(curl -s "$BOOKINGS_API/api/flights/search?origin=BKK&destination=SIN&date=$DATE&passengers=1")
 assert_jq "GET /api/flights/search returns flights array"         "$FLIGHTS" '.flights'

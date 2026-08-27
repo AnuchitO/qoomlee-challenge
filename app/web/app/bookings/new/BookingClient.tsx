@@ -84,7 +84,7 @@ export default function BookingClient({
     setSubmitError("");
     setSubmitting(true);
 
-    const apiBase = process.env.NEXT_PUBLIC_QOOMLEE_API_URL ?? "http://localhost:8082";
+    const apiBase = process.env.NEXT_PUBLIC_QOOMLEE_API_URL ?? "http://localhost:9988";
     const result = await postJson<CreateBookingResponse>(
       `${apiBase}/api/bookings?bookingToken=${encodeURIComponent(bookingToken)}`,
       {

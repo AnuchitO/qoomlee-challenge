@@ -11,8 +11,8 @@ Search Flights → Book a Seat → Pay → Get Confirmation
 ```
 
   2 services, 7 endpoints:
-  - qoomlee-service :8082 — search flights, get flight detail, create booking, view booking, update status (internal)
-  - payment-service :8084 — charge a card, view payment receipt
+  - qoomlee-service :9988 — search flights, get flight detail, create booking, view booking, update status (internal)
+  - payment-service :9984 — charge a card, view payment receipt
 
   Plus 6 infrastructure requirements on both services:
   health checks, rate limiting, graceful shutdown, structured logging, JWT auth, internal token
@@ -47,7 +47,7 @@ cp .env.example .env
 docker compose up --build
 
 # 3. Verify postgres is up (endpoints return 501 until you implement them)
-curl "http://localhost:8082/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15"
+curl "http://localhost:9988/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15"
 ```
 
 ## JWT Development Guide
@@ -65,7 +65,7 @@ TOKEN=$(make jwt-token -s)
 
 # Use in API calls
 curl -H "Authorization: Bearer $TOKEN" \
-  "http://localhost:8082/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15"
+  "http://localhost:9988/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15"
 ```
 
 ---
@@ -74,8 +74,8 @@ curl -H "Authorization: Bearer $TOKEN" \
 
 ```
 ├── services/
-│   ├── qoomlee/            Go + Gin, port 8082 (flights + bookings)
-│   └── payment/            Go + Gin + Omise SDK, port 8084
+│   ├── qoomlee/            Go + Gin, port 9988 (flights + bookings)
+│   └── payment/            Go + Gin + Omise SDK, port 9984
 ├── infra/
 │   └── db/
 │       ├── qoomlee/        Schema + seed data for qoomlee-service

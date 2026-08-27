@@ -15,7 +15,7 @@ describe("buildApiUrl", () => {
     });
 
     expect(url).toBe(
-      "http://localhost:8082/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1",
+      "http://localhost:9988/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1",
     );
   });
 

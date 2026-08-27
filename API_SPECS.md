@@ -1,8 +1,8 @@
 # Qoomlee Airline — API Specifications
 
 Services run on their own ports. Call them directly:
-- qoomlee-service: `http://localhost:8082` (flight + booking endpoints)
-- payment-service: `http://localhost:8084`
+- qoomlee-service: `http://localhost:9988` (flight + booking endpoints)
+- payment-service: `http://localhost:9984`
 
 Internal service-to-service calls use the Docker Compose service name (e.g. `http://qoomlee-service:8082`).
 
@@ -52,7 +52,7 @@ Missing or wrong token → **`403 Forbidden`**
 
 ---
 
-## Booking Service `:8082`
+## Booking Service `:9988`
 
 ### `GET /api/flights/search`
 
@@ -69,7 +69,7 @@ Search available flights by route and date.
 
 **Request example**
 ```bash
-curl "http://localhost:8082/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"
+curl "http://localhost:9988/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"
 ```
 
 **Response `200 OK`**
@@ -130,7 +130,7 @@ Get full detail for one flight by its database ID.
 **Path parameter:** `id` — integer, from search results.
 
 ```bash
-curl -H "Authorization: Bearer $TOKEN" "http://localhost:8082/api/flights/1"
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:9988/api/flights/1"
 ```
 
 **Response `200 OK`**
@@ -198,7 +198,7 @@ Create a booking for one passenger on one flight. Returns a 6-char PNR (`booking
 **Optional fields:** `currency` (default `"THB"`), `passenger.phone`, `passenger.passportNumber`, `passenger.dateOfBirth`, `passenger.nationality`
 
 ```bash
-curl -X POST http://localhost:8082/api/bookings \
+curl -X POST http://localhost:9988/api/bookings \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -249,7 +249,7 @@ Get full booking detail including passenger and flight information.
 **Path parameter:** `bookingRef` — 6-char PNR, case-insensitive (normalise to uppercase internally).
 
 ```bash
-curl -H "Authorization: Bearer $TOKEN" "http://localhost:8082/api/bookings/QM7X2K"
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:9988/api/bookings/QM7X2K"
 ```
 
 **Response `200 OK`** — before payment (`status: "PENDING"`)
@@ -374,7 +374,7 @@ X-Internal-Token: <INTERNAL_TOKEN value>
 
 ---
 
-## Payment Service `:8084`
+## Payment Service `:9984`
 
 ### `POST /api/payments/charge`
 
@@ -416,7 +416,7 @@ curl https://vault.omise.co/tokens \
 > payment-service calls `GET /api/bookings/:ref` to fetch booking details and validate `amountMinor` + `currency` before calling Omise. `bookingId` is no longer required in the charge request — it is obtained from the booking API response.
 
 ```bash
-curl -X POST http://localhost:8084/api/payments/charge \
+curl -X POST http://localhost:9984/api/payments/charge \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"bookingRef":"QM7X2K","omiseToken":"tokn_test_xxxx","amountMinor":350000,"currency":"THB","amount":"3500.00"}'
@@ -466,7 +466,7 @@ Get the most recent payment record for a booking.
 **Path parameter:** `bookingRef` — 6-char PNR.
 
 ```bash
-curl -H "Authorization: Bearer $TOKEN" "http://localhost:8084/api/payments/QM7X2K"
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:9984/api/payments/QM7X2K"
 ```
 
 **Response `200 OK`** — successful payment

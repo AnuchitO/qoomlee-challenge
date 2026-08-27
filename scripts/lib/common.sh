@@ -51,7 +51,7 @@ require_tool() {
 }
 
 require_stack() {
-  local api="${QOOMLEE_SERVICE_URL:-http://localhost:8082}"
+  local api="${QOOMLEE_SERVICE_URL:-http://localhost:9988}"
   if ! curl -sf "$api/health/live" > /dev/null 2>&1; then
     echo -e "${RED}ERROR: qoomlee-service not reachable at $api${NC}"
     echo -e "       Run: ${BOLD}docker compose up --build${NC}"
@@ -95,8 +95,8 @@ assert_http() {
 
 # Root of repo (one level up from scripts/)
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-QOOMLEE_SERVICE_URL="${QOOMLEE_SERVICE_URL:-http://localhost:8082}"
-PAYMENT_SERVICE_URL="${PAYMENT_SERVICE_URL:-http://localhost:8084}"
+QOOMLEE_SERVICE_URL="${QOOMLEE_SERVICE_URL:-http://localhost:9988}"
+PAYMENT_SERVICE_URL="${PAYMENT_SERVICE_URL:-http://localhost:9984}"
 
 # ── JWT token for API calls ──────────────────────────────────────────────────
 # Generates a short-lived RS256 JWT signed with JWT_PRIVATE_KEY from .env.

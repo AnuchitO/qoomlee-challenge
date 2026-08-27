@@ -22,7 +22,7 @@ export const options = {
   },
 };
 
-const QOOMLEE_URL = __ENV.QOOMLEE_SERVICE_URL || "http://localhost:8082";
+const QOOMLEE_URL = __ENV.QOOMLEE_SERVICE_URL || "http://localhost:9988";
 
 // Pass JWT via K6_JWT env var: k6 run -e K6_JWT=$(make jwt-token -s) booking-flow.js
 const JWT_TOKEN = __ENV.K6_JWT || "";

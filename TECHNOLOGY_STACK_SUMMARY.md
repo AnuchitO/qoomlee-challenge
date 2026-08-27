@@ -6,8 +6,8 @@
 
 | Service | Language | Framework | Port |
 |---------|----------|-----------|------|
-| qoomlee-service | Go | Gin | 8082 |
-| payment-service | Go | Gin + Omise SDK | 8084 |
+| qoomlee-service | Go | Gin | 9988 |
+| payment-service | Go | Gin + Omise SDK | 9984 |
 
 qoomlee-service owns all flight and booking endpoints (routes, flights, passengers, bookings tables).
 payment-service owns payments only and connects to its own isolated PostgreSQL instance.
@@ -68,7 +68,7 @@ Add a `service/` layer if your business logic grows complex enough to warrant it
 
 | Variable | Used by | Value in docker-compose |
 |---|---|---|
-| `PORT` | All services | 8082 / 8084 |
+| `PORT` | All services | 9988 / 9984 |
 | `DB_HOST` | qoomlee-service | `postgres-qoomlee` |
 | `DB_HOST` | payment-service | `postgres-qoomlee-payment` |
 | `DB_PORT` | All services | `5432` |

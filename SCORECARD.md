@@ -23,7 +23,7 @@ Evaluator: _____________________
 
 ## Pillar 1 — Working Software (25 points)
 
-_Run after `docker compose up --build`. Call each service on its own port (8082 / 8084)._
+_Run after `docker compose up --build`. Call each service on its own port (9988 / 9984)._
 
 > **Auth required.** Get a token first:
 > ```bash
@@ -35,8 +35,8 @@ _Run after `docker compose up --build`. Call each service on its own port (8082 
 
 | # | Command | Pass condition | Pass | Fail |
 |---|---------|---------------|------|------|
-| 1 | `curl -H "Authorization: Bearer $TOKEN" "http://localhost:8082/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"` | Status 200; body has key `"flights"` with ≥1 item | | |
-| 2 | `curl -H "Authorization: Bearer $TOKEN" "http://localhost:8082/api/flights/1"` | Status 200; body has `id`, `flightNumber`, `origin`, `destination`, `durationMinutes` | | |
+| 1 | `curl -H "Authorization: Bearer $TOKEN" "http://localhost:9988/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15&passengers=1"` | Status 200; body has key `"flights"` with ≥1 item | | |
+| 2 | `curl -H "Authorization: Bearer $TOKEN" "http://localhost:9988/api/flights/1"` | Status 200; body has `id`, `flightNumber`, `origin`, `destination`, `durationMinutes` | | |
 | 3 | `POST /api/bookings` with valid body + `Authorization` header | Status 201; `bookingRef` is exactly 6 chars; `bookingId` is an integer | | |
 | 4 | `POST /api/payments/charge` with success card `4242…` token + `Authorization` header | Status 201; `providerChargeId` non-empty; `paymentProvider` is `"OMISE"`; `status` is `"SUCCEEDED"` | | |
 | 5 | `GET /api/bookings/{bookingRef}` (after step 4) + `Authorization` header | Status 200; `status` is `"CONFIRMED"`; `flight` and `passenger` objects present; `providerChargeId` matches the charge ID from step 4 | | |

@@ -198,7 +198,7 @@ export function PaymentClientView({
               </div>
               <div className="flex justify-between">
                 <span className="text-body-md text-on-surface">Economy Seat</span>
-                <span className="text-body-md text-[#008544] font-medium">Free</span>
+                <span className="text-body-md text-success font-medium">Free</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-body-md text-on-surface">Travel Insurance</span>

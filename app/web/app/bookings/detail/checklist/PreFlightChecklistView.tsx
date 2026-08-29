@@ -49,14 +49,14 @@ export function PreFlightChecklistView({
             />
           </div>
           {pct === 100 && (
-            <div className="flex items-center gap-sm p-sm bg-green-50 border border-green-100 rounded-xl">
+            <div className="flex items-center gap-sm p-sm bg-success-container/50 border border-success/20 rounded-xl">
               <span
-                className="material-symbols-outlined text-green-600"
+                className="material-symbols-outlined text-success"
                 style={{ fontVariationSettings: "'FILL' 1" }}
               >
                 check_circle
               </span>
-              <p className="text-label-md text-green-700">
+              <p className="text-label-md text-on-success-container">
                 All items checked — you&apos;re good to go!
               </p>
             </div>
@@ -81,7 +81,7 @@ export function PreFlightChecklistView({
                     type="checkbox"
                     checked={checked.has(item.id)}
                     onChange={() => toggle(item.id)}
-                    className="w-5 h-5 rounded border-outline text-primary focus:ring-primary"
+                    className="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary"
                   />
                   <span
                     className={`text-label-md flex-1 ${

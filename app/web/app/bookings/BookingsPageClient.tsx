@@ -46,7 +46,7 @@ function minutesUntil(iso: string): number {
 function statusBadge(booking: Summary): { label: string; color: string } {
   switch (booking.status) {
     case "CONFIRMED":
-      return { label: "Confirmed", color: "bg-green-100 text-green-700" };
+      return { label: "Confirmed", color: "bg-success-container text-on-success-container" };
     case "PENDING":
       return {
         label: `Awaiting payment · expires in ${minutesUntil(booking.expiresAt ?? "")}m`,

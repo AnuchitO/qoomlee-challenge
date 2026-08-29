@@ -50,7 +50,7 @@ export function RegisterView({
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
                     i === 0
                       ? "bg-primary text-on-primary"
-                      : "border-2 border-outline text-on-surface"
+                      : "border-2 border-outline-variant text-on-surface"
                   }`}
                 >
                   {i + 1}
@@ -63,7 +63,7 @@ export function RegisterView({
         </div>
 
         {/* Form */}
-        <section className="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant/30 shadow-md">
+        <section className="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-md">
           <form className="space-y-md" onSubmit={handleSubmit}>
             <div className="grid grid-cols-2 gap-md">
               <div className="space-y-xs">
@@ -74,7 +74,7 @@ export function RegisterView({
                   value={form.firstName}
                   onChange={set("firstName")}
                   placeholder="John"
-                  className="w-full h-12 px-md rounded-xl border border-outline focus:border-primary focus:ring-0 focus:outline-none bg-surface-bright transition-all text-body-md"
+                  className="w-full h-12 px-md rounded-xl border border-outline-variant focus:border-primary focus:ring-0 focus:outline-none bg-surface-bright transition-all text-body-md"
                 />
               </div>
               <div className="space-y-xs">
@@ -85,7 +85,7 @@ export function RegisterView({
                   value={form.lastName}
                   onChange={set("lastName")}
                   placeholder="Doe"
-                  className="w-full h-12 px-md rounded-xl border border-outline focus:border-primary focus:ring-0 focus:outline-none bg-surface-bright transition-all text-body-md"
+                  className="w-full h-12 px-md rounded-xl border border-outline-variant focus:border-primary focus:ring-0 focus:outline-none bg-surface-bright transition-all text-body-md"
                 />
               </div>
             </div>
@@ -102,7 +102,7 @@ export function RegisterView({
                   value={form.email}
                   onChange={set("email")}
                   placeholder="example@qoomlee.com"
-                  className="w-full h-12 pl-12 pr-md rounded-xl border border-outline focus:border-primary focus:ring-0 focus:outline-none bg-surface-bright transition-all text-body-md"
+                  className="w-full h-12 pl-12 pr-md rounded-xl border border-outline-variant focus:border-primary focus:ring-0 focus:outline-none bg-surface-bright transition-all text-body-md"
                 />
               </div>
             </div>
@@ -118,7 +118,7 @@ export function RegisterView({
                   value={form.phone}
                   onChange={set("phone")}
                   placeholder="+66 80 000 0000"
-                  className="w-full h-12 pl-12 pr-md rounded-xl border border-outline focus:border-primary focus:ring-0 focus:outline-none bg-surface-bright transition-all text-body-md"
+                  className="w-full h-12 pl-12 pr-md rounded-xl border border-outline-variant focus:border-primary focus:ring-0 focus:outline-none bg-surface-bright transition-all text-body-md"
                 />
               </div>
             </div>
@@ -130,7 +130,7 @@ export function RegisterView({
                   type="date"
                   value={form.dob}
                   onChange={set("dob")}
-                  className="w-full h-12 px-md rounded-xl border border-outline focus:border-primary focus:ring-0 focus:outline-none bg-surface-bright transition-all text-body-md"
+                  className="w-full h-12 px-md rounded-xl border border-outline-variant focus:border-primary focus:ring-0 focus:outline-none bg-surface-bright transition-all text-body-md"
                 />
                 <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline pointer-events-none text-[20px]">
                   calendar_today
@@ -150,7 +150,7 @@ export function RegisterView({
                   value={form.password}
                   onChange={set("password")}
                   placeholder="Create a strong password"
-                  className="w-full h-12 pl-12 pr-12 rounded-xl border border-outline focus:border-primary focus:ring-0 focus:outline-none bg-surface-bright transition-all text-body-md"
+                  className="w-full h-12 pl-12 pr-12 rounded-xl border border-outline-variant focus:border-primary focus:ring-0 focus:outline-none bg-surface-bright transition-all text-body-md"
                 />
                 <button
                   type="button"
@@ -180,7 +180,7 @@ export function RegisterView({
                   className={`w-full h-12 pl-12 pr-12 rounded-xl border focus:ring-0 focus:outline-none bg-surface-bright transition-all text-body-md ${
                     form.confirm && form.confirm !== form.password
                       ? "border-error focus:border-error"
-                      : "border-outline focus:border-primary"
+                      : "border-outline-variant focus:border-primary"
                   }`}
                 />
                 <button
@@ -194,7 +194,7 @@ export function RegisterView({
                 </button>
                 {form.confirm && form.confirm === form.password && (
                   <span
-                    className="material-symbols-outlined absolute right-12 top-1/2 -translate-y-1/2 text-green-600 text-[20px]"
+                    className="material-symbols-outlined absolute right-12 top-1/2 -translate-y-1/2 text-success text-[20px]"
                     style={{ fontVariationSettings: "'FILL' 1" }}
                   >
                     check_circle
@@ -209,7 +209,7 @@ export function RegisterView({
                   type="checkbox"
                   checked={form.terms}
                   onChange={set("terms")}
-                  className="mt-1 w-5 h-5 rounded border-outline text-primary focus:ring-primary focus:ring-offset-0"
+                  className="mt-1 w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary focus:ring-offset-0"
                 />
                 <p className="text-label-md text-on-surface-variant">
                   I agree to the{" "}

@@ -153,7 +153,7 @@ export default function SearchForm() {
             <button
               type="button"
               onClick={handleSearch}
-              className="px-xl bg-primary-container text-on-primary-container rounded-xl text-label-md shadow-sm active:scale-95 transition-transform whitespace-nowrap min-h-[70px] cursor-pointer"
+              className="px-xl bg-primary text-on-primary rounded-xl text-label-md shadow-sm active:scale-95 transition-transform whitespace-nowrap min-h-[70px] cursor-pointer hover:opacity-90"
             >
               Search Flights
             </button>
@@ -230,7 +230,7 @@ export default function SearchForm() {
           <button
             type="button"
             onClick={handleSearch}
-            className="self-stretch px-xl bg-primary-container text-on-primary-container rounded-xl text-label-md shadow-sm active:scale-95 transition-transform whitespace-nowrap"
+            className="self-stretch px-xl bg-primary text-on-primary rounded-xl text-label-md shadow-sm active:scale-95 transition-transform whitespace-nowrap hover:opacity-90"
           >
             Search Flights
           </button>
@@ -309,7 +309,7 @@ export default function SearchForm() {
           <button
             type="button"
             onClick={handleSearch}
-            className="w-full bg-primary-container text-on-primary-container py-4 rounded-xl text-headline-md shadow-sm active:scale-95 transition-transform"
+            className="w-full bg-primary text-on-primary py-4 rounded-xl text-headline-md shadow-sm active:scale-95 transition-transform hover:opacity-90"
           >
             Search Flights
           </button>

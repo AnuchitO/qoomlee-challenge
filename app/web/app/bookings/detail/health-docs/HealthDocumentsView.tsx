@@ -33,9 +33,9 @@ export function HealthDocumentsView({
 
       <main className="flex-1 pb-24 max-w-[500px] mx-auto w-full px-container-margin-mobile py-lg space-y-lg">
         {/* Status banner */}
-        <section className="bg-green-50 border border-green-200 rounded-xl p-md flex items-start gap-md">
+        <section className="bg-success-container/50 border border-success/30 rounded-xl p-md flex items-start gap-md">
           <span
-            className="material-symbols-outlined text-green-600 text-[24px] shrink-0"
+            className="material-symbols-outlined text-success text-[24px] shrink-0"
             style={{ fontVariationSettings: "'FILL' 1" }}
           >
             check_circle
@@ -71,7 +71,7 @@ export function HealthDocumentsView({
                   </div>
                   {uploads[doc.id] && (
                     <span
-                      className="material-symbols-outlined text-green-600 text-[20px]"
+                      className="material-symbols-outlined text-success text-[20px]"
                       style={{ fontVariationSettings: "'FILL' 1" }}
                     >
                       check_circle
@@ -80,9 +80,9 @@ export function HealthDocumentsView({
                 </div>
 
                 {uploads[doc.id] ? (
-                  <div className="flex items-center justify-between p-sm bg-green-50 border border-green-100 rounded-lg">
+                  <div className="flex items-center justify-between p-sm bg-success-container/50 border border-success/20 rounded-lg">
                     <div className="flex items-center gap-sm">
-                      <span className="material-symbols-outlined text-green-600 text-[20px]">
+                      <span className="material-symbols-outlined text-success text-[20px]">
                         description
                       </span>
                       <span className="text-label-sm text-on-surface">{uploads[doc.id]}</span>

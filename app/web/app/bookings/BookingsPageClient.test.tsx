@@ -48,7 +48,7 @@ describe("BookingsPageClient", () => {
     render(<BookingsPageClient />);
 
     await waitFor(() => expect(screen.getByText("Confirmed")).toBeInTheDocument());
-    expect(screen.getByText("Confirmed").className).toContain("green");
+    expect(screen.getByText("Confirmed").className).toContain("success");
   });
 
   it("shows an amber 'Awaiting payment · expires in Xm' badge for PENDING bookings", async () => {

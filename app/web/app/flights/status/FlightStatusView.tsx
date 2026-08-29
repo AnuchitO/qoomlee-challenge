@@ -61,12 +61,12 @@ export function FlightStatusView({
               onChange={(e) => handleQueryChange(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Flight number e.g. QQ101"
-              className="w-full h-12 pl-12 pr-md rounded-xl border border-outline focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none bg-surface-bright transition-all text-body-md"
+              className="w-full h-12 pl-12 pr-md rounded-xl border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none bg-surface-bright transition-all text-body-md"
             />
           </div>
           <button
             onClick={handleSearch}
-            className="bg-primary-container text-on-primary-container px-lg py-3 rounded-lg text-label-md hover:opacity-90 active:scale-95 transition-all"
+            className="bg-primary text-on-primary px-lg py-3 rounded-lg text-label-md hover:opacity-90 active:scale-95 transition-all"
           >
             Search
           </button>

@@ -78,7 +78,7 @@ export default function FlightDetailsPageClient() {
                 <span className="px-sm py-xs bg-surface-container rounded-lg text-label-sm text-on-surface-variant">
                   8h 30m
                 </span>
-                <span className="px-sm py-xs bg-green-100 text-green-700 rounded-lg text-label-sm">
+                <span className="px-sm py-xs bg-success-container text-on-success-container rounded-lg text-label-sm">
                   Non-stop
                 </span>
                 <span className="px-sm py-xs bg-surface-container rounded-lg text-label-sm text-on-surface-variant">

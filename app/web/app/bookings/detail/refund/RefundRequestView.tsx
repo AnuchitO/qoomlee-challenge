@@ -68,7 +68,7 @@ export function RefundRequestView({
           {[
             {
               icon: "schedule",
-              color: "text-green-600",
+              color: "text-success",
               text: "> 24 hours before: 80% refund (฿7,232)",
             },
             { icon: "cancel", color: "text-orange-500", text: "< 24 hours: No refund" },
@@ -82,7 +82,7 @@ export function RefundRequestView({
           <div className="border-t border-dashed border-outline-variant/60 my-sm" />
           <div className="flex items-center justify-between">
             <span className="text-label-md text-on-surface-variant">Your refund amount:</span>
-            <span className="text-headline-md text-green-600">฿7,232</span>
+            <span className="text-headline-md text-success">฿7,232</span>
           </div>
         </section>
 

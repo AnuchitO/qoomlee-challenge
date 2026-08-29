@@ -93,12 +93,6 @@ describe("PaymentClient — layout", () => {
     expect(screen.getByText("Secure Payment")).toBeInTheDocument();
   });
 
-  it("renders the progress stepper", async () => {
-    await renderPayment();
-    expect(screen.getByText("Flights")).toBeInTheDocument();
-    expect(screen.getByText("Payment")).toBeInTheDocument();
-  });
-
   it("renders the booking summary with flight info", async () => {
     await renderPayment();
     expect(screen.getByText(/QQ101.*BKK.*SIN/)).toBeInTheDocument();

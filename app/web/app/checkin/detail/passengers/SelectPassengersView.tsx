@@ -42,7 +42,7 @@ export function SelectPassengersView({
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
                     i === 0
                       ? "bg-primary text-on-primary"
-                      : "border-2 border-outline text-on-surface"
+                      : "border-2 border-outline-variant text-on-surface"
                   }`}
                 >
                   {i + 1}
@@ -84,7 +84,7 @@ export function SelectPassengersView({
               type="checkbox"
               checked={allSelected}
               onChange={toggleAll}
-              className="w-5 h-5 rounded border-outline text-primary focus:ring-primary"
+              className="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary"
             />
             <span className="text-label-md text-on-surface">Select all eligible passengers</span>
           </label>
@@ -105,12 +105,12 @@ export function SelectPassengersView({
                 checked={selected.has(p.id)}
                 onChange={() => toggle(p.id)}
                 disabled={!p.eligible}
-                className="mt-1 w-5 h-5 rounded border-outline text-primary focus:ring-primary"
+                className="mt-1 w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary"
               />
               <div className="flex-1">
                 <div className="flex items-center gap-sm">
                   <h3 className="text-label-md text-on-surface">{p.name}</h3>
-                  <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-wider">
+                  <span className="px-2 py-0.5 rounded-full bg-success-container text-on-success-container text-[10px] font-bold uppercase tracking-wider">
                     {p.eligible ? "Eligible" : "Not eligible"}
                   </span>
                 </div>

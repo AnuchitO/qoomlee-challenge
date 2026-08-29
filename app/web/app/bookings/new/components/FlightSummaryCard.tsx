@@ -9,7 +9,7 @@ export default function FlightSummaryCard({ flight }: { flight: Flight }) {
 
   return (
     <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
-      <div className="flex justify-between items-center px-md pt-md pb-sm border-b border-outline-variant/40">
+      <div className="flex justify-between items-center px-md pt-md pb-sm border-b border-outline-variant">
         <span className="text-label-sm text-on-surface-variant">Flight Summary</span>
         <span className="text-label-sm text-on-surface-variant font-medium">
           {flight.flightNumber}
@@ -27,7 +27,7 @@ export default function FlightSummaryCard({ flight }: { flight: Flight }) {
         />
 
         {/* Date / time */}
-        <div className="flex items-center gap-sm pt-sm border-t border-outline-variant/40">
+        <div className="flex items-center gap-sm pt-sm border-t border-outline-variant">
           <span className="material-symbols-outlined text-on-surface-variant text-[18px] shrink-0">
             calendar_today
           </span>

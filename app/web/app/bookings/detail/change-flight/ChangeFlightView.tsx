@@ -57,7 +57,7 @@ export function ChangeFlightView({
               type="date"
               value={selectedDate}
               onChange={handleDateChange}
-              className="w-full h-12 px-md rounded-xl border border-outline focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none bg-surface-bright transition-all text-body-md"
+              className="w-full h-12 px-md rounded-xl border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none bg-surface-bright transition-all text-body-md"
             />
             <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline pointer-events-none text-[20px]">
               calendar_today
@@ -84,7 +84,7 @@ export function ChangeFlightView({
                   <span
                     className={`text-label-sm font-bold px-2 py-0.5 rounded-full ${
                       flight.price < 0
-                        ? "bg-green-100 text-green-700"
+                        ? "bg-success-container text-on-success-container"
                         : "bg-surface-container text-on-surface-variant"
                     }`}
                   >

@@ -26,11 +26,11 @@ export default function TripTypeToggle({ value, onChange }: Props) {
               key={type}
               type="button"
               onClick={() => onChange(type)}
-              className="flex-shrink-0 flex items-center justify-center rounded-full px-5 py-2 font-bold text-sm transition-colors whitespace-nowrap cursor-pointer"
-              style={{
-                backgroundColor: isSelected ? "rgb(194, 228, 255)" : "rgb(235, 244, 255)",
-                color: isSelected ? "rgb(29, 78, 216)" : "rgb(30, 64, 175)",
-              }}
+              className={`flex-shrink-0 flex items-center justify-center rounded-full px-5 py-2 text-label-md transition-colors whitespace-nowrap cursor-pointer ${
+                isSelected
+                  ? "bg-primary-fixed text-on-primary-fixed-variant"
+                  : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
+              }`}
             >
               {label}
             </button>

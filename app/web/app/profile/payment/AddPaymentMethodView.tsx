@@ -118,7 +118,7 @@ export function AddPaymentMethodView({
               type="checkbox"
               checked={form.setDefault}
               onChange={setDefault}
-              className="w-5 h-5 rounded border-outline text-primary focus:ring-primary"
+              className="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary"
             />
             <span className="text-label-md text-on-surface">Set as default payment method</span>
           </label>

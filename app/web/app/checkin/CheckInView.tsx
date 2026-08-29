@@ -59,7 +59,7 @@ export function CheckInView({
                   onChange={handleBookingRefChange}
                   placeholder="e.g. QM92Z4"
                   maxLength={6}
-                  className="w-full h-12 pl-12 pr-md rounded-xl border border-outline focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none bg-surface-bright transition-all text-body-md tracking-widest uppercase"
+                  className="w-full h-12 pl-12 pr-md rounded-xl border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none bg-surface-bright transition-all text-body-md tracking-widest uppercase"
                 />
               </div>
             </div>
@@ -78,7 +78,7 @@ export function CheckInView({
                   value={lastName}
                   onChange={handleLastNameChange}
                   placeholder="As shown on passport"
-                  className="w-full h-12 pl-12 pr-md rounded-xl border border-outline focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none bg-surface-bright transition-all text-body-md"
+                  className="w-full h-12 pl-12 pr-md rounded-xl border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none bg-surface-bright transition-all text-body-md"
                 />
               </div>
             </div>
@@ -107,7 +107,7 @@ export function CheckInView({
                 <p className="text-label-sm text-outline uppercase tracking-wider">Check-in Open</p>
                 <p className="text-label-md text-on-surface font-bold">
                   <span
-                    className="material-symbols-outlined text-green-600 text-[16px] align-middle mr-1"
+                    className="material-symbols-outlined text-success text-[16px] align-middle mr-1"
                     style={{ fontVariationSettings: "'FILL' 1" }}
                   >
                     circle

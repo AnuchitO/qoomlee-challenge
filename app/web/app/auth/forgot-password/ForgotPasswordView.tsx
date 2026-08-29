@@ -59,7 +59,7 @@ export function ForgotPasswordView({
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@email.com"
-                    className="block w-full pl-10 h-14 border border-outline rounded-xl bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-body-md"
+                    className="block w-full pl-10 h-14 border border-outline-variant rounded-xl bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-body-md"
                   />
                 </div>
                 <button
@@ -82,9 +82,9 @@ export function ForgotPasswordView({
         ) : (
           <section className="flex flex-col items-center mt-xxl">
             <div className="flex flex-col items-center text-center gap-md">
-              <div className="bg-green-100 p-lg rounded-full mb-md">
+              <div className="bg-success-container p-lg rounded-full mb-md">
                 <span
-                  className="material-symbols-outlined text-green-700 text-[64px]"
+                  className="material-symbols-outlined text-on-success-container text-[64px]"
                   style={{ fontVariationSettings: "'FILL' 1" }}
                 >
                   mark_email_read

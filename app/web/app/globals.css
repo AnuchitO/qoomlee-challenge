@@ -50,6 +50,12 @@
   --color-surface-container-lowest: #ffffff;
   --color-on-secondary-fixed: #001c3a;
 
+  /* Success color (for confirmed states, "Free" labels, etc.) */
+  --color-success: #008544;
+  --color-success-container: #d6f5e4;
+  --color-on-success: #ffffff;
+  --color-on-success-container: #00351f;
+
   /* Spacing tokens */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -109,6 +115,29 @@
   line-height: 16px;
   font-weight: 500;
   letter-spacing: 0.02em;
+}
+.text-label-xs {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.text-body-sm {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+}
+.text-title-sm {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.text-title-md {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 .text-mono-data {
   font-size: 14px;

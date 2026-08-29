@@ -560,10 +560,12 @@ describe("DateRangePicker — regression: stale returnDate must not affect one-w
     const allDayButtons = screen
       .getAllByRole("button")
       .filter((b) => /^\d{1,2}$/.test(b.textContent ?? ""));
-    // the stale return date itself must remain selectable
+    // the stale return date itself must remain selectable — the day number
+    // may appear in both visible months (e.g. Aug 8 is past/disabled, Sep 8
+    // is the real return date), so check that at least one copy is enabled
     const [, , d] = returnISO.split("-").map(Number) as [number, number, number];
-    const returnDayBtn = allDayButtons.find((b) => b.textContent?.trim() === String(d));
-    expect(returnDayBtn?.hasAttribute("disabled")).toBe(false);
+    const returnDayBtns = allDayButtons.filter((b) => b.textContent?.trim() === String(d));
+    expect(returnDayBtns.some((b) => !b.hasAttribute("disabled"))).toBe(true);
   });
 
   it("does not show the stale returnDate as a selected day when isReturnEnabled is false", () => {
@@ -604,9 +606,11 @@ describe("DateRangePicker — regression: stale returnDate must not affect one-w
 
     fireEvent.click(screen.getByTestId("departure-trigger"));
     const [, , d] = returnISO.split("-").map(Number) as [number, number, number];
+    // the day number may appear in both visible months; pick the enabled one
     const returnDayBtn = screen
       .getAllByRole("button")
-      .find((b) => b.textContent?.trim() === String(d));
+      .filter((b) => /^\d{1,2}$/.test(b.textContent ?? ""))
+      .find((b) => b.textContent?.trim() === String(d) && !b.hasAttribute("disabled"));
 
     fireEvent.click(returnDayBtn!);
 

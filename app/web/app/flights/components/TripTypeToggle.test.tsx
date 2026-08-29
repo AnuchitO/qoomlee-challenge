@@ -40,17 +40,17 @@ describe("TripTypeToggle", () => {
     const { rerender } = render(<TripTypeToggle value="oneway" onChange={() => {}} />);
     const oneway = screen.getByText("One way");
     const round = screen.getByText("Round trip");
-    const onewayBg = oneway.closest("button")?.getAttribute("style") ?? "";
-    const roundBg = round.closest("button")?.getAttribute("style") ?? "";
+    const onewayClass = oneway.closest("button")?.getAttribute("class") ?? "";
+    const roundClass = round.closest("button")?.getAttribute("class") ?? "";
 
-    expect(onewayBg).not.toBe(roundBg);
+    expect(onewayClass).not.toBe(roundClass);
 
     rerender(<TripTypeToggle value="round" onChange={() => {}} />);
 
-    const onewayBgAfter =
-      screen.getByText("One way").closest("button")?.getAttribute("style") ?? "";
-    const roundBgAfter =
-      screen.getByText("Round trip").closest("button")?.getAttribute("style") ?? "";
-    expect(roundBgAfter).not.toBe(onewayBgAfter);
+    const onewayClassAfter =
+      screen.getByText("One way").closest("button")?.getAttribute("class") ?? "";
+    const roundClassAfter =
+      screen.getByText("Round trip").closest("button")?.getAttribute("class") ?? "";
+    expect(roundClassAfter).not.toBe(onewayClassAfter);
   });
 });

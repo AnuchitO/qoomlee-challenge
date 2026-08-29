@@ -60,8 +60,8 @@ const statusConfig = {
   },
   "not-required": {
     label: "Not Required",
-    bg: "bg-green-100",
-    text: "text-green-700",
+    bg: "bg-success-container",
+    text: "text-on-success-container",
     icon: "check",
   },
   check: {

@@ -150,7 +150,7 @@ export function CheckInDetailsView({
                   type="checkbox"
                   checked={carryOnConfirmed}
                   onChange={handleCarryOnChange}
-                  className="mt-1 w-5 h-5 rounded border-outline text-primary focus:ring-primary"
+                  className="mt-1 w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary"
                 />
                 <div>
                   <span className="text-label-md text-on-surface">

@@ -100,7 +100,7 @@ export default function ProfilePage() {
                     className="flex items-center justify-between p-md hover:bg-surface-container-low transition-colors group"
                   >
                     <div className="flex items-center gap-md">
-                      <div className="w-9 h-9 bg-primary-container/10 rounded-lg flex items-center justify-center">
+                      <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
                         <span className="material-symbols-outlined text-primary text-[20px]">
                           {icon}
                         </span>

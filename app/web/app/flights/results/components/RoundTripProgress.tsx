@@ -35,22 +35,22 @@ export default function RoundTripProgress({ step, outbound }: Props) {
       </p>
 
       {!isOutbound && outbound && (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-md flex items-center justify-between gap-md">
+        <div className="bg-success-container/50 border border-success/30 rounded-xl p-md flex items-center justify-between gap-md">
           <div className="flex items-center gap-sm">
-            <span className="material-symbols-outlined text-green-700 text-[20px]">
+            <span className="material-symbols-outlined text-on-success-container text-[20px]">
               flight_takeoff
             </span>
             <div>
-              <p className="text-label-sm font-semibold text-green-800">
+              <p className="text-label-sm font-semibold text-on-success-container">
                 Outbound selected · {outbound.flightNumber}
               </p>
-              <p className="text-label-sm text-green-700">
+              <p className="text-label-sm text-on-success-container">
                 {outbound.origin} → {outbound.destination} ·{" "}
                 {formatFlightTime(outbound.departureTime)}
               </p>
             </div>
           </div>
-          <p className="text-label-md font-semibold text-green-800">
+          <p className="text-label-md font-semibold text-on-success-container">
             {formatTHB(outbound.price / 100)}
           </p>
         </div>

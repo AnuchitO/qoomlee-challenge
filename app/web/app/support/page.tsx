@@ -95,7 +95,7 @@ export default function SupportPage() {
                 <p className="text-label-sm text-white/70">Avg. wait: 2 minutes</p>
               </div>
               <div className="ml-auto flex items-center gap-xs">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
                 <span className="text-label-sm text-white/80">3 agents online</span>
               </div>
             </div>

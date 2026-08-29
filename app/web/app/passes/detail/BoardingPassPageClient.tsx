@@ -170,11 +170,11 @@ export default function BoardingPassPageClient() {
             Add to Apple Wallet
           </button>
           <div className="grid grid-cols-2 gap-md">
-            <button className="h-12 border border-outline text-on-surface rounded-xl text-label-md flex items-center justify-center gap-sm hover:bg-surface-container-low transition-colors active:scale-[0.95]">
+            <button className="h-12 border border-outline-variant text-on-surface rounded-xl text-label-md flex items-center justify-center gap-sm hover:bg-surface-container-low transition-colors active:scale-[0.95]">
               <span className="material-symbols-outlined text-[20px]">download</span>
               PDF
             </button>
-            <button className="h-12 border border-outline text-on-surface rounded-xl text-label-md flex items-center justify-center gap-sm hover:bg-surface-container-low transition-colors active:scale-[0.95]">
+            <button className="h-12 border border-outline-variant text-on-surface rounded-xl text-label-md flex items-center justify-center gap-sm hover:bg-surface-container-low transition-colors active:scale-[0.95]">
               <span className="material-symbols-outlined text-[20px]">print</span>
               Print
             </button>

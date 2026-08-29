@@ -7,8 +7,8 @@ export const STATUS_CONFIG: Record<
 > = {
   "on-time": {
     label: "On Time",
-    bg: "bg-green-100",
-    text: "text-green-700",
+    bg: "bg-success-container",
+    text: "text-on-success-container",
     icon: "check_circle",
   },
   delayed: {

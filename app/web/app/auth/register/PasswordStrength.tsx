@@ -14,8 +14,8 @@ export function PasswordStrength({ password }: PasswordStrengthProps) {
     score >= 1 ? "bg-error" : "bg-outline-variant",
     score >= 2 ? "bg-tertiary" : "bg-outline-variant",
     score >= 3 ? "bg-secondary" : "bg-outline-variant",
-    score >= 4 ? "bg-green-500" : "bg-outline-variant",
-    score >= 5 ? "bg-green-500" : "bg-outline-variant",
+    score >= 4 ? "bg-success" : "bg-outline-variant",
+    score >= 5 ? "bg-success" : "bg-outline-variant",
   ];
 
   const label = ["", "Too weak", "Weak", "Fair", "Strong", "Very strong"][score];
@@ -40,7 +40,7 @@ export function PasswordStrength({ password }: PasswordStrengthProps) {
             key={l}
             className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-label-sm border ${
               ok
-                ? "bg-green-50 text-green-700 border-green-100"
+                ? "bg-success-container text-on-success-container border-success/30"
                 : "bg-error-container/20 text-error border-error-container/30"
             }`}
           >

@@ -24,8 +24,8 @@ export default function FlightCard({ flight, passengers, isBestValue = false, on
         {/* Airline & Price */}
         <div className="flex justify-between items-start gap-sm">
           <div className="flex items-center gap-md min-w-0">
-            <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-secondary text-3xl">
+            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-primary text-3xl">
                 flight_takeoff
               </span>
             </div>
@@ -69,7 +69,7 @@ export default function FlightCard({ flight, passengers, isBestValue = false, on
         />
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-md border-t border-outline-variant/30">
+        <div className="flex items-center justify-between pt-md border-t border-outline-variant">
           <div className="flex gap-md text-on-surface-variant">
             <div className="flex items-center gap-xs">
               <span className="material-symbols-outlined text-[18px]">luggage</span>
@@ -86,7 +86,7 @@ export default function FlightCard({ flight, passengers, isBestValue = false, on
           </div>
           <button
             onClick={() => onSelect(flight)}
-            className="bg-primary-container text-on-primary-container px-lg py-2 rounded-xl text-label-md flex items-center gap-xs active:scale-95 transition-all shadow-sm"
+            className="bg-primary text-on-primary px-lg py-2 rounded-xl text-label-md flex items-center gap-xs active:scale-95 transition-all shadow-sm hover:opacity-90"
           >
             Select <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
           </button>

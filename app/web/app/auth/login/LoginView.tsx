@@ -58,7 +58,7 @@ export function LoginView({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Email address"
-                  className="w-full h-12 pl-12 pr-4 bg-surface border border-outline rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-body-md text-on-surface"
+                  className="w-full h-12 pl-12 pr-4 bg-surface border border-outline-variant rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-body-md text-on-surface"
                 />
               </div>
             </div>
@@ -86,7 +86,7 @@ export function LoginView({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Password"
-                  className="w-full h-12 pl-12 pr-12 bg-surface border border-outline rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-body-md text-on-surface"
+                  className="w-full h-12 pl-12 pr-12 bg-surface border border-outline-variant rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-body-md text-on-surface"
                 />
                 <button
                   type="button"

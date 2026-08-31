@@ -24,6 +24,9 @@ infra/k8s/**/secret.payment.env
 
 # GCP service account keys
 *.json
+!slides/**/package.json
+!slides/**/package-lock.json
+!slides/**/vercel.json
 
 # Coverage
 **/coverage/

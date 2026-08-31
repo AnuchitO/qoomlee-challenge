@@ -57,3 +57,11 @@ Plan → Design → Develop → Test → Release → Monitor → back to Plan.
 <div class="text-lg qse-text-muted">
 Every sprint. Every feature. That's QSE.
 </div>
+
+---
+src: ./pages/04-day1-agenda-sections.md
+---
+
+---
+src: ./pages/05-day2-agenda-sections.md
+---

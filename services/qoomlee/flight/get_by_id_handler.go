@@ -10,6 +10,18 @@ import (
 )
 
 // GetByID handles GET /api/flights/:id
+//
+// @Summary Get flight by ID
+// @Description Fetches a single flight by its numeric ID. Requires an opaque session bearer token.
+// @Tags Flights
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Flight ID"
+// @Success 200 {object} flight.Flight
+// @Failure 400 {object} object{error=string,message=string} "INVALID_FIELD — id must be a positive integer"
+// @Failure 401 {object} object{error=string,message=string} "UNAUTHORIZED — missing or malformed session token"
+// @Failure 404 {object} object{error=string,message=string} "FLIGHT_NOT_FOUND"
+// @Router /api/flights/{id} [get]
 func (h *Handler) GetByID(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil || id < 1 {

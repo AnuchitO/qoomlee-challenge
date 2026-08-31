@@ -10,6 +10,18 @@ import (
 )
 
 // Search handles GET /api/flights/search
+//
+// @Summary Search flights
+// @Description Public endpoint — searches flights by origin, destination, and date (interpreted as a Bangkok/BKK calendar day). No authentication required.
+// @Tags Flights
+// @Produce json
+// @Param origin query string true "Origin IATA code"
+// @Param destination query string true "Destination IATA code"
+// @Param date query string true "Travel date, YYYY-MM-DD (interpreted in BKK time)"
+// @Param passengers query int false "Number of passengers, must be >= 1" default(1)
+// @Success 200 {object} object{flights=[]flight.Flight}
+// @Failure 400 {object} object{error=string,message=string} "MISSING_REQUIRED_FIELD (origin/destination/date missing), INVALID_DATE_FORMAT (date not YYYY-MM-DD), or INVALID_FIELD (passengers not a positive integer)"
+// @Router /api/flights/search [get]
 func (h *Handler) Search(c *gin.Context) {
 	origin := c.Query("origin")
 	destination := c.Query("destination")

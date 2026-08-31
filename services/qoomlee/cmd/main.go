@@ -15,6 +15,19 @@ import (
 	"github.com/AnuchitO/qoomlee/middleware"
 )
 
+// @title Qoomlee Booking Service API
+// @version 1.0
+// @description Flight search and booking endpoints for the Qoomlee Airline challenge. Monetary amounts appear as a *Minor/currency/* triple (integer satang / ISO code / display string) — never a JSON float.
+// @host localhost:9988
+// @BasePath /
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Opaque session bearer token (format: "Bearer <token>"). NOT a verified JWT — no signature check is performed; the raw token value is used to scope requests to an anonymous user.
+// @securitydefinitions.apikey InternalToken
+// @in header
+// @name X-Internal-Token
+// @description Shared secret used only by payment-service to call PUT /api/bookings/{bookingRef}/status. Not used by any client-facing route.
 func main() {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, nil)))
 
@@ -63,9 +76,24 @@ func main() {
 	)
 
 	// Health probes — no auth
+
+	// @Summary Liveness probe
+	// @Description Reports whether the process is up. Always returns 200 while the server is running; does not check downstream dependencies.
+	// @Tags Health
+	// @Produce json
+	// @Success 200 {object} object{status=string,service=string}
+	// @Router /health/live [get]
 	r.GET("/health/live", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "qoomlee-service"})
 	})
+
+	// @Summary Readiness probe
+	// @Description Reports whether the service is ready to accept traffic by pinging the database.
+	// @Tags Health
+	// @Produce json
+	// @Success 200 {object} object{status=string,service=string}
+	// @Failure 503 {object} object{status=string,service=string,error=string}
+	// @Router /health/ready [get]
 	r.GET("/health/ready", func(c *gin.Context) {
 		if err := db.PingContext(c.Request.Context()); err != nil {
 			slog.Error("readiness check failed", "err", err)

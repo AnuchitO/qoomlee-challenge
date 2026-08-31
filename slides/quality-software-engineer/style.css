@@ -1,0 +1,302 @@
+/* Clean, card-based, "Studio" theme — Material/Slides-inspired in spirit only.
+   Original tokens, original component classes. Not affiliated with or endorsed by Google. */
+:root {
+  --qse-primary: #3B82F6;
+  --qse-primary-light: #60A5FA;
+  --qse-secondary: #8B5CF6;
+  --qse-red: #EF4444;
+  --qse-yellow: #F59E0B;
+  --qse-green: #10B981;
+  --qse-teal: #14B8A6;
+  --qse-coral: #FB7185;
+  --qse-bg: #FFFFFF;
+  --qse-text: #1F2937;
+  --qse-text-muted: #6B7280;
+  --qse-surface: #F9FAFB;
+  --qse-surface-2: #F3F4F6;
+  --qse-border: #E5E7EB;
+  --qse-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+  --qse-radius: 12px;
+  --slidev-theme-primary: #3B82F6;
+}
+
+.dark {
+  --qse-bg: #0D0F17;
+  --qse-text: #F3F4F6;
+  --qse-text-muted: #A5A8BB;
+  --qse-surface: #1B1D29;
+  --qse-surface-2: #262838;
+  --qse-border: #383B52;
+  /* Elevation shadow: soft black falloff for depth + a hairline top
+     highlight (like light catching a glass edge) — used by every card. */
+  --qse-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 14px 32px -10px rgba(0,0,0,0.55), 0 2px 10px rgba(0,0,0,0.35);
+  /* Brighter, more saturated accents so they pop against the dark surface
+     instead of reading muted/flat — same hues as light mode, lifted. */
+  --qse-primary: #5B9DFF;
+  --qse-primary-light: #8AB8FF;
+  --qse-secondary: #B08CFF;
+  --qse-red: #FF7A7A;
+  --qse-yellow: #FDC55B;
+  --qse-green: #3DDC9B;
+  --qse-teal: #35E0CB;
+  --qse-coral: #FF93A4;
+}
+
+/* --- Dark mode: "engineering blueprint at night" ---
+   A deep charcoal-navy canvas, two quiet accent-tinted glows anchored in
+   opposite corners, and a faint drafting grid — a nod to the deck's own
+   subject (designing/engineering the SDLC), not a generic near-black theme.
+   Cards float as soft frosted glass above it. Light mode is untouched. */
+.dark .slidev-layout {
+  background:
+    radial-gradient(1000px 640px at 4% -10%, color-mix(in srgb, var(--qse-primary) 20%, transparent), transparent 62%),
+    radial-gradient(900px 620px at 104% 112%, color-mix(in srgb, var(--qse-secondary) 16%, transparent), transparent 62%),
+    repeating-linear-gradient(0deg, color-mix(in srgb, var(--qse-primary-light) 6%, transparent) 0, color-mix(in srgb, var(--qse-primary-light) 6%, transparent) 1px, transparent 1px, transparent 160px),
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--qse-primary-light) 6%, transparent) 0, color-mix(in srgb, var(--qse-primary-light) 6%, transparent) 1px, transparent 1px, transparent 160px),
+    repeating-linear-gradient(0deg, color-mix(in srgb, var(--qse-primary-light) 3%, transparent) 0, color-mix(in srgb, var(--qse-primary-light) 3%, transparent) 1px, transparent 1px, transparent 40px),
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--qse-primary-light) 3%, transparent) 0, color-mix(in srgb, var(--qse-primary-light) 3%, transparent) 1px, transparent 1px, transparent 40px),
+    var(--qse-bg);
+}
+
+/* Frosted-glass surfaces: translucent + blurred so the ambient glow reads
+   faintly through every card, tying the whole slide together. */
+.dark .qse-card,
+.dark .qse-timeline-item,
+.dark .qse-loop-card {
+  background: color-mix(in srgb, var(--qse-surface) 84%, transparent);
+  border-color: color-mix(in srgb, var(--qse-border) 100%, white 8%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.dark .qse-loop-back-label {
+  background: color-mix(in srgb, var(--qse-surface) 90%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Each loop card / icon glows in its own stage color, like a lit node on
+   a circuit board — the SDLC loop reads as an actual pipeline, not flat icons. */
+.dark .qse-loop-card {
+  box-shadow: var(--qse-shadow), 0 0 26px -6px color-mix(in srgb, var(--c, var(--qse-primary)) 55%, transparent);
+  border-color: color-mix(in srgb, var(--c, var(--qse-border)) 32%, var(--qse-border));
+}
+.dark .qse-loop-icon {
+  box-shadow: 0 0 16px color-mix(in srgb, var(--c) 60%, transparent);
+}
+.dark .qse-state-pill,
+.dark .qse-decision-badge {
+  box-shadow: 0 0 16px color-mix(in srgb, var(--c, var(--qse-secondary)) 32%, transparent);
+}
+
+/* Pills get a visible tinted edge instead of a flat wash — reads as a chip,
+   not a smudge, against the darker surface. */
+.dark .qse-pill-sdet, .dark .qse-pill-qe { border: 1px solid transparent; }
+.dark .qse-pill-sdet { background: color-mix(in srgb, var(--qse-primary) 26%, var(--qse-surface)); border-color: color-mix(in srgb, var(--qse-primary) 45%, transparent); }
+.dark .qse-pill-qe   { background: color-mix(in srgb, var(--qse-secondary) 26%, var(--qse-surface)); border-color: color-mix(in srgb, var(--qse-secondary) 45%, transparent); }
+
+/* Section "beacon" — a small glowing status dot ahead of every eyebrow
+   kicker, the deck's one recurring signature motif in dark mode. */
+.dark .qse-eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 7px;
+  margin-bottom: 1px;
+  border-radius: 999px;
+  vertical-align: middle;
+  background: var(--qse-primary);
+  box-shadow: 0 0 2px var(--qse-primary), 0 0 10px color-mix(in srgb, var(--qse-primary) 80%, transparent);
+}
+
+/* A whisper of ambient glow behind every headline, tying titles to the
+   same light source as the loop nodes — subtle enough not to fight copy. */
+.dark h1 {
+  text-shadow: 0 0 44px color-mix(in srgb, var(--qse-primary) 24%, transparent);
+}
+
+/* Screenshots/diagrams are flat white source images — mount them on a
+   frosted card rather than let them float as bright rectangles. */
+.dark .slidev-layout img.rounded-lg {
+  box-sizing: border-box;
+  padding: 14px;
+  background: var(--qse-surface);
+  border: 1px solid var(--qse-border);
+  border-radius: calc(var(--qse-radius) + 6px);
+  box-shadow: var(--qse-shadow);
+}
+
+h1 { font-weight: 700; letter-spacing: -0.02em; color: var(--qse-text); }
+h2, h3 { font-weight: 600; color: var(--qse-text); }
+p, li, td, th { color: var(--qse-text); }
+
+.qse-card {
+  background: var(--qse-surface);
+  border: 1px solid var(--qse-border);
+  border-radius: var(--qse-radius);
+  padding: 0.75rem 1rem;
+  box-shadow: var(--qse-shadow);
+}
+.qse-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.qse-text-primary { color: var(--qse-primary); }
+.qse-text-red { color: var(--qse-red); }
+.qse-text-green { color: var(--qse-green); }
+.qse-text-yellow { color: var(--qse-yellow); }
+.qse-text-secondary { color: var(--qse-secondary); }
+.qse-text-muted { color: var(--qse-text-muted); }
+.qse-bg-primary { background: var(--qse-primary); color: white; border-radius: 8px; }
+.qse-bg-surface { background: var(--qse-surface); border-radius: var(--qse-radius); }
+.qse-bg-surface-2 { background: var(--qse-surface-2); border-radius: var(--qse-radius); }
+.qse-bar { border-radius: 4px 4px 0 0; }
+
+table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+th, td { padding: 0.4rem 0.6rem; text-align: left; border-bottom: 1px solid var(--qse-border); }
+th { font-weight: 600; background: var(--qse-surface); }
+
+.slidev-layout { overflow: hidden; padding: 2rem 2.5rem; background: var(--qse-bg); color: var(--qse-text); }
+body { background: var(--qse-bg); }
+
+/* --- Studio system additions --- */
+
+/* Three-dot accent motif — violet/teal/coral, intentionally NOT the
+   blue-red-yellow-green four-color sequence associated with Google's logo. */
+.qse-dots { display: flex; gap: 0.4rem; align-items: center; }
+.qse-dots span {
+  width: 10px; height: 10px; border-radius: 999px; display: inline-block;
+}
+.qse-dots span:nth-child(1) { background: var(--qse-secondary); }
+.qse-dots span:nth-child(2) { background: var(--qse-teal); }
+.qse-dots span:nth-child(3) { background: var(--qse-coral); }
+
+.qse-eyebrow {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--qse-primary);
+  margin-bottom: 0.5rem;
+}
+
+.qse-pill-sdet, .qse-pill-qe {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+.qse-pill-sdet { background: color-mix(in srgb, var(--qse-primary) 16%, transparent); color: var(--qse-primary); }
+.qse-pill-qe   { background: color-mix(in srgb, var(--qse-secondary) 16%, transparent); color: var(--qse-secondary); }
+
+.qse-timeline { display: flex; flex-direction: column; gap: 0.28rem; }
+.qse-timeline-item {
+  display: grid;
+  grid-template-columns: 84px 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--qse-surface);
+  border: 1px solid var(--qse-border);
+  border-left: 3px solid var(--qse-primary);
+  border-radius: 8px;
+  padding: 0.28rem 0.75rem;
+  font-size: 0.78rem;
+}
+.qse-timeline-item .time { font-weight: 700; color: var(--qse-text-muted); font-size: 0.72rem; }
+.qse-timeline-item.is-break { border-left-color: var(--qse-border); opacity: 0.7; }
+.qse-timeline-item.is-qe { border-left-color: var(--qse-secondary); }
+
+/* --- Reusable entrance / emphasis animation helpers --- */
+.qse-anim-in { opacity: 0; animation: qse-fade-up 0.7s cubic-bezier(.2,.8,.2,1) forwards; }
+.qse-anim-1 { animation-delay: 0.05s; }
+.qse-anim-2 { animation-delay: 0.25s; }
+.qse-anim-3 { animation-delay: 0.5s; }
+.qse-anim-4 { animation-delay: 0.9s; }
+.qse-anim-5 { animation-delay: 1.15s; }
+@keyframes qse-fade-up { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+@keyframes qse-pop { 0% { opacity: 0; transform: scale(0.6); } 70% { opacity: 1; transform: scale(1.15); } 100% { opacity: 1; transform: scale(1); } }
+.qse-pop { display: inline-block; opacity: 0; animation: qse-pop 0.5s cubic-bezier(.2,1.4,.4,1) forwards; animation-delay: 0.55s; }
+
+@keyframes qse-pulse-glow { 0%, 100% { opacity: 1; text-shadow: 0 0 0 transparent; } 50% { opacity: 0.82; text-shadow: 0 0 18px color-mix(in srgb, var(--qse-primary) 55%, transparent); } }
+.qse-pulse { animation: qse-pulse-glow 2.2s ease-in-out 1.6s infinite; }
+
+@keyframes qse-spin { to { transform: rotate(360deg); } }
+.qse-spin-loop { display: inline-block; animation: qse-spin 2.4s linear infinite; transform-origin: 50% 50%; }
+
+/* --- Reusable "pretty block" diagram system: colorful rounded step cards
+   connected by small animated flowing arrows, with an optional animated
+   dashed loop-back track underneath. Used by every diagram slide instead
+   of plain Mermaid rectangles. --- */
+.qse-loop-row { display: flex; align-items: center; justify-content: center; gap: 0; flex-wrap: nowrap; }
+.qse-loop-card {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 106px; height: 90px; gap: 6px; flex-shrink: 0;
+  border-radius: 20px;
+  background: var(--qse-surface);
+  border: 1px solid var(--qse-border);
+  box-shadow: var(--qse-shadow);
+  opacity: 0; animation: qse-card-in 0.5s cubic-bezier(.2,.9,.3,1) forwards;
+}
+.qse-loop-card.qse-loop-card-sm { width: 118px; height: 68px; border-radius: 16px; }
+.qse-loop-icon {
+  width: 38px; height: 38px; border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.15rem;
+  background: color-mix(in srgb, var(--c) 20%, transparent);
+}
+.qse-loop-label { font-size: 0.78rem; font-weight: 700; color: var(--qse-text); }
+@keyframes qse-card-in { from { opacity: 0; transform: translateY(10px) scale(0.85); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+.qse-loop-arrow-svg { width: 34px; height: 20px; flex-shrink: 0; overflow: visible; }
+.qse-loop-arrow-svg.qse-arrow-v { width: 20px; height: 30px; }
+.qse-flow-line { stroke: var(--qse-border); stroke-width: 2.5; stroke-dasharray: 4 4; animation: qse-dash-flow 0.7s linear infinite; }
+.qse-flow-head { fill: none; stroke: var(--qse-text-muted); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+@keyframes qse-dash-flow { to { stroke-dashoffset: -16; } }
+
+.qse-loop-back-track {
+  position: relative;
+  height: 2px;
+  margin: 22px 66px 20px;
+  background-image: repeating-linear-gradient(to right, var(--qse-secondary) 0 6px, transparent 6px 12px);
+  background-size: 24px 2px;
+  animation: qse-dash-scroll 0.7s linear infinite;
+}
+@keyframes qse-dash-scroll { to { background-position: -24px 0; } }
+.qse-loop-back-arrowhead {
+  position: absolute; left: -1px; top: 50%; transform: translateY(-50%);
+  width: 0; height: 0;
+  border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+  border-right: 8px solid var(--qse-secondary);
+}
+.qse-loop-back-label {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  background: var(--qse-surface); padding: 3px 12px; border-radius: 999px;
+  font-size: 0.72rem; font-weight: 700; color: var(--qse-secondary);
+  border: 1px solid var(--qse-border); white-space: nowrap;
+}
+
+/* Colorful rounded state/status pill — for "state A -> state B" style diagrams */
+.qse-state-pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 100px; padding: 8px 14px;
+  border-radius: 999px; font-weight: 700; font-size: 0.82rem;
+  background: color-mix(in srgb, var(--c) 18%, var(--qse-surface));
+  color: var(--c);
+  border: 1px solid color-mix(in srgb, var(--c) 35%, var(--qse-border));
+}
+
+/* Decision badge — rounded diamond-ish shape for yes/no branch points */
+.qse-decision-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 10px 20px; border-radius: 16px;
+  background: color-mix(in srgb, var(--qse-secondary) 14%, var(--qse-surface));
+  border: 1.5px dashed var(--qse-secondary);
+  color: var(--qse-secondary); font-weight: 700; font-size: 0.85rem;
+}

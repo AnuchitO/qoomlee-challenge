@@ -30,6 +30,7 @@ Search Flights → Book a Seat → Pay → Get Confirmation
 |------|---------|
 | [`CHALLENGE.md`](CHALLENGE.md) | What to build, implementation hints, requirements |
 | [`API_SPECS.md`](API_SPECS.md) | Request/response contract for every endpoint |
+| [`docs/openapi/`](docs/openapi/) | OpenAPI specs, generated from code — run `make api-docs` for an interactive Swagger UI |
 | [`SCORECARD.md`](SCORECARD.md) | Scoring rubric — 100 pts across 4 pillars |
 | [`TECHNOLOGY_STACK_SUMMARY.md`](TECHNOLOGY_STACK_SUMMARY.md) | Stack reference, Go patterns, env vars |
 
@@ -67,6 +68,22 @@ TOKEN=$(make jwt-token -s)
 curl -H "Authorization: Bearer $TOKEN" \
   "http://localhost:9988/api/flights/search?origin=BKK&destination=SIN&date=2026-06-15"
 ```
+
+---
+
+## API Documentation (Swagger)
+
+The OpenAPI spec for each service is generated straight from `swag` doc-comments above the real handler functions — not hand-written — so it can't drift out of sync with the code the way a separately maintained spec would.
+
+```bash
+make api-docs        # regenerate docs/openapi/*.yaml from the current code, serve via Swagger UI, open browser
+make api-docs-gen     # just regenerate docs/openapi/*.yaml, no server
+make api-docs-stop    # stop the Swagger UI container
+```
+
+`make api-docs` opens **http://localhost:9990** with a dropdown to switch between the qoomlee-service and payment-service specs. Requires Docker; installs the `swag` CLI on first run if it isn't already on your `PATH`.
+
+To keep the docs accurate as you build: add/update the `// @Summary`, `// @Router`, `// @Success`, etc. comments directly above a handler whenever you change its behavior, then re-run `make api-docs`.
 
 ---
 

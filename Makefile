@@ -563,6 +563,49 @@ walk:
 	@echo ""
 
 # ====================================================================================
+# API DOCUMENTATION
+# ====================================================================================
+DOCS_PORT      ?= 9990
+DOCS_CONTAINER := qoomlee-swagger-ui
+SWAG           := $(shell command -v swag 2>/dev/null || echo "$(shell go env GOPATH)/bin/swag")
+
+.PHONY: api-docs-gen # Regenerate OpenAPI specs from swag annotations in the handler code (docs/openapi/*.yaml)
+api-docs-gen:
+	@command -v $(SWAG) >/dev/null 2>&1 || \
+	  (echo -e "$(CYAN)→$(RESET)  installing swag (OpenAPI generator)" && \
+	   go install github.com/swaggo/swag/cmd/swag@latest)
+	@echo -e "$(BOLD)Generating OpenAPI specs from code annotations...$(RESET)"
+	@rm -rf docs/openapi/.gen-qoomlee docs/openapi/.gen-payment
+	@cd services/qoomlee && $(SWAG) init -g cmd/main.go -o ../../docs/openapi/.gen-qoomlee --outputTypes yaml --parseFuncBody -q
+	@cd services/payment && $(SWAG) init -g cmd/main.go -o ../../docs/openapi/.gen-payment --outputTypes yaml --parseFuncBody -q
+	@mv docs/openapi/.gen-qoomlee/swagger.yaml docs/openapi/qoomlee-service.yaml
+	@mv docs/openapi/.gen-payment/swagger.yaml docs/openapi/payment-service.yaml
+	@rm -rf docs/openapi/.gen-qoomlee docs/openapi/.gen-payment
+	@echo -e "  $(GREEN)✓$(RESET)  docs/openapi/qoomlee-service.yaml"
+	@echo -e "  $(GREEN)✓$(RESET)  docs/openapi/payment-service.yaml"
+
+.PHONY: api-docs # Regenerate OpenAPI specs from code, serve them at http://localhost:9990, and open it
+api-docs: api-docs-gen
+	@command -v docker >/dev/null 2>&1 || \
+	  (echo -e "$(RED)docker not found — required to serve Swagger UI$(RESET)" && exit 1)
+	@echo -e "$(BOLD)Starting Swagger UI...$(RESET)"
+	@docker rm -f $(DOCS_CONTAINER) >/dev/null 2>&1 || true
+	@docker run -d --name $(DOCS_CONTAINER) \
+	  -p $(DOCS_PORT):8080 \
+	  -e URLS='[{"name":"Qoomlee Service (flights + bookings)","url":"/specs/qoomlee-service.yaml"},{"name":"Payment Service","url":"/specs/payment-service.yaml"}]' \
+	  -v $(CURDIR)/docs/openapi:/usr/share/nginx/html/specs:ro \
+	  swaggerapi/swagger-ui >/dev/null
+	@echo -e "  $(GREEN)✓$(RESET)  Swagger UI running at http://localhost:$(DOCS_PORT)"
+	@(open http://localhost:$(DOCS_PORT) 2>/dev/null || xdg-open http://localhost:$(DOCS_PORT) 2>/dev/null || \
+	  echo -e "  $(CYAN)→$(RESET)  open http://localhost:$(DOCS_PORT) in your browser")
+
+.PHONY: api-docs-stop # Stop the Swagger UI container started by 'make api-docs'
+api-docs-stop:
+	@docker rm -f $(DOCS_CONTAINER) >/dev/null 2>&1 && \
+	  echo -e "  $(GREEN)✓$(RESET)  Swagger UI stopped" || \
+	  echo -e "  $(DIM)Swagger UI was not running$(RESET)"
+
+# ====================================================================================
 # UTILITIES
 # ====================================================================================
 .PHONY: versions # Show installed tool versions

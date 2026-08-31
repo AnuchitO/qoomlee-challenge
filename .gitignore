@@ -33,6 +33,9 @@ infra/k8s/**/secret.payment.env
 **/*.out
 **/coverage.xml
 
+# OpenAPI docs — generated from swag annotations, run `make api-docs-gen`
+docs/openapi/*.yaml
+
 # IDE
 .idea/
 .vscode/

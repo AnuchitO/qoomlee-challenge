@@ -25,6 +25,16 @@ func apiErr(code, message string) gin.H {
 }
 
 // GetByBookingRef handles GET /api/payments/:bookingRef
+// @Summary Get payment receipt by booking reference
+// @Description Returns the payment record for a booking reference. Covers both succeeded and failed payment states: failureCode/failureMessage are populated (omitempty) only for a failed payment, and paidAt is non-null only once the payment has succeeded.
+// @Tags Payments
+// @Produce json
+// @Security BearerAuth
+// @Param bookingRef path string true "Booking reference"
+// @Success 200 {object} payment.ReceiptResponse
+// @Failure 401 {object} object{error=string,message=string} "UNAUTHORIZED"
+// @Failure 404 {object} object{error=string,message=string} "NOT_FOUND — no payment record exists for this booking reference"
+// @Router /api/payments/{bookingRef} [get]
 func (h *Handler) GetByBookingRef(c *gin.Context) {
 	ref := c.Param("bookingRef")
 
@@ -59,6 +69,21 @@ func (h *Handler) GetByBookingRef(c *gin.Context) {
 }
 
 // Charge handles POST /api/payments/charge
+// @Summary Charge a booking with a card
+// @Description Charges the given booking by tokenizing and charging the supplied raw card fields server-side via Omise, then marks the booking confirmed on success. Rate limited per client IP to 10 requests/second sustained with a burst of 20; requests beyond that are rejected with 429. Test cards: 4242424242424242 (success), 4111111111111111 (decline, insufficient_fund).
+// @Tags Payments
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body payment.ChargeRequest true "Charge request (raw card fields — tokenized server-side, never sent to the client)"
+// @Success 201 {object} payment.ChargeResponse
+// @Failure 400 {object} object{error=string,message=string} "MISSING_REQUIRED_FIELD (bookingRef, cardNumber, expirationMonth/expirationYear, or amountMinor missing) or AMOUNT_MISMATCH (amountMinor/currency does not match the booking total)"
+// @Failure 401 {object} object{error=string,message=string} "UNAUTHORIZED"
+// @Failure 402 {object} object{error=string,failureCode=string,failureMessage=string} "PAYMENT_FAILED — card declined by the provider"
+// @Failure 409 {object} object{error=string,message=string} "Two distinct shapes: booking_expired -> {\"error\":\"booking_expired\"} (no message field, seat hold expired); ALREADY_PAID -> {\"error\":\"ALREADY_PAID\",\"message\":...} (booking already paid)"
+// @Failure 429 {object} object{error=string,message=string} "RATE_LIMIT_EXCEEDED — per-IP limit of 10 req/s (burst 20) exceeded"
+// @Failure 500 {object} object{error=string,message=string} "INTERNAL_ERROR"
+// @Router /api/payments/charge [post]
 func (h *Handler) Charge(c *gin.Context) {
 	var req ChargeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

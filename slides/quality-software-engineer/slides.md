@@ -36,6 +36,22 @@ src: ./pages/02-day1.md
 ---
 
 ---
+src: ./pages/02a-pre-commit.md
+---
+
+---
+src: ./pages/03a-test-pyramid.md
+---
+
+---
+src: ./pages/03b-pyramid-folders.md
+---
+
+---
+src: ./pages/03c-pyramid-folders-side.md
+---
+
+---
 src: ./pages/03-day2.md
 ---
 

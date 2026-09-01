@@ -1,0 +1,1389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Payment Page Test Pyramid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  img{max-width:100%;}
+  :root{
+    --ink:#101820;
+    --ink-soft:#4c5c66;
+    --ink-faint:#7c8b94;
+    --paper:#eef2f5;
+    --surface:#ffffff;
+    --line:#d7dee3;
+    --line-soft:#e6ebee;
+    --teal:#0b7285;
+    --teal-tint:#e2f1f3;
+    --amber:#a3660a;
+    --amber-tint:#f6ecd9;
+    --coral:#b83f28;
+    --coral-tint:#f6e4df;
+    --green:#28794a;
+    --green-tint:#dfeee3;
+    --shadow: 0 1px 2px rgba(16,24,32,.04), 0 8px 24px rgba(16,24,32,.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#e9eef1;
+      --ink-soft:#aab6bd;
+      --ink-faint:#7c8b94;
+      --paper:#0c1216;
+      --surface:#121a1f;
+      --line:#25313a;
+      --line-soft:#1b262d;
+      --teal:#49c3d6;
+      --teal-tint:#122a2f;
+      --amber:#e7b25b;
+      --amber-tint:#2c2213;
+      --coral:#e97a5f;
+      --coral-tint:#301c17;
+      --green:#6bcf8e;
+      --green-tint:#122a1c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 28px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#e9eef1;
+    --ink-soft:#aab6bd;
+    --ink-faint:#7c8b94;
+    --paper:#0c1216;
+    --surface:#121a1f;
+    --line:#25313a;
+    --line-soft:#1b262d;
+    --teal:#49c3d6;
+    --teal-tint:#122a2f;
+    --amber:#e7b25b;
+    --amber-tint:#2c2213;
+    --coral:#e97a5f;
+    --coral-tint:#301c17;
+    --green:#6bcf8e;
+    --green-tint:#122a1c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 28px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+    font-size:16px;
+    line-height:1.6;
+  }
+  ::selection{ background:var(--teal); color:#fff; }
+
+  h1,h2,h3{
+    font-family:"Archivo", ui-sans-serif, system-ui, sans-serif;
+    color:var(--ink);
+    text-wrap:balance;
+    line-height:1.15;
+    margin:0;
+  }
+  a{ color:var(--teal); }
+  code, pre, kbd{ font-family:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace; }
+  .tnum{ font-variant-numeric:tabular-nums; }
+
+  /* ---------- shell ---------- */
+  .shell{ max-width:820px; margin:0 auto; padding:0 24px 96px; }
+
+  header.hero{
+    max-width:820px; margin:0 auto; padding:56px 24px 28px;
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:"IBM Plex Mono", monospace;
+    font-size:12.5px; font-weight:500; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--teal);
+  }
+  .eyebrow::before{ content:""; width:7px; height:7px; border-radius:1px; background:var(--teal); transform:rotate(45deg); flex:none; }
+  h1.title{ font-size:clamp(30px, 4.6vw, 42px); font-weight:800; margin-top:10px; letter-spacing:-.01em; }
+  .dek{ margin-top:14px; color:var(--ink-soft); font-size:17px; max-width:62ch; }
+  .dek b{ color:var(--ink); font-weight:600; }
+
+  .stat-strip{
+    display:flex; flex-wrap:wrap; gap:0;
+    margin-top:28px; border:1px solid var(--line); border-radius:10px; overflow:hidden;
+    background:var(--surface); box-shadow:var(--shadow);
+  }
+  .stat{
+    flex:1 1 120px; padding:14px 18px; border-right:1px solid var(--line);
+  }
+  .stat:last-child{ border-right:none; }
+  .stat .n{ font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:22px; }
+  .stat .l{ font-size:12.5px; color:var(--ink-faint); margin-top:2px; }
+
+  /* ---------- sticky layer nav ---------- */
+  nav.layers{
+    position:sticky; top:0; z-index:20;
+    background:color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter:blur(8px) saturate(1.1);
+    border-bottom:1px solid var(--line);
+    margin-top:36px;
+  }
+  nav.layers .row{
+    max-width:820px; margin:0 auto; padding:0 24px;
+    display:flex; gap:4px; overflow-x:auto; scrollbar-width:none;
+  }
+  nav.layers .row::-webkit-scrollbar{ display:none; }
+  nav.layers a{
+    flex:none; display:flex; align-items:center; gap:7px;
+    padding:12px 4px; margin-right:22px;
+    font-size:13.5px; font-weight:600; color:var(--ink-soft); text-decoration:none;
+    border-bottom:2px solid transparent;
+    white-space:nowrap;
+  }
+  nav.layers a:hover{ color:var(--ink); }
+  nav.layers a .dot{ width:8px; height:8px; border-radius:50%; flex:none; }
+  nav.layers a[data-l="e2e"] .dot{ background:var(--coral); }
+  nav.layers a[data-l="component"] .dot{ background:var(--amber); }
+  nav.layers a[data-l="contract"] .dot{ background:var(--teal); }
+  nav.layers a[data-l="unit"] .dot{ background:var(--green); }
+
+  section{ padding-top:52px; }
+  section#story{ padding-top:40px; }
+  .rule{ border:none; border-top:1px solid var(--line); margin:52px 0 0; }
+
+  h2.h{
+    font-size:23px; font-weight:700; display:flex; align-items:baseline; gap:12px;
+  }
+  h2.h .idx{
+    font-family:"IBM Plex Mono",monospace; font-size:14px; font-weight:500;
+    color:var(--ink-faint); border:1px solid var(--line); border-radius:6px;
+    padding:2px 7px;
+  }
+  .lede{ color:var(--ink-soft); margin-top:12px; max-width:64ch; font-size:15.5px; }
+  .lede code{ font-size:.92em; }
+
+  /* ---------- generic inline code ---------- */
+  p code, li code, td code, .lede code{
+    background:var(--line-soft); border:1px solid var(--line);
+    border-radius:5px; padding:.1em .4em; font-size:.87em; color:var(--ink);
+  }
+
+  /* ---------- ticket / AC card ---------- */
+  .ticket{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    box-shadow:var(--shadow); margin-top:20px; overflow:hidden;
+  }
+  .ticket .stub-head{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 20px; border-bottom:1px dashed var(--line);
+    background:var(--line-soft);
+  }
+  .ticket .stub-head span{ font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.04em; color:var(--ink-faint); text-transform:uppercase; }
+  .ticket .stub-head b{ font-family:"IBM Plex Mono",monospace; color:var(--teal); font-size:13px; }
+  .gwt{ padding:18px 20px 22px; display:grid; gap:16px; }
+  .gwt .line{ display:grid; grid-template-columns:64px 1fr; gap:14px; font-size:15px; }
+  .gwt .tag{ font-family:"IBM Plex Mono",monospace; font-size:11.5px; font-weight:600; letter-spacing:.05em; color:var(--teal); padding-top:2px; }
+  .gwt p{ margin:0; color:var(--ink); }
+  .gwt .then p{ color:var(--ink-soft); }
+
+  /* ---------- pyramid bars ---------- */
+  .pyramid{
+    margin-top:18px; background:var(--surface); border:1px solid var(--line);
+    border-radius:12px; box-shadow:var(--shadow); padding:22px 22px 18px;
+  }
+  .prow{ display:grid; grid-template-columns:150px 1fr 74px; align-items:center; gap:14px; padding:9px 0; }
+  .prow + .prow{ border-top:1px solid var(--line-soft); }
+  .prow .name{ font-weight:600; font-size:14px; }
+  .prow .tool{ display:block; font-size:11.5px; color:var(--ink-faint); font-weight:400; margin-top:1px; }
+  .prow .track{ height:14px; background:var(--line-soft); border-radius:4px; overflow:hidden; }
+  .prow .bar{ height:100%; border-radius:4px; }
+  .prow .count{ font-family:"IBM Plex Mono",monospace; text-align:right; font-weight:600; font-size:15px; }
+  .prow[data-l="e2e"] .bar{ background:var(--coral); }
+  .prow[data-l="component"] .bar{ background:var(--amber); }
+  .prow[data-l="contract"] .bar{ background:var(--teal); }
+  .prow[data-l="unit"] .bar{ background:var(--green); }
+  .pyramid .footnote{ margin-top:14px; padding-top:12px; border-top:1px solid var(--line-soft); color:var(--ink-faint); font-size:13px; }
+
+  /* ---------- tables ---------- */
+  .twrap{ overflow-x:auto; margin-top:18px; border:1px solid var(--line); border-radius:10px; box-shadow:var(--shadow); }
+  table{ width:100%; border-collapse:collapse; background:var(--surface); font-size:14.5px; }
+  th, td{ text-align:left; padding:11px 16px; border-bottom:1px solid var(--line-soft); vertical-align:top; }
+  thead th{
+    font-family:"IBM Plex Mono",monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+    color:var(--ink-faint); font-weight:600; background:var(--line-soft); white-space:nowrap;
+  }
+  tbody tr:last-child td{ border-bottom:none; }
+  td.num{ font-family:"IBM Plex Mono",monospace; color:var(--ink-faint); width:34px; }
+  .badge{
+    display:inline-block; font-size:11.5px; font-weight:600; padding:2px 8px; border-radius:99px;
+    white-space:nowrap;
+  }
+  .badge.field{ background:var(--amber-tint); color:var(--amber); }
+  .badge.state{ background:var(--teal-tint); color:var(--teal); }
+
+  /* ---------- code panels ---------- */
+  .codeblock{
+    margin-top:18px; border-radius:12px; overflow:hidden;
+    background:#0d1418; box-shadow:var(--shadow); border:1px solid #1c2830;
+  }
+  .codeblock .bar-top{ height:3px; }
+  .codeblock[data-l="e2e"] .bar-top{ background:var(--coral); }
+  .codeblock[data-l="component"] .bar-top{ background:var(--amber); }
+  .codeblock[data-l="contract"] .bar-top{ background:var(--teal); }
+  .codeblock[data-l="unit"] .bar-top{ background:var(--green); }
+  .codeblock .filebar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:9px 14px; background:#101b20; border-bottom:1px solid #1c2830;
+  }
+  .codeblock .filebar .fname{
+    font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:#a9c1c9;
+  }
+  .codeblock .filebar .lang{
+    font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase;
+    color:#5f7680; margin-right:10px;
+  }
+  .copy-btn{
+    font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:#a9c1c9;
+    background:#182329; border:1px solid #253439; border-radius:6px;
+    padding:4px 10px; cursor:pointer; line-height:1;
+  }
+  .copy-btn:hover{ background:#1e2c33; }
+  .copy-btn:focus-visible, a:focus-visible, .layers a:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
+  .codeblock pre{
+    margin:0; padding:16px 18px; overflow-x:auto; font-size:13px; line-height:1.65;
+    color:#dce7ea;
+  }
+  .codeblock code{ font-family:"IBM Plex Mono",monospace; background:none; }
+  .codeblock details{ border-top:1px dashed #1c2830; }
+  .codeblock details summary{
+    cursor:pointer; list-style:none; padding:10px 18px; font-size:12.5px;
+    color:#7d95a0; font-family:"IBM Plex Mono",monospace; user-select:none;
+  }
+  .codeblock details summary::-webkit-details-marker{ display:none; }
+  .codeblock details summary::before{ content:"▸ "; color:#5f7680; }
+  .codeblock details[open] summary::before{ content:"▾ "; }
+  .codeblock details pre{ padding-top:0; }
+
+  /* highlight.js token colors, tuned to this palette */
+  .hljs-keyword,.hljs-built_in,.hljs-type{ color:#7fd4e0; }
+  .hljs-string{ color:#c7d989; }
+  .hljs-number,.hljs-literal{ color:#e2a34b; }
+  .hljs-comment{ color:#5f7680; font-style:italic; }
+  .hljs-title,.hljs-title.function_{ color:#e9b7ff; }
+  .hljs-attr,.hljs-property,.hljs-variable{ color:#9fc7ff; }
+  .hljs-title.class_{ color:#7fd4e0; }
+  .hljs-punctuation,.hljs-operator{ color:#a9c1c9; }
+  .hljs-meta{ color:#5f7680; }
+  .hljs-params{ color:#dce7ea; }
+
+  .after-code{ margin-top:14px; color:var(--ink-soft); font-size:14.5px; }
+
+  .callout{
+    margin-top:18px; padding:14px 18px; border-radius:10px;
+    border:1px solid var(--line); background:var(--surface);
+    display:grid; grid-template-columns:auto 1fr; gap:12px; font-size:14.5px;
+  }
+  .callout .k{
+    font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--amber); font-weight:700; padding-top:2px;
+  }
+  .callout p{ margin:0; color:var(--ink-soft); }
+  .callout p + p{ margin-top:8px; }
+
+  h3.sub{ font-size:16.5px; font-weight:700; margin-top:34px; display:flex; align-items:center; gap:9px; }
+  h3.sub .chip{ width:9px; height:9px; border-radius:2px; transform:rotate(45deg); flex:none; }
+  h3.sub[data-l="e2e"] .chip{ background:var(--coral); }
+  h3.sub[data-l="field"] .chip{ background:var(--amber); }
+  h3.sub[data-l="state"] .chip{ background:var(--teal); }
+  h3.sub[data-l="contract"] .chip{ background:var(--teal); }
+  h3.sub[data-l="go"] .chip{ background:var(--green); }
+  h3.sub[data-l="ts"] .chip{ background:var(--green); }
+  h3.sub .path{ font-family:"IBM Plex Mono",monospace; font-weight:400; font-size:13px; color:var(--ink-faint); }
+
+  footer.totals{
+    margin-top:52px; padding:26px 26px; border-radius:14px;
+    background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow);
+  }
+  footer.totals .sum{ font-family:"IBM Plex Mono",monospace; font-size:15px; }
+  footer.totals .sum b{ color:var(--teal); }
+  footer.totals p{ margin:10px 0 0; color:var(--ink-soft); font-size:14.5px; max-width:62ch; }
+
+  @media (max-width:600px){
+    .prow{ grid-template-columns:104px 1fr 44px; gap:10px; }
+    .gwt .line{ grid-template-columns:52px 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <span class="eyebrow">QML-028 · Pay for a Booking</span>
+  <h1 class="title">Payment Page Test Pyramid</h1>
+  <p class="dek">
+    Anchored on payment-service's <code>Service.Charge</code> and its web
+    counterpart — both shipped, both <b>real money and seat-inventory risk</b>,
+    both currently untested at every layer.
+  </p>
+  <div class="stat-strip">
+    <div class="stat"><div class="n tnum">36</div><div class="l">new test cases</div></div>
+    <div class="stat"><div class="n tnum">37</div><div class="l">in the finished suite</div></div>
+    <div class="stat"><div class="n tnum">4</div><div class="l">layers</div></div>
+    <div class="stat"><div class="n tnum">0</div><div class="l">tests today</div></div>
+  </div>
+</header>
+
+<nav class="layers">
+  <div class="row">
+    <a href="#story"><span class="dot" style="background:var(--ink-faint)"></span>Story</a>
+    <a href="#pyramid"><span class="dot" style="background:var(--ink-faint)"></span>Pyramid</a>
+    <a href="#e2e" data-l="e2e"><span class="dot"></span>E2E</a>
+    <a href="#component" data-l="component"><span class="dot"></span>Component</a>
+    <a href="#contract" data-l="contract"><span class="dot"></span>Contract</a>
+    <a href="#unit" data-l="unit"><span class="dot"></span>Unit</a>
+    <a href="#totals"><span class="dot" style="background:var(--ink-faint)"></span>Totals</a>
+  </div>
+</nav>
+
+<div class="shell">
+
+  <section id="story">
+    <h2 class="h">Story</h2>
+    <p class="lede">As a passenger, I want to pay for a pending booking so that my seat is
+      confirmed and I receive payment proof.</p>
+
+    <div class="ticket">
+      <div class="stub-head"><span>Acceptance criteria</span><b>QML-028 · existing</b></div>
+      <div class="gwt">
+        <div class="line"><span class="tag">GIVEN</span><p>I have a <code>PENDING</code> booking</p></div>
+        <div class="line"><span class="tag">WHEN</span><p>I open the payment page</p></div>
+        <div class="line then"><span class="tag">THEN</span><p>the booking reference and total amount due are shown before I enter card details</p></div>
+      </div>
+      <div class="gwt" style="border-top:1px solid var(--line-soft); padding-top:4px;">
+        <div class="line"><span class="tag">GIVEN</span><p>I submit valid card details</p></div>
+        <div class="line"><span class="tag">WHEN</span><p>the charge succeeds</p></div>
+        <div class="line then"><span class="tag">THEN</span><p>I see a success confirmation and the booking status updates to <code>CONFIRMED</code></p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pyramid">
+    <h2 class="h">Test pyramid for this story</h2>
+    <p class="lede">Bottom-heavy on purpose — cheap unit and component tests carry the
+      guard-clause and validation logic; E2E only proves the wiring holds together once.</p>
+    <p class="lede"><b style="color:var(--ink)">Naming convention:</b> every test name in this
+      page is taken verbatim from its case row in the table above it, so the mapping from
+      case → test → code needs no cross-referencing by number.</p>
+
+    <div class="pyramid">
+      <div class="prow" data-l="e2e">
+        <div class="name">E2E<span class="tool">Playwright</span></div>
+        <div class="track"><div class="bar" style="width:11%"></div></div>
+        <div class="count tnum">2</div>
+      </div>
+      <div class="prow" data-l="component">
+        <div class="name">Component<span class="tool">Vitest + Testing Library</span></div>
+        <div class="track"><div class="bar" style="width:67%"></div></div>
+        <div class="count tnum">12</div>
+      </div>
+      <div class="prow" data-l="contract">
+        <div class="name">Contract<span class="tool">Robot Framework</span></div>
+        <div class="track"><div class="bar" style="width:22%"></div></div>
+        <div class="count tnum">4</div>
+      </div>
+      <div class="prow" data-l="unit">
+        <div class="name">Unit<span class="tool">Go testing · Vitest</span></div>
+        <div class="track"><div class="bar" style="width:100%"></div></div>
+        <div class="count tnum">18</div>
+      </div>
+      <div class="footnote">Bar length ∝ new-case count. Contract's 4 exclude the 1 happy-path case that already exists; Unit's 18 include 1 (pricing) written up but deferred.</div>
+    </div>
+
+    <div class="twrap">
+      <table>
+        <thead><tr><th>Layer</th><th>What it proves</th><th>Lives in</th></tr></thead>
+        <tbody>
+          <tr><td><b>E2E</b></td><td>The real happy path works end-to-end, across the real backend</td><td><code>app/web/e2e/payment.spec.ts</code></td></tr>
+          <tr><td><b>Component</b></td><td>Field validation + page-state rendering, in isolation</td><td><code>app/web/app/payment/*.test.ts(x)</code></td></tr>
+          <tr><td><b>Contract</b></td><td>payment-service and qoomlee-service agree on booking state</td><td><code>contract/booking_payment_contract.robot</code></td></tr>
+          <tr><td><b>Unit</b></td><td>Pure business logic, no I/O</td><td><code>service_test.go</code>, <code>cardFormatting.test.ts</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section id="e2e">
+    <h2 class="h"><span class="idx tnum">1</span>E2E — happy path only</h2>
+    <p class="lede"><b style="color:var(--ink)">Pattern: Given / When / Then.</b> No per-field
+      validation here — that's the Component layer's job. One test proves the whole
+      journey is wired correctly against the real stack.</p>
+
+    <div class="twrap">
+      <table>
+        <thead><tr><th class="tnum">#</th><th>Case</th></tr></thead>
+        <tbody>
+          <tr><td class="num tnum">1</td><td>Given a searched flight and valid passenger details, When the passenger pays with a valid test card, Then they land on the confirmation page showing the same PNR the booking was created with</td></tr>
+          <tr><td class="num tnum">2</td><td>Given a booking that's already <code>CONFIRMED</code> (e.g. back-button after paying), When the payment page loads, Then it redirects straight to the confirmation page — no card form, no second charge</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub" data-l="e2e"><span class="chip"></span>Example 1<span class="path">app/web/e2e/payment.spec.ts</span></h3>
+    <div class="codeblock" data-l="e2e">
+      <div class="bar-top"></div>
+      <div class="filebar"><span class="fname">payment.spec.ts</span><span style="display:flex;align-items:center;"><span class="lang">TypeScript</span><button class="copy-btn" type="button">Copy</button></span></div>
+      <pre><code class="language-typescript">import { test, expect } from "@playwright/test";
+
+test("Given a searched flight and valid passenger details, When the passenger pays with a valid test card, Then they land on the confirmation page showing the same PNR the booking was created with", async ({
+  page,
+}) =&gt; {
+  let bookingRef = "";
+
+  await test.step("Given a passenger has searched and selected a flight", async () =&gt; {
+    await page.goto(
+      "/flights/search?origin=BKK&amp;destination=HKT&amp;date=2026-10-01&amp;passengers=1",
+    );
+    await page.getByRole("button", { name: /select/i }).first().click();
+  });
+
+  await test.step("And filled in valid passenger details", async () =&gt; {
+    // Selectors below are illustrative — match them to the real
+    // /bookings/new form fields.
+    await page.getByLabel("First name").fill("Jane");
+    await page.getByLabel("Last name").fill("Doe");
+    await page.getByLabel("Email").fill("jane.doe@test.com");
+    await page.getByLabel("Phone").fill("0800000000");
+    await page.getByRole("button", { name: /continue to payment/i }).click();
+
+    await expect(page).toHaveURL(/\/payment\?/);
+    bookingRef = new URL(page.url()).searchParams.get("ref") ?? "";
+    expect(bookingRef).toMatch(/^[A-Z0-9]{6}$/);
+  });
+
+  await test.step("When they pay with a valid test card", async () =&gt; {
+    await page.getByPlaceholder("e.g. Johnathan Doe").fill("Jane Doe");
+    await page
+      .getByPlaceholder("0000 0000 0000 0000")
+      .fill("4242 4242 4242 4242");
+    await page.getByPlaceholder("MM/YY").fill("12/29");
+    await page.getByPlaceholder("•••").fill("123");
+    await page.getByLabel(/agree to the terms/i).check();
+    await page.getByRole("button", { name: /pay .* securely/i }).click();
+  });
+
+  await test.step("Then they land on the confirmation page showing the same PNR", async () =&gt; {
+    await expect(page).toHaveURL(/\/bookings\/confirmation/);
+    await expect(page.getByText(bookingRef)).toBeVisible();
+  });
+});</code></pre>
+    </div>
+
+    <h3 class="sub" data-l="e2e"><span class="chip"></span>Example 2 — already-confirmed booking<span class="path">app/web/e2e/payment.spec.ts</span></h3>
+    <p class="lede"><code>SEED01</code> is a seeded booking that's already <code>CONFIRMED</code>,
+      so this case skips straight to <code>/payment</code> with that ref instead of running the
+      whole create-and-pay flow first.</p>
+    <div class="codeblock" data-l="e2e">
+      <div class="bar-top"></div>
+      <div class="filebar"><span class="fname">payment.spec.ts</span><span style="display:flex;align-items:center;"><span class="lang">TypeScript</span><button class="copy-btn" type="button">Copy</button></span></div>
+      <pre><code class="language-typescript">test("Given a booking that's already CONFIRMED (e.g. back-button after paying), When the payment page loads, Then it redirects straight to the confirmation page — no card form, no second charge", async ({
+  page,
+}) =&gt; {
+  await test.step("Given a CONFIRMED booking (SEED01)", async () =&gt; {
+    // seeded by infra/db/qoomlee/02_seed.sql — status CONFIRMED
+  });
+
+  await test.step("When the payment page loads for it", async () =&gt; {
+    await page.goto("/payment?ref=SEED01");
+  });
+
+  await test.step("Then it redirects to confirmation, skipping the form", async () =&gt; {
+    await expect(page).toHaveURL(/\/bookings\/confirmation\?ref=SEED01/);
+    await expect(
+      page.getByPlaceholder("0000 0000 0000 0000"),
+    ).not.toBeVisible();
+  });
+});</code></pre>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section id="component">
+    <h2 class="h"><span class="idx tnum">2</span>Component — validation &amp; page state</h2>
+    <p class="lede">Two seams, two ways of rendering:</p>
+    <div class="ticket" style="margin-top:14px;">
+      <div class="gwt" style="padding:18px 20px;">
+        <div class="line" style="grid-template-columns:120px 1fr;">
+          <span class="tag" style="color:var(--amber)">FIELD<br>VALIDATION</span>
+          <p>Lives inside the <code>usePaymentClient</code> hook — test it with <code>renderHook</code>, mocking <code>getJson</code>/<code>postJson</code> from <code>lib/api/httpClient</code>.</p>
+        </div>
+        <div class="line" style="grid-template-columns:120px 1fr; border-top:1px solid var(--line-soft); padding-top:16px;">
+          <span class="tag" style="color:var(--teal)">PAGE<br>STATE</span>
+          <p><code>loading</code> / <code>ready</code> / <code>expired</code> is a pure prop on <code>PaymentClientView</code> — render the view directly with a fixed <code>bookingState</code>, no hook or network involved.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="twrap">
+      <table>
+        <thead><tr><th class="tnum">#</th><th>Type</th><th>Case</th></tr></thead>
+        <tbody>
+          <tr><td class="num tnum">1</td><td><span class="badge field">field</span></td><td>Empty card name → <code>errors.cardName === "Required"</code>, submit blocked</td></tr>
+          <tr><td class="num tnum">2</td><td><span class="badge field">field</span></td><td>Card number ≠16 digits → error shown, blocked</td></tr>
+          <tr><td class="num tnum">3</td><td><span class="badge field">field</span></td><td>Expiry not <code>MM/YY</code> → error shown, blocked</td></tr>
+          <tr><td class="num tnum">4</td><td><span class="badge field">field</span></td><td>CVV not 3–4 digits → error shown, blocked</td></tr>
+          <tr><td class="num tnum">5</td><td><span class="badge field">field</span></td><td>Terms checkbox unchecked → “You must agree to the terms…”, blocked</td></tr>
+          <tr><td class="num tnum">6</td><td><span class="badge field">field</span></td><td>All fields valid → no errors, <code>postJson</code> is called</td></tr>
+          <tr><td class="num tnum">7</td><td><span class="badge state">state</span></td><td>Booking fetch returns <code>EXPIRED</code> → expired panel rendered, card form hidden</td></tr>
+          <tr><td class="num tnum">8</td><td><span class="badge state">state</span></td><td>Booking fetch returns <code>CONFIRMED</code> → <code>router.replace</code> to confirmation, no form render</td></tr>
+          <tr><td class="num tnum">9</td><td><span class="badge state">state</span></td><td>Booking fetch 404s → <code>router.replace('/bookings/new')</code></td></tr>
+          <tr><td class="num tnum">10</td><td><span class="badge state">state</span></td><td>Charge response <code>409 booking_expired</code> → switches to the expired panel, not a generic error</td></tr>
+          <tr><td class="num tnum">11</td><td><span class="badge state">state</span></td><td>Charge response, other failure → “We couldn't process your payment” shown, <code>submitting</code> resets, form stays usable</td></tr>
+          <tr><td class="num tnum">12</td><td><span class="badge state">state</span></td><td>Promo code: valid → discount reflected in total; invalid → “Invalid promo code” shown, total unchanged</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub" data-l="field"><span class="chip"></span>Example A — field validation<span class="path">app/web/app/payment/usePaymentClient.test.ts</span></h3>
+    <div class="codeblock" data-l="component">
+      <div class="bar-top"></div>
+      <div class="filebar"><span class="fname">usePaymentClient.test.ts</span><span style="display:flex;align-items:center;"><span class="lang">TypeScript</span><button class="copy-btn" type="button">Copy</button></span></div>
+      <pre><code class="language-typescript">import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderHook, act, waitFor } from "@testing-library/react";
+import { usePaymentClient } from "./usePaymentClient";
+import { getJson, postJson } from "@/lib/api/httpClient";
+import { ok } from "@/lib/result/types";
+
+vi.mock("next/navigation", () =&gt; ({
+  useRouter: () =&gt; ({ replace: vi.fn(), push: vi.fn(), back: vi.fn() }),
+}));
+vi.mock("@/lib/api/httpClient");
+
+const bookingProps = {
+  bookingRef: "ABC123",
+  flightNumber: "QL204",
+  origin: "BKK",
+  destination: "HKT",
+  departureTime: "2026-09-10T08:00:00Z",
+  basePriceMinor: 150000,
+  currency: "THB",
+  passengers: 1,
+  firstName: "Jane",
+  lastName: "Doe",
+  email: "jane@test.com",
+  phone: "0800000000",
+};
+
+describe("usePaymentClient — card validation", () =&gt; {
+  beforeEach(() =&gt; {
+    vi.mocked(getJson).mockResolvedValue(
+      ok({
+        status: "PENDING",
+        expiresAt: new Date(Date.now() + 900_000).toISOString(),
+        totalAmountMinor: 150000,
+      }),
+    );
+  });
+
+  it('case 1: empty card name → errors.cardName === "Required", submit blocked', async () =&gt; {
+    const { result } = renderHook(() =&gt; usePaymentClient(bookingProps));
+    await waitFor(() =&gt; expect(result.current.bookingState).toBe("ready"));
+
+    // fill every field except cardName
+    act(() =&gt; {
+      result.current.handleCardNumberChange({
+        target: { value: "4242424242424242" },
+      } as any);
+      result.current.handleExpiryChange({ target: { value: "1229" } } as any);
+      result.current.handleCvvChange({ target: { value: "123" } } as any);
+      result.current.handleAgreedChange({
+        target: { checked: true },
+      } as any);
+    });
+
+    await act(async () =&gt; {
+      await result.current.handlePay();
+    });
+
+    expect(result.current.errors.cardName).toBe("Required");
+    expect(postJson).not.toHaveBeenCalled();
+  });
+});</code></pre>
+    </div>
+    <p class="after-code">The other four field-validation cases (#2–5) follow the identical shape: fill
+      every field validly <i>except</i> the one under test, call <code>handlePay</code>, assert the
+      matching <code>errors.&lt;field&gt;</code> and that <code>postJson</code> was never called. Case #6
+      is the mirror image — fill every field validly, call <code>handlePay</code>, assert
+      <code>errors</code> is <code>{}</code> and <code>postJson</code> <i>was</i> called with the right body.</p>
+
+    <h3 class="sub" data-l="state"><span class="chip"></span>Example B — page-state rendering (case 7)<span class="path">app/web/app/payment/PaymentClientView.test.tsx</span></h3>
+    <p class="lede"><code>PaymentClientView</code> is a pure presentational component —
+      <code>bookingState</code> is just a prop. That makes the cheapest way to test
+      "does the UI show the right thing for this state" a direct render: no hook,
+      no network, no router mock.</p>
+    <div class="codeblock" data-l="component">
+      <div class="bar-top"></div>
+      <div class="filebar"><span class="fname">PaymentClientView.test.tsx</span><span style="display:flex;align-items:center;"><span class="lang">TSX</span><button class="copy-btn" type="button">Copy</button></span></div>
+      <pre><code class="language-typescript">import { describe, it, expect, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { PaymentClientView } from "./PaymentClientView";
+
+const baseProps = {
+  bookingState: "ready" as const,
+  flightNumber: "QL204",
+  origin: "BKK",
+  destination: "HKT",
+  departureTime: "2026-09-10T08:00:00Z",
+  passengers: 1,
+  secondsLeft: 900,
+  promoInput: "",
+  promoApplied: false,
+  promoError: "",
+  handlePromoInputChange: vi.fn(),
+  handleApplyPromo: vi.fn(),
+  activeMethod: "card" as const,
+  setActiveMethod: vi.fn(),
+  cardName: "",
+  cardNumber: "",
+  expiry: "",
+  cvv: "",
+  saveCard: true,
+  sameAddress: true,
+  agreed: false,
+  errors: {},
+  handleCardNameChange: vi.fn(),
+  handleCardNumberChange: vi.fn(),
+  handleExpiryChange: vi.fn(),
+  handleCvvChange: vi.fn(),
+  handleSaveCardChange: vi.fn(),
+  handleSameAddressToggle: vi.fn(),
+  handleAgreedChange: vi.fn(),
+  baseFareMinor: 150000,
+  taxMinor: 22500,
+  discountMinor: 0,
+  totalMinor: 231500,
+  submitError: "",
+  submitting: false,
+  handlePay: vi.fn(),
+  goBack: vi.fn(),
+};
+
+describe("PaymentClientView — page states", () =&gt; {
+  it("case 7: booking fetch returns EXPIRED → expired panel rendered, card form hidden", () =&gt; {
+    render(&lt;PaymentClientView {...baseProps} bookingState="expired" /&gt;);
+
+    expect(
+      screen.getByText("Your booking hold has expired"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByPlaceholderText("0000 0000 0000 0000"),
+    ).not.toBeInTheDocument();
+  });
+
+  it('sanity baseline (not case-counted): renders the card form when bookingState is "ready"', () =&gt; {
+    render(&lt;PaymentClientView {...baseProps} bookingState="ready" /&gt;);
+
+    expect(
+      screen.getByPlaceholderText("0000 0000 0000 0000"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Your booking hold has expired"),
+    ).not.toBeInTheDocument();
+  });
+});</code></pre>
+    </div>
+    <p class="after-code">The second <code>it</code> above (<code>bookingState="ready"</code>) isn't one of the
+      12 counted cases — it's the sanity baseline the other view assertions lean on, cheap
+      enough to include for free.</p>
+
+    <h3 class="sub" data-l="state"><span class="chip"></span>Example C — fetch/redirect branches (cases 8–12)<span class="path">app/web/app/payment/usePaymentClient.test.ts</span></h3>
+    <p class="lede">Cases 8–11 are branches inside the same <code>useEffect</code>/<code>handlePay</code>
+      logic Example A already exercises — same <code>renderHook</code> harness, different mocked
+      response per case. Case 12 (promo) is a pure state transition inside the hook, no
+      network involved.</p>
+    <div class="codeblock" data-l="component">
+      <div class="bar-top"></div>
+      <div class="filebar"><span class="fname">usePaymentClient.test.ts</span><span style="display:flex;align-items:center;"><span class="lang">TypeScript</span><button class="copy-btn" type="button">Copy</button></span></div>
+      <pre><code class="language-typescript">import { describe, it, expect, vi } from "vitest";
+import { renderHook, act, waitFor } from "@testing-library/react";
+import { usePaymentClient } from "./usePaymentClient";
+import { getJson, postJson } from "@/lib/api/httpClient";
+import { ok, err } from "@/lib/result/types";
+import { HttpError } from "@/lib/api/errors";
+
+vi.mock("next/navigation", () =&gt; {
+  const replace = vi.fn();
+  return { useRouter: () =&gt; ({ replace, push: vi.fn(), back: vi.fn() }) };
+});
+vi.mock("@/lib/api/httpClient");
+
+const bookingProps = {
+  bookingRef: "ABC123",
+  flightNumber: "QL204",
+  origin: "BKK",
+  destination: "HKT",
+  departureTime: "2026-09-10T08:00:00Z",
+  basePriceMinor: 150000,
+  currency: "THB",
+  passengers: 1,
+  firstName: "Jane",
+  lastName: "Doe",
+  email: "jane@test.com",
+  phone: "0800000000",
+};</code></pre>
+      <details>
+        <summary>case 8 — CONFIRMED redirect · case 9 — 404 redirect</summary>
+        <pre><code class="language-typescript">describe("usePaymentClient — fetch and redirect branches", () =&gt; {
+  it("case 8: booking fetch returns CONFIRMED → router.replace to confirmation, no form render", async () =&gt; {
+    const { useRouter } = await import("next/navigation");
+    const router = useRouter();
+    vi.mocked(getJson).mockResolvedValue(ok({ status: "CONFIRMED" }));
+
+    renderHook(() =&gt; usePaymentClient(bookingProps));
+
+    await waitFor(() =&gt;
+      expect(router.replace).toHaveBeenCalledWith(
+        "/bookings/confirmation?ref=ABC123",
+      ),
+    );
+  });
+
+  it("case 9: booking fetch 404s → router.replace('/bookings/new')", async () =&gt; {
+    const { useRouter } = await import("next/navigation");
+    const router = useRouter();
+    vi.mocked(getJson).mockResolvedValue(
+      err(HttpError.badStatus(404, "not found")),
+    );
+
+    renderHook(() =&gt; usePaymentClient(bookingProps));
+
+    await waitFor(() =&gt;
+      expect(router.replace).toHaveBeenCalledWith("/bookings/new"),
+    );
+  });</code></pre>
+      </details>
+      <details open>
+        <summary>case 10 — expired-panel on 409 · case 11 — generic failure · case 12 — promo</summary>
+        <pre><code class="language-typescript">  it("case 10: charge response 409 booking_expired → switches to the expired panel, not a generic error", async () =&gt; {
+    vi.mocked(getJson).mockResolvedValue(
+      ok({
+        status: "PENDING",
+        expiresAt: new Date(Date.now() + 900_000).toISOString(),
+        totalAmountMinor: 150000,
+      }),
+    );
+    vi.mocked(postJson).mockResolvedValue(
+      err(HttpError.badStatus(409, "expired", { error: "booking_expired" })),
+    );
+
+    const { result } = renderHook(() =&gt; usePaymentClient(bookingProps));
+    await waitFor(() =&gt; expect(result.current.bookingState).toBe("ready"));
+
+    act(() =&gt; {
+      result.current.handleCardNameChange({ target: { value: "Jane Doe" } } as any);
+      result.current.handleCardNumberChange({ target: { value: "4242424242424242" } } as any);
+      result.current.handleExpiryChange({ target: { value: "1229" } } as any);
+      result.current.handleCvvChange({ target: { value: "123" } } as any);
+      result.current.handleAgreedChange({ target: { checked: true } } as any);
+    });
+
+    await act(async () =&gt; {
+      await result.current.handlePay();
+    });
+
+    expect(result.current.bookingState).toBe("expired");
+    expect(result.current.submitError).toBe("");
+  });
+
+  it('case 11: charge response, other failure → "We couldn\'t process your payment" shown, submitting resets, form stays usable', async () =&gt; {
+    vi.mocked(getJson).mockResolvedValue(
+      ok({
+        status: "PENDING",
+        expiresAt: new Date(Date.now() + 900_000).toISOString(),
+        totalAmountMinor: 150000,
+      }),
+    );
+    vi.mocked(postJson).mockResolvedValue(
+      err(HttpError.badStatus(402, "card declined")),
+    );
+
+    const { result } = renderHook(() =&gt; usePaymentClient(bookingProps));
+    await waitFor(() =&gt; expect(result.current.bookingState).toBe("ready"));
+
+    act(() =&gt; {
+      result.current.handleCardNameChange({ target: { value: "Jane Doe" } } as any);
+      result.current.handleCardNumberChange({ target: { value: "4242424242424242" } } as any);
+      result.current.handleExpiryChange({ target: { value: "1229" } } as any);
+      result.current.handleCvvChange({ target: { value: "123" } } as any);
+      result.current.handleAgreedChange({ target: { checked: true } } as any);
+    });
+
+    await act(async () =&gt; {
+      await result.current.handlePay();
+    });
+
+    expect(result.current.bookingState).toBe("ready");
+    expect(result.current.submitError).toBe(
+      "We couldn't process your payment. Please try again.",
+    );
+    expect(result.current.submitting).toBe(false);
+  });
+
+  it('case 12: promo code: valid → discount reflected in total; invalid → "Invalid promo code" shown, total unchanged', async () =&gt; {
+    vi.mocked(getJson).mockResolvedValue(
+      ok({
+        status: "PENDING",
+        expiresAt: new Date(Date.now() + 900_000).toISOString(),
+        totalAmountMinor: 150000,
+      }),
+    );
+
+    const { result } = renderHook(() =&gt; usePaymentClient(bookingProps));
+    await waitFor(() =&gt; expect(result.current.bookingState).toBe("ready"));
+    const totalBefore = result.current.totalMinor;
+
+    act(() =&gt; {
+      result.current.handlePromoInputChange({
+        target: { value: "nope" },
+      } as any);
+    });
+    act(() =&gt; result.current.handleApplyPromo());
+    expect(result.current.promoError).toBe("Invalid promo code");
+    expect(result.current.totalMinor).toBe(totalBefore);
+
+    act(() =&gt; {
+      result.current.handlePromoInputChange({
+        target: { value: "QOOMFIRST" },
+      } as any);
+    });
+    act(() =&gt; result.current.handleApplyPromo());
+    expect(result.current.promoApplied).toBe(true);
+    expect(result.current.totalMinor).toBe(totalBefore - 50000);
+  });
+});</code></pre>
+      </details>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section id="contract">
+    <h2 class="h"><span class="idx tnum">3</span>Contract — payment-service ⇄ qoomlee-service</h2>
+    <p class="lede"><code>contract/booking_payment_contract.robot</code> already has one
+      happy-path case (<code>Charging A Booking Confirms It Across Services</code>). Add:</p>
+
+    <div class="twrap">
+      <table>
+        <thead><tr><th class="tnum">#</th><th>Case</th></tr></thead>
+        <tbody>
+          <tr><td class="num tnum">2</td><td>Charge on a booking qoomlee-service reports <code>EXPIRED</code> → payment-service returns <code>409 booking_expired</code>, and qoomlee-service still shows <code>EXPIRED</code> afterwards</td></tr>
+          <tr><td class="num tnum">3</td><td>Charge on a booking already <code>CONFIRMED</code> → <code>409 already_paid</code></td></tr>
+          <tr><td class="num tnum">4</td><td>Second charge on a booking with an existing <code>SUCCEEDED</code> payment → <code>409 already_paid</code> (guards <code>QML-008</code> across the service boundary, not just in-process)</td></tr>
+          <tr><td class="num tnum">5</td><td>Charge with <code>amountMinor</code>/<code>currency</code> not matching the booking's real total on qoomlee-service → rejected</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub" data-l="contract"><span class="chip"></span>Example — new case + supporting keyword<span class="path">booking_payment_contract.robot</span></h3>
+    <div class="codeblock" data-l="contract">
+      <div class="bar-top"></div>
+      <div class="filebar"><span class="fname">booking_payment_contract.robot</span><span style="display:flex;align-items:center;"><span class="lang">Robot</span><button class="copy-btn" type="button">Copy</button></span></div>
+      <pre><code class="language-plaintext">*** Test Cases ***
+Charge on a booking qoomlee-service reports EXPIRED → payment-service returns 409 booking_expired, and qoomlee-service still shows EXPIRED afterwards
+    [Documentation]    payment-service must read qoomlee-service's EXPIRED
+    ...                status and refuse the charge with 409 booking_expired —
+    ...                money must never be captured for a seat hold that's
+    ...                already been given back.
+    [Tags]    contract    cross-service    expiry
+
+    # ── Arrange: create a booking, then force its hold into the past ──────────
+    ${search}=          GET On Session    qoomlee    /api/flights/search
+    ...                 params=origin=${ORIGIN}&amp;destination=${DESTINATION}&amp;date=${FLIGHT_DATE}&amp;passengers=1
+    ...                 expected_status=200
+    ${flight}=          Set Variable    ${search.json()}[flights][0]
+    ${suffix}=          Generate Random String    6    [LOWER][NUMBERS]
+    &amp;{passenger}=       Create Dictionary
+    ...                 firstName=Contract    lastName=Expired    email=expired.${suffix}@test.com
+    &amp;{booking_body}=    Create Dictionary
+    ...                 flightId=${flight}[id]    passenger=${passenger}
+    ...                 totalAmountMinor=${flight}[basePriceMinor]    currency=${flight}[currency]
+    ${booking}=         POST On Session    qoomlee    /api/bookings
+    ...                 json=${booking_body}    headers=${AUTH_HEADERS}    expected_status=201
+    ${booking_ref}=     Set Variable    ${booking.json()}[bookingRef]
+    Backdate Booking Expiry    ${booking_ref}
+
+    # ── Act: attempt to charge it ───────────────────────────────────────────
+    ${omise_token}=      Fetch Fresh Omise Token
+    &amp;{charge_body}=      Create Dictionary
+    ...                  bookingRef=${booking_ref}    omiseToken=${omise_token}
+    ...                  amountMinor=${flight}[basePriceMinor]    currency=${flight}[currency]
+    ${charge}=            POST On Session    payment    /api/payments/charge
+    ...                   json=${charge_body}    headers=${AUTH_HEADERS}    expected_status=409
+
+    # ── Assert: refused, and qoomlee-service's own view agrees ────────────────
+    Should Be Equal As Strings    ${charge.json()}[error]    booking_expired
+    ${confirmed}=    GET On Session    qoomlee    /api/bookings/${booking_ref}
+    ...              headers=${AUTH_HEADERS}    expected_status=200
+    Should Be Equal As Strings    ${confirmed.json()}[status]    EXPIRED
+
+*** Keywords ***
+Backdate Booking Expiry
+    [Documentation]    Forces a booking's hold into the past so the next read
+    ...                lazily expires it — the only way to reach EXPIRED in a
+    ...                black-box contract test without waiting out the real
+    ...                15-minute hold.
+    [Arguments]    ${booking_ref}
+    ${result}=    Run Process
+    ...    docker    compose    exec    -T    postgres-qoomlee
+    ...    psql    -U    qoomlee    -d    qoomlee
+    ...    -c    UPDATE bookings SET expires_at = NOW() - INTERVAL '1 minute' WHERE booking_ref = '${booking_ref}';
+    ...    cwd=${REPO_ROOT}    stdout=PIPE    stderr=PIPE
+    Should Be Equal As Integers    ${result.rc}    0
+    ...    msg=failed to backdate booking ${booking_ref}: ${result.stderr}</code></pre>
+    </div>
+    <p class="after-code">Cases #3 and #4 can reuse the seeded <code>SEED01</code> (already <code>CONFIRMED</code>)
+      instead of creating a fresh booking. Case #5 reuses the happy-path booking-creation
+      block but sends <code>amountMinor=1</code> (or any value that doesn't match
+      <code>basePriceMinor</code>) in the charge body.</p>
+  </section>
+
+  <hr class="rule">
+
+  <section id="unit">
+    <h2 class="h"><span class="idx tnum">4</span>Unit — pure logic, no I/O</h2>
+    <p class="lede"><b style="color:var(--ink)">Pattern: Arrange / Act / Assert</b>, one block
+      per case, so each row below translates ~1:1 into a <code>t.Run</code> / <code>it</code>.</p>
+
+    <h3 class="sub" data-l="go"><span class="chip"></span>4a · Go<span class="path">services/payment/payment/service_test.go</span></h3>
+
+    <div class="twrap">
+      <table>
+        <thead><tr><th class="tnum">#</th><th>Case</th></tr></thead>
+        <tbody>
+          <tr><td class="num tnum">1</td><td>Existing <code>SUCCEEDED</code> payment for the booking → <code>ErrAlreadyPaid</code>, gateway never called</td></tr>
+          <tr><td class="num tnum">2</td><td><code>repo.GetByBookingRef</code> returns a non-<code>ErrNotFound</code> error → propagated, gateway never called</td></tr>
+          <tr><td class="num tnum">3</td><td><code>bookingClient.GetBooking</code> errors → propagated</td></tr>
+          <tr><td class="num tnum">4</td><td><code>booking.Status == "EXPIRED"</code> → <code>ErrBookingExpired</code>, gateway never called</td></tr>
+          <tr><td class="num tnum">5</td><td><code>booking.Status == "CONFIRMED"</code> → <code>ErrAlreadyPaid</code>, gateway never called</td></tr>
+          <tr><td class="num tnum">6</td><td><code>req.AmountMinor</code>/<code>Currency</code> mismatch vs. the booking's real total → <code>ErrAmountMismatch</code>, gateway never called</td></tr>
+          <tr><td class="num tnum">7</td><td><code>omise.CreateCharge</code> errors → propagated, nothing inserted</td></tr>
+          <tr><td class="num tnum">8</td><td>Gateway declines (<code>status: "failed"</code>) → row inserted as <code>FAILED</code> with the failure code/message, returns <code>*FailedError</code>, <code>ConfirmBooking</code> <b>not</b> called</td></tr>
+          <tr><td class="num tnum">9</td><td>Gateway succeeds → row inserted <code>SUCCEEDED</code> with <code>PaidAt</code> set, <code>ConfirmBooking</code> called with the inserted <code>PaymentID</code>/provider/chargeID</td></tr>
+          <tr><td class="num tnum">10</td><td><code>repo.Insert</code> errors on the success path → propagated</td></tr>
+          <tr><td class="num tnum">11</td><td><code>bookingClient.ConfirmBooking</code> errors <i>after</i> a successful charge → propagated, and flagged — money was already captured with no compensation path</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="codeblock" data-l="unit">
+      <div class="bar-top"></div>
+      <div class="filebar"><span class="fname">service_test.go</span><span style="display:flex;align-items:center;"><span class="lang">Go</span><button class="copy-btn" type="button">Copy</button></span></div>
+      <pre><code class="language-go">// Arrange / Act / Assert pattern throughout — each Charge() branch gets its
+// own case below, following the guard-clause order in service.go.
+package payment
+
+import (
+	"context"
+	"errors"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)</code></pre>
+      <details>
+        <summary>test doubles — stubBookingClient, stubOmiser, stubRepository</summary>
+        <pre><code class="language-go">// --- test doubles ------------------------------------------------------
+
+type stubBookingClient struct {
+	booking       *BookingDetail
+	getErr        error
+	confirmErr    error
+	confirmCalled bool
+	confirmReq    ConfirmRequest
+}
+
+func (s *stubBookingClient) GetBooking(ctx context.Context, ref string) (*BookingDetail, error) {
+	return s.booking, s.getErr
+}
+
+func (s *stubBookingClient) ConfirmBooking(ctx context.Context, ref string, req ConfirmRequest) error {
+	s.confirmCalled = true
+	s.confirmReq = req
+	return s.confirmErr
+}
+
+type stubOmiser struct {
+	result *ChargeResult
+	err    error
+	called bool
+}
+
+func (s *stubOmiser) CreateCharge(ctx context.Context, req ChargeRequest) (*ChargeResult, error) {
+	s.called = true
+	return s.result, s.err
+}
+
+type stubRepository struct {
+	existing     *Payment
+	getErr       error
+	insertErr    error
+	inserted     *Payment
+	insertCalled bool
+}
+
+func (s *stubRepository) GetByBookingRef(ctx context.Context, ref string) (*Payment, error) {
+	return s.existing, s.getErr
+}
+
+func (s *stubRepository) Insert(ctx context.Context, p *Payment) (*Payment, error) {
+	s.insertCalled = true
+	if s.insertErr != nil {
+		return nil, s.insertErr
+	}
+	p.ID = 99
+	s.inserted = p
+	return p, nil
+}</code></pre>
+      </details>
+      <pre><code class="language-go">// --- cases ---------------------------------------------------------------
+
+func TestServiceCharge(t *testing.T) {
+	t.Run("case 1: existing SUCCEEDED payment for the booking → ErrAlreadyPaid, gateway never called", func(t *testing.T) {
+		// Arrange
+		repo := &amp;stubRepository{existing: &amp;Payment{BookingRef: "ABC123", Status: statusSucceeded}}
+		booking := &amp;stubBookingClient{}
+		omise := &amp;stubOmiser{}
+		svc := NewService(booking, omise, repo)
+		req := ChargeRequest{BookingRef: "ABC123", AmountMinor: 150000, Currency: "THB"}
+
+		// Act
+		payment, err := svc.Charge(context.Background(), req)
+
+		// Assert
+		require.ErrorIs(t, err, ErrAlreadyPaid)
+		assert.Nil(t, payment)
+		assert.False(t, omise.called, "must not call the gateway once a payment already succeeded")
+	})
+
+	t.Run(`case 4: booking.Status == "EXPIRED" → ErrBookingExpired, gateway never called`, func(t *testing.T) {
+		// Arrange
+		repo := &amp;stubRepository{getErr: ErrNotFound}
+		booking := &amp;stubBookingClient{booking: &amp;BookingDetail{
+			BookingRef: "ABC123", Status: "EXPIRED", TotalAmountMinor: 150000, Currency: "THB",
+		}}
+		omise := &amp;stubOmiser{}
+		svc := NewService(booking, omise, repo)
+		req := ChargeRequest{BookingRef: "ABC123", AmountMinor: 150000, Currency: "THB"}
+
+		// Act
+		payment, err := svc.Charge(context.Background(), req)
+
+		// Assert
+		require.ErrorIs(t, err, ErrBookingExpired)
+		assert.Nil(t, payment)
+		assert.False(t, omise.called)
+	})
+
+	t.Run("case 6: AmountMinor/Currency mismatch vs. the booking's real total → ErrAmountMismatch, gateway never called", func(t *testing.T) {
+		// Arrange
+		repo := &amp;stubRepository{getErr: ErrNotFound}
+		booking := &amp;stubBookingClient{booking: &amp;BookingDetail{
+			BookingRef: "ABC123", Status: "PENDING", TotalAmountMinor: 150000, Currency: "THB",
+		}}
+		omise := &amp;stubOmiser{}
+		svc := NewService(booking, omise, repo)
+		req := ChargeRequest{BookingRef: "ABC123", AmountMinor: 99900, Currency: "THB"} // client sent the wrong amount
+
+		// Act
+		payment, err := svc.Charge(context.Background(), req)
+
+		// Assert
+		require.ErrorIs(t, err, ErrAmountMismatch)
+		assert.Nil(t, payment)
+		assert.False(t, omise.called)
+	})
+
+	t.Run(`case 8: gateway declines (status: "failed") → row inserted as FAILED, returns *FailedError, ConfirmBooking not called`, func(t *testing.T) {
+		// Arrange
+		repo := &amp;stubRepository{getErr: ErrNotFound}
+		booking := &amp;stubBookingClient{booking: &amp;BookingDetail{
+			BookingID: 1, BookingRef: "ABC123", Status: "PENDING", TotalAmountMinor: 150000, Currency: "THB",
+		}}
+		omise := &amp;stubOmiser{result: &amp;ChargeResult{
+			Status: "failed", FailureCode: "insufficient_fund", FailureMessage: "The card has insufficient funds.",
+		}}
+		svc := NewService(booking, omise, repo)
+		req := ChargeRequest{BookingRef: "ABC123", AmountMinor: 150000, Currency: "THB"}
+
+		// Act
+		payment, err := svc.Charge(context.Background(), req)
+
+		// Assert
+		var failedErr *FailedError
+		require.ErrorAs(t, err, &amp;failedErr)
+		assert.Equal(t, "insufficient_fund", failedErr.FailureCode)
+		assert.Nil(t, payment)
+		require.True(t, repo.insertCalled, "the FAILED attempt must still be recorded")
+		assert.Equal(t, "FAILED", repo.inserted.Status)
+		assert.False(t, booking.confirmCalled, "a failed charge must never confirm the booking")
+	})
+
+	t.Run("case 9: gateway succeeds → row inserted SUCCEEDED with PaidAt set, ConfirmBooking called with the inserted PaymentID/provider/chargeID", func(t *testing.T) {
+		// Arrange
+		repo := &amp;stubRepository{getErr: ErrNotFound}
+		booking := &amp;stubBookingClient{booking: &amp;BookingDetail{
+			BookingID: 1, BookingRef: "ABC123", Status: "PENDING", TotalAmountMinor: 150000, Currency: "THB",
+		}}
+		omise := &amp;stubOmiser{result: &amp;ChargeResult{ProviderChargeID: "chrg_test_1", Status: "successful"}}
+		svc := NewService(booking, omise, repo)
+		req := ChargeRequest{BookingRef: "ABC123", AmountMinor: 150000, Currency: "THB"}
+
+		// Act
+		payment, err := svc.Charge(context.Background(), req)
+
+		// Assert
+		require.NoError(t, err)
+		require.NotNil(t, payment)
+		assert.Equal(t, "SUCCEEDED", payment.Status)
+		assert.False(t, payment.PaidAt.IsZero())
+		require.True(t, booking.confirmCalled, "a successful charge must confirm the booking")
+		assert.Equal(t, payment.ID, booking.confirmReq.PaymentID)
+		assert.Equal(t, "chrg_test_1", booking.confirmReq.ProviderChargeID)
+	})
+
+	t.Run("case 11: bookingClient.ConfirmBooking errors after a successful charge → propagated, and flagged — money was already captured with no compensation path", func(t *testing.T) {
+		// Arrange
+		repo := &amp;stubRepository{getErr: ErrNotFound}
+		booking := &amp;stubBookingClient{
+			booking: &amp;BookingDetail{
+				BookingID: 1, BookingRef: "ABC123", Status: "PENDING", TotalAmountMinor: 150000, Currency: "THB",
+			},
+			confirmErr: errors.New("qoomlee-service unreachable"),
+		}
+		omise := &amp;stubOmiser{result: &amp;ChargeResult{ProviderChargeID: "chrg_test_1", Status: "successful"}}
+		svc := NewService(booking, omise, repo)
+		req := ChargeRequest{BookingRef: "ABC123", AmountMinor: 150000, Currency: "THB"}
+
+		// Act
+		payment, err := svc.Charge(context.Background(), req)
+
+		// Assert
+		require.Error(t, err)
+		assert.Nil(t, payment)
+		assert.True(t, repo.insertCalled, "money was already captured by the gateway — the payment row must still exist")
+		// ⚠ known gap, not asserted away: there is no reconciliation path back
+		// to the booking here. Worth its own ticket (a reconciliation sweep,
+		// or re-checking booking status before treating this as a hard error).
+	})
+}</code></pre>
+    </div>
+    <p class="after-code">Cases 2, 3, 5, 7, and 10 are one-line variations on the same shape —
+      swap which stub returns an error (<code>repo.getErr</code>, <code>booking.getErr</code>, a status
+      other than <code>EXPIRED</code>/<code>CONFIRMED</code>, <code>omise.err</code>, <code>repo.insertErr</code>) and
+      assert it comes back out of <code>Charge()</code> unchanged, with the gateway/insert untouched
+      where the guard clause should short-circuit before reaching them.</p>
+
+    <h3 class="sub" data-l="ts"><span class="chip"></span>4b · Frontend pure functions<span class="path">usePaymentClient.test.ts · cardFormatting.test.ts</span></h3>
+
+    <div class="twrap">
+      <table>
+        <thead><tr><th class="tnum">#</th><th>Case</th></tr></thead>
+        <tbody>
+          <tr><td class="num tnum">1</td><td><code>formatCountdown(65)</code> → <code>"01:05"</code> (zero-padded minutes and seconds)</td></tr>
+          <tr><td class="num tnum">2</td><td><code>formatDeparture</code> renders the correct weekday/day/month across a UTC midnight boundary</td></tr>
+          <tr><td class="num tnum">3</td><td><code>formatCardNumber</code> strips non-digits, groups by 4, truncates at 16</td></tr>
+          <tr><td class="num tnum">4</td><td><code>formatExpiry</code> turns raw digits into <code>MM/YY</code>, truncates at 4 digits</td></tr>
+          <tr><td class="num tnum">5</td><td><code>formatCvv</code> strips non-digits, truncates at 4</td></tr>
+          <tr><td class="num tnum">6</td><td><code>validateCardFields</code> flags a card number that isn't exactly 16 digits, and returns <code>{}</code> when every field is valid</td></tr>
+          <tr><td class="num tnum">7</td><td>Pricing (<code>baseFareMinor</code>/<code>taxMinor</code>/<code>totalMinor</code>) — <b>deferred</b>, see note below</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="codeblock" data-l="unit">
+      <div class="bar-top"></div>
+      <div class="filebar"><span class="fname">usePaymentClient.test.ts</span><span style="display:flex;align-items:center;"><span class="lang">TypeScript</span><button class="copy-btn" type="button">Copy</button></span></div>
+      <pre><code class="language-typescript">import { describe, it, expect } from "vitest";
+import { formatCountdown, formatDeparture } from "./usePaymentClient";
+
+describe("formatCountdown", () =&gt; {
+  it('case 1: formatCountdown(65) → "01:05" (zero-padded minutes and seconds)', () =&gt; {
+    // Arrange
+    const secondsLeft = 65;
+
+    // Act
+    const result = formatCountdown(secondsLeft);
+
+    // Assert
+    expect(result).toBe("01:05");
+  });
+});
+
+describe("formatDeparture", () =&gt; {
+  it("case 2: formatDeparture renders the correct weekday/day/month across a UTC midnight boundary", () =&gt; {
+    // Arrange — 2026-01-01T00:30:00Z: local midnight-adjacent time in
+    // most western timezones would roll back to 2025-12-31 if this
+    // accidentally used local time instead of UTC.
+    const iso = "2026-01-01T00:30:00Z";
+
+    // Act
+    const result = formatDeparture(iso);
+
+    // Assert
+    expect(result).toBe("Thu 1 Jan");
+  });
+});</code></pre>
+    </div>
+
+    <div class="codeblock" data-l="unit" style="margin-top:14px;">
+      <div class="bar-top"></div>
+      <div class="filebar"><span class="fname">cardFormatting.test.ts (formatting)</span><span style="display:flex;align-items:center;"><span class="lang">TypeScript</span><button class="copy-btn" type="button">Copy</button></span></div>
+      <pre><code class="language-typescript">import { describe, it, expect } from "vitest";
+import { formatCardNumber, formatExpiry, formatCvv } from "./cardFormatting";
+
+describe("formatCardNumber", () =&gt; {
+  it("case 3: formatCardNumber strips non-digits, groups by 4, truncates at 16", () =&gt; {
+    // Arrange
+    const raw = "4242-4242 4242424299999";
+
+    // Act
+    const result = formatCardNumber(raw);
+
+    // Assert
+    expect(result).toBe("4242 4242 4242 4299");
+  });
+});
+
+describe("formatExpiry", () =&gt; {
+  it("case 4: formatExpiry turns raw digits into MM/YY, truncates at 4 digits", () =&gt; {
+    // Arrange
+    const raw = "122999";
+
+    // Act
+    const result = formatExpiry(raw);
+
+    // Assert
+    expect(result).toBe("12/29");
+  });
+});
+
+describe("formatCvv", () =&gt; {
+  it("case 5: formatCvv strips non-digits, truncates at 4", () =&gt; {
+    // Arrange
+    const raw = "1a2b3c4d5";
+
+    // Act
+    const result = formatCvv(raw);
+
+    // Assert
+    expect(result).toBe("1234");
+  });
+});</code></pre>
+    </div>
+
+    <div class="codeblock" data-l="unit" style="margin-top:14px;">
+      <div class="bar-top"></div>
+      <div class="filebar"><span class="fname">cardFormatting.test.ts</span><span style="display:flex;align-items:center;"><span class="lang">TypeScript</span><button class="copy-btn" type="button">Copy</button></span></div>
+      <pre><code class="language-typescript">import { describe, it, expect } from "vitest";
+import { validateCardFields } from "./cardFormatting";
+
+describe("validateCardFields", () =&gt; {
+  it("case 6: validateCardFields flags a card number that isn't exactly 16 digits", () =&gt; {
+    // Arrange
+    const fields = {
+      cardName: "Jane Doe",
+      cardNumber: "4242 4242",
+      expiry: "12/29",
+      cvv: "123",
+    };
+
+    // Act
+    const errors = validateCardFields(fields);
+
+    // Assert
+    expect(errors.cardNumber).toBe("Enter a valid 16-digit card number");
+  });
+
+  it("case 6: validateCardFields returns {} when every field is valid", () =&gt; {
+    // Arrange
+    const fields = {
+      cardName: "Jane Doe",
+      cardNumber: "4242424242424242",
+      expiry: "12/29",
+      cvv: "123",
+    };
+
+    // Act
+    const errors = validateCardFields(fields);
+
+    // Assert
+    expect(errors).toEqual({});
+  });
+});</code></pre>
+    </div>
+
+    <div class="callout">
+      <span class="k">Case 7 · deferred</span>
+      <p>Pricing (<code>baseFareMinor</code> / <code>taxMinor</code> / <code>totalMinor</code>) currently
+        lives inline inside <code>usePaymentClient</code>, not as an exported pure function — so
+        it isn't unit-testable today without going through <code>renderHook</code> (which is what
+        Example C's case 12 already does incidentally, via <code>totalMinor</code> before/after
+        applying a promo).</p>
+      <p></p>
+      <p>Worth extracting into a small <code>computeTotal({ basePriceMinor, passengers, promoApplied })</code>
+        function purely to make it directly unit-testable — a real rounding case (odd cents on
+        <code>taxMinor</code>'s 15% calculation) belongs here once that exists, not folded into a
+        Component test as a workaround.</p>
+    </div>
+  </section>
+
+  <footer class="totals" id="totals">
+    <div class="sum tnum"><b>2</b> E2E &nbsp;·&nbsp; <b>12</b> component &nbsp;·&nbsp; <b>4</b> new contract (+1 existing) &nbsp;·&nbsp; <b>18</b> unit (11 Go + 7 TS) &nbsp;=&nbsp; <b>36</b> new cases</div>
+    <p>Counting the contract suite's one pre-existing happy-path case, the finished suite
+      holds <b class="tnum" style="color:var(--teal)">37</b>. Do unit + component first — no
+      running stack required, and they cover every guard clause and validation rule. Add
+      contract next (needs <code>docker compose up</code>), E2E last (needs the full stack +
+      a real Omise sandbox token).</p>
+  </footer>
+
+</div>
+
+<script>
+  (function () {
+    try {
+      if (window.hljs) {
+        document.querySelectorAll("pre code").forEach(function (el) {
+          if (!/language-plaintext/.test(el.className)) {
+            hljs.highlightElement(el);
+          }
+        });
+      }
+    } catch (e) { /* highlighting is an enhancement only */ }
+
+    document.querySelectorAll(".copy-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var block = btn.closest(".codeblock");
+        if (!block) return;
+        var codeEls = block.querySelectorAll("pre code");
+        var text = Array.prototype.map.call(codeEls, function (c) { return c.textContent; }).join("\n");
+        var reset = function () { btn.textContent = "Copy"; };
+        try {
+          navigator.clipboard.writeText(text).then(function () {
+            btn.textContent = "Copied";
+            setTimeout(reset, 1600);
+          }).catch(function () {
+            btn.textContent = "Select & copy";
+            setTimeout(reset, 1600);
+          });
+        } catch (e) {
+          btn.textContent = "Select & copy";
+          setTimeout(reset, 1600);
+        }
+      });
+    });
+  })();
+</script>
+</body>
+</html>

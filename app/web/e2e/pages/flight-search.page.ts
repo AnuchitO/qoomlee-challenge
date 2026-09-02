@@ -31,7 +31,7 @@ export class FlightSearchPage {
   }
 
   get departureTrigger() {
-    return this.page.locator('[data-testid="departure-trigger"]').filter({ visible: true });
+    return this.visibleRole("button", { name: /Select date/i });
   }
 
   get calendarPanel() {

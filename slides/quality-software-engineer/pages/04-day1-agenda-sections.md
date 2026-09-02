@@ -23,7 +23,7 @@ layout: default
 
 <div class="qse-eyebrow">DAY 1 · 09:15–10:00 · 45 MIN</div>
 
-# Hope & Fear / Question
+# Hope & Concern / Question
 
 ---
 layout: default

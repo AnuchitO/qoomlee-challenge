@@ -37,7 +37,7 @@ export async function mockCreateBooking(
   overrides?: { bookingRef?: string; expiresAt?: string },
 ) {
   const expiresAt = overrides?.expiresAt ?? new Date(Date.now() + 15 * 60 * 1000).toISOString();
-  await page.route("**/api/bookings*", (route) => {
+  await page.route(/\/api\/bookings/, (route) => {
     if (route.request().method() === "POST") {
       void route.fulfill({
         status: 201,

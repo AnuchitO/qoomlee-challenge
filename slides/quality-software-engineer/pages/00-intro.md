@@ -307,6 +307,33 @@ class: text-center
 </div>
 
 ---
+layout: quote
+class: text-center
+---
+
+<div class="qse-eyebrow">MINDSET · BETWEEN TICKETS</div>
+
+# "No bug to find? Go make more QAs."
+
+<div class="pt-6 text-lg qse-text-muted" style="max-width: 700px; margin: 0 auto;">
+Sitting idle for the next ticket is <b>Quality Assurance</b>. Teaching a developer to spot that edge case themselves is <b>Quality Assistance</b>.
+</div>
+
+<div class="pt-3 text-lg qse-text-muted" style="max-width: 700px; margin: 0 auto;">
+The goal was never a team with one QA. It's a team where <span class="qse-text-primary font-bold">everyone tests like one.</span>
+</div>
+
+<!--
+This is the concrete answer to "what do I do when nothing's assigned to me?" — the old
+QA mindset treats a quiet backlog as downtime. The QSE mindset treats it as the highest-
+leverage moment to teach: pair with a dev on the edge case you'd normally catch yourself,
+walk someone through reading a failing pipeline, show a PM how to spot a gap in a story.
+Every skill you hand off is a bug that no longer needs you to catch it. That's how one
+QSE's coverage scales into a whole team's coverage — "quality is everyone's responsibility"
+stops being a poster on the wall and becomes something you actively built.
+-->
+
+---
 layout: default
 ---
 

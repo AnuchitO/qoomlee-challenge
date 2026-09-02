@@ -223,6 +223,12 @@ test-integration:
 	done
 	@echo -e "\n  $(GREEN)✓$(RESET)  Integration tests complete"
 
+.PHONY: test-contract # Run contract tests — lock down API response shape against docs/openapi/*.yaml (no DB/server required)
+test-contract:
+	@echo -e "$(BOLD)Running contract tests...$(RESET)"
+	cd $(SVC_DIR)/qoomlee && go test ./... -tags=contract -v -count=1
+	@echo -e "  $(GREEN)✓$(RESET)  Contract tests complete"
+
 .PHONY: test-qoomlee # Run qoomlee-service unit tests only
 test-qoomlee:
 	@echo -e "$(BOLD)qoomlee-service unit tests$(RESET)"

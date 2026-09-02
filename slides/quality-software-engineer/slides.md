@@ -52,6 +52,10 @@ src: ./pages/03c-pyramid-folders-side.md
 ---
 
 ---
+src: ./pages/03d-gherkin.md
+---
+
+---
 src: ./pages/03-day2.md
 ---
 

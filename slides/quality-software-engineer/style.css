@@ -300,3 +300,15 @@ body { background: var(--qse-bg); }
   border: 1.5px dashed var(--qse-secondary);
   color: var(--qse-secondary); font-weight: 700; font-size: 0.85rem;
 }
+
+/* --- Built-in Slidev layout fixes ---
+   @slidev/client's two-cols-header and two-cols layouts both ship with zero
+   column-gap by default (two-cols-header's own usage comment even flags this
+   and recommends a per-page fix) — without it, content in the left/right
+   slots can sit flush against or overlap the shared column boundary. Fixed
+   once here so every slide using either layout gets a real gap, instead of
+   patching it per-page. */
+.two-cols-header,
+.two-columns {
+  column-gap: 28px;
+}

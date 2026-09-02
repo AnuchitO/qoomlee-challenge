@@ -304,6 +304,12 @@ check-smoke: _require-stack
 check-contract: _require-stack
 	@bash scripts/contract/check-contracts.sh
 
+.PHONY: check-contract-robot # Robot Framework — cross-service contract test between qoomlee-service and payment-service (contract/)
+check-contract-robot: _require-stack
+	@command -v robot >/dev/null 2>&1 || \
+	  (echo -e "$(RED)robot not installed — run: pip install -r contract/requirements.txt$(RESET)" && exit 1)
+	robot --outputdir contract contract
+
 .PHONY: check-perf # K6 load tests (requires k6 + running stack)
 check-perf: _require-stack
 	@command -v k6 >/dev/null 2>&1 || \
@@ -520,6 +526,14 @@ omise-token:
 	   -d "card[expiration_year]=2028" \
 	   -d "card[security_code]=123" \
 	   -d "card[name]=TEST USER" | jq '{token: .id, expires: .used}'
+
+.PHONY: internal-token # Print INTERNAL_TOKEN from .env  the shared secret payment-service sends on PUT /bookings/:ref/status
+internal-token:
+	@[ -f .env ] || (echo -e "$(RED).env not found — run: make setup$(RESET)" && exit 1)
+	@TOKEN=$$(grep INTERNAL_TOKEN .env | cut -d= -f2); \
+	 [ -n "$$TOKEN" ] || \
+	   (echo -e "$(RED)INTERNAL_TOKEN not set in .env$(RESET)" && exit 1); \
+	 echo "$$TOKEN"
 
 .PHONY: walk # Print the full happy-path curl walkthrough
 walk:

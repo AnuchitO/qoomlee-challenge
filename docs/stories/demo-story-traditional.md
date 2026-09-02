@@ -13,7 +13,8 @@
 > routing, made concrete instead of asserted.
 >
 > Every case below is implemented and **passing** in
-> `app/web/e2e/traditional/` — not illustrative snippets like some of the
+> `app/web/e2e/traditional/payment-traditional.spec.ts` — one single spec
+> file, on purpose (see below) — not illustrative snippets like some of the
 > code in `demo-story.md`, real specs. Run them:
 >
 > ```
@@ -21,23 +22,36 @@
 > ```
 >
 > The workshop exercise: read the two docs side by side, then refactor
-> `e2e/traditional/` yourself — pushing each case down to the layer
-> `demo-story.md` puts it at — and watch the suite get faster, more precise,
-> and much less repetitive in the process.
+> `payment-traditional.spec.ts` yourself — pushing each case down to the
+> layer `demo-story.md` puts it at, and splitting it back into files by
+> layer as you go — and watch the suite get faster, more precise, and much
+> less repetitive in the process.
+
+## Why one file
+
+The five layer-named files this doc originally shipped with
+(`01-e2e-happy-path.spec.ts` … `05-unit-ts-pure-functions.spec.ts`) are now
+merged into a single `payment-traditional.spec.ts`, five `test.describe`
+blocks deep. That's deliberately *more* honest about the anti-pattern: a
+real "traditional" suite doesn't arrive pre-sorted into files that hint at
+the pyramid layer each case secretly belongs to — it's one growing spec file
+that everyone adds "just one more test" to. Splitting it by layer *is* the
+refactor this workshop is asking you to do; starting from one file means the
+before/after is an actual before/after, not a relabeling. (`support.ts`
+stays a separate file — shared plumbing, not a test.)
 
 ## The same 36 cases, all filed under one layer
 
-| Layer in `demo-story.md` | Cases | Here, filed as | Lives in |
+| Layer in `demo-story.md` | Cases | Here, filed as | Section in `payment-traditional.spec.ts` |
 |---|---|---|---|
-| E2E | 2 | E2E (no change — these already belonged here) | `e2e/traditional/01-e2e-happy-path.spec.ts` |
-| Component | 12 | E2E | `e2e/traditional/02-component-validation.spec.ts` |
-| Contract | 4 new | E2E | `e2e/traditional/03-contract-cross-service.spec.ts` |
-| Unit (Go) | 11 | E2E | `e2e/traditional/04-unit-go-service-logic.spec.ts` |
-| Unit (TS) | 7 (1 deferred) | E2E | `e2e/traditional/05-unit-ts-pure-functions.spec.ts` |
+| E2E | 2 | E2E (no change — these already belonged here) | §1 "E2E cases (identical to the pyramid version)" |
+| Component | 12 | E2E | §2 "Component-layer cases, forced through the browser" |
+| Contract | 4 new | E2E | §3 "Contract-layer cases, forced through the browser" |
+| Unit (Go) | 11 | E2E | §4a "Go-service-logic cases, forced through the browser" |
+| Unit (TS) | 7 (1 deferred) | E2E | §4b "TS-pure-function cases, forced through the browser" |
 
-**36 cases, 36 Playwright tests, 1 tool.** Total runtime for the real suite,
-desktop project only: **~31s** (36 passed, 1 skipped — the same pricing case
-`demo-story.md` also defers). Every test opens a browser page and waits on
+**36 cases, 37 Playwright tests (one `describe` per section, one deferred
+`test.skip`), 1 tool, 1 file.** Every test opens a browser page and waits on
 real renders; none of it is free.
 
 ---
@@ -45,9 +59,8 @@ real renders; none of it is free.
 ## 1. E2E cases — no change
 
 `demo-story.md`'s two E2E cases were already end-to-end. "Traditional"
-thinking doesn't touch them — they're reproduced verbatim in
-`01-e2e-happy-path.spec.ts` only so this folder's case count is complete.
-Nothing below applies to them.
+thinking doesn't touch them — they're reproduced verbatim in §1 only so this
+file's case count is complete. Nothing below applies to them.
 
 ---
 
@@ -60,17 +73,25 @@ Nothing below applies to them.
 `formatCvv`) by importing and calling them. A Playwright test can't import
 them — the only way to observe what they return is to type into a field (or
 wait for a render) and read the *formatted DOM text* back out. Every one of
-those cases in `05-unit-ts-pure-functions.spec.ts` pays for a full page
-load plus a mocked network round-trip just to prove what is, underneath,
-one line of string manipulation.
+those cases in §4b pays for a full page load plus a mocked network
+round-trip just to prove what is, underneath, one line of string
+manipulation.
 
 Two of them get worse than slow — they get **misleading**:
 
 - **`formatCountdown(65)`** needs the exact wall-clock second the countdown
   renders on, or the assertion is flaky by construction (page-load latency
-  eats into the 65 seconds before you get to read it). The only fix is
-  `page.clock.install()` — Playwright's clock-mocking API, loaded just to
-  pin down a function that was already 100% deterministic on its own.
+  eats into the 65 seconds before you get to read it). The fix is
+  Playwright's clock-mocking API — and getting that fix *right* took two
+  tries. The first pass used `page.clock.install({ time })`, which only
+  seeds the clock's starting instant; it still ticks at real wall-clock
+  speed after that, so the countdown happily decremented while the dev
+  server compiled the page — a genuinely flaky test in ~50% of runs, caught
+  only by running it a couple dozen times in a loop. `page.clock.pauseAt()`
+  is what actually freezes it. Either way, this is a lot of machinery
+  (correctly-used or not) to pin down a function that was already 100%
+  deterministic on its own — see the comment on that test for the full
+  story.
 - **`formatCvv`** sits behind an `<input maxLength={4}>`. Typing
   `"1a2b3c4d5"` key-by-key, the *native HTML attribute* discards most of the
   non-digit characters before `formatCvv` ever sees them — the test happens
@@ -87,11 +108,11 @@ illustrative code didn't catch:** its `formatCardNumber` example (§4b,
 Run the real function against that exact input and you get
 `"4242 4242 4242 4242"` — the `"9999"` tail is past the 16-digit cut, so
 it's dropped, not kept. That assertion was never run, so it was never
-falsified. `05-unit-ts-pure-functions.spec.ts`'s version uses a fixture
-where the truncation is unambiguous instead — see its comment. This is the
-strongest argument in this entire doc for *executable* tests over
-illustrative code blocks, and it's worth carrying back into `demo-story.md`
-now that it's known.
+falsified. This suite's version uses a fixture where the truncation is
+unambiguous instead — see its comment. This, and the clock bug above, are
+the strongest argument in this doc for *executable* tests over illustrative
+code blocks: both bugs shipped silently in code nobody ran, and both were
+caught the moment something actually ran it.
 
 ### 2.2 Backend branches collapse into "some HTTP status came back"
 
@@ -99,8 +120,7 @@ now that it's known.
 collaborator failure and assert a distinct Go type or call — `ErrAlreadyPaid`
 vs. `ErrBookingExpired` vs. `*FailedError`, `ConfirmBooking` called or not,
 the exact `PaymentID` it was called with. A browser only ever sees the HTTP
-response `payment-service` sends back. So in
-`04-unit-go-service-logic.spec.ts`:
+response `payment-service` sends back. So in §4a:
 
 - **Assertions are simply dropped.** "the gateway was never called", "the
   row was inserted as FAILED", "ConfirmBooking was called with this exact
@@ -127,9 +147,9 @@ response `payment-service` sends back. So in
 `qoomlee-service` **agree with each other**, by calling both services' real
 HTTP APIs directly and comparing the answers. A Playwright test has one
 browser tab talking to whatever the mocked network layer hands back — there
-is no second, independent connection to compare against. So
-`03-contract-cross-service.spec.ts`'s only move is to mock both endpoints to
-agree with each other *by construction*, then assert they agree. That
+is no second, independent connection to compare against. So §3's only move
+is to mock both endpoints to agree with each other *by construction*, then
+assert they agree. That
 proves the mocks are internally consistent. It proves nothing about whether
 the real services are — which is the entire point of a contract test.
 
@@ -146,15 +166,14 @@ from two of the Go cases above**:
 
 ### 2.4 Duplicate coverage becomes the norm, not the exception
 
-Add it up: `booking.Status == "EXPIRED"` is exercised once in the Component
-file and once again in the Go file (same fetch, same assertion, same
-outcome). `booking.Status == "CONFIRMED"` on `Charge()` reuses the same
-stale-client trick as "already CONFIRMED" in the Contract file. Card-number
-validation is asserted in the Component file *and* the TS-unit file, because
-`demo-story.md` files that guard clause under two different test suites
-from two different angles (a hook test, and a formatting-helper test) — and
-at the browser layer, both angles produce the same click, the same DOM, the
-same text. None of that is a mistake in how the traditional files were
+Add it up: `booking.Status == "EXPIRED"` is exercised once in §2 and once
+again in §4a (same fetch, same assertion, same outcome). `booking.Status ==
+"CONFIRMED"` on `Charge()` reuses the same stale-client trick as "already
+CONFIRMED" in §3. Card-number validation is asserted in §2 *and* §4b,
+because `demo-story.md` files that guard clause under two different test
+suites from two different angles (a hook test, and a formatting-helper
+test) — and at the browser layer, both angles produce the same click, the
+same DOM, the same text. None of that is a mistake in how this suite was
 written — it's what naturally happens once every case's only tool is
 "load the page and see what happens." A pyramid doesn't just move cases to
 cheaper layers; it removes this duplication by giving each layer a distinct
@@ -164,7 +183,7 @@ question only it can answer.
 
 ## 3. Totals
 
-**36 cases → 36 Playwright specs → ~31s, 74 browser-page loads across two
+**36 cases → 1 file → 37 Playwright tests → 74 browser-page loads across two
 projects (desktop + mobile), for coverage that:**
 
 - drops several assertions entirely (nothing observable from a page to hang
@@ -172,8 +191,8 @@ projects (desktop + mobile), for coverage that:**
 - can't tell 3–5 distinct backend/contract failure modes apart from each
   other,
 - duplicates the same click-through 3–4 times under different case names,
-- and needs Playwright's clock API to pin down what a one-line pure
-  function returns.
+- and needed two attempts at Playwright's clock API — the first one
+  silently flaky — to pin down what a one-line pure function returns.
 
 Compare to `demo-story.md`'s pyramid: the same 36 cases, run across four
 layers, most of them not touching a browser or a running stack at all — and
@@ -183,5 +202,6 @@ one unambiguous digit-formatting assertion) is exactly what the layer
 `demo-story.md` picks for that case *can* prove and this one can't.
 
 **That gap — not "E2E is slow" as an abstract claim — is what the pyramid
-buys you.** Refactoring `e2e/traditional/` back down to
-`demo-story.md`'s shape is the rest of this workshop.
+buys you.** Refactoring `payment-traditional.spec.ts` back down to
+`demo-story.md`'s shape — splitting it into files by layer as you go — is
+the rest of this workshop.

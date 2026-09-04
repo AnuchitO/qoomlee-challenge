@@ -25,6 +25,24 @@ layout: default
 
 # Hope & Concern / Question
 
+<div class="qse-card mt-4 text-sm">
+Goal: surface expectations and anxieties about becoming a QSE before the QA&nbsp;vs&nbsp;QSE pitch — get real questions on the table early, not saved up for later.
+</div>
+
+<div class="mt-3 text-sm">
+
+<v-click><div class="qse-card mt-2">1. Individual (5 min) — everyone writes one hope and one concern about this training, on a sticky note or in chat.</div></v-click>
+<v-click><div class="qse-card mt-2">2. Share (25 min) — go around the room; each person reads their hope + concern out loud. No debate yet, just capture it.</div></v-click>
+<v-click><div class="qse-card mt-2">3. Cluster + open floor (15 min) — group similar themes on the board, answer what you can right now, and name which concerns the next session (QA vs QSE, 10:00) is built to address.</div></v-click>
+
+</div>
+
+<v-click>
+<div class="qse-card mt-3 text-sm qse-text-primary">
+Facilitator note: don't argue concerns down here — park them, and point back to this list when the QA vs QSE pitch lands.
+</div>
+</v-click>
+
 ---
 layout: default
 ---

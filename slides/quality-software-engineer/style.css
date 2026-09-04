@@ -301,6 +301,43 @@ body { background: var(--qse-bg); }
   color: var(--qse-secondary); font-weight: 700; font-size: 0.85rem;
 }
 
+/* Cost-to-fix bar chart — "shift-left" slide: one bar per SDLC stage,
+   height set inline per-bar (illustrative, not measured), colored with the
+   same --c stage colors as .qse-loop-card so it reads as the same six
+   stages, just re-drawn as a cost curve. */
+.qse-cost-row { display: flex; align-items: flex-end; justify-content: center; gap: 20px; }
+.qse-cost-col { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 96px; flex-shrink: 0; }
+.qse-cost-bar {
+  width: 100%;
+  border-radius: 8px 8px 3px 3px;
+  background: var(--c);
+  box-shadow: var(--qse-shadow);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding-top: 6px;
+  opacity: 0; transform: scaleY(0.4); transform-origin: bottom;
+  animation: qse-bar-grow 0.6s cubic-bezier(.2,.8,.2,1) forwards;
+}
+.qse-cost-value { font-weight: 700; font-size: 0.78rem; color: white; font-variant-numeric: tabular-nums; }
+.qse-cost-label { font-size: 0.76rem; font-weight: 600; color: var(--qse-text); display: flex; align-items: center; gap: 4px; }
+@keyframes qse-bar-grow { from { opacity: 0; transform: scaleY(0.4); } to { opacity: 1; transform: scaleY(1); } }
+
+/* Gate chip + connector tick — "gates spread across the SDLC" slide: sits
+   directly under a .qse-loop-card. Widths (106px card / 34px arrow) match
+   .qse-loop-card / .qse-loop-arrow-svg exactly so a chip row underneath a
+   .qse-loop-row lines up per-stage without needing a shared grid. */
+.qse-gate-tick { width: 2px; height: 14px; background: var(--qse-border); margin: 0 auto; }
+.qse-gate-chip {
+  width: 106px; min-height: 60px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  font-size: 0.64rem; line-height: 1.28; font-weight: 600;
+  color: var(--c);
+  background: color-mix(in srgb, var(--c) 12%, var(--qse-surface));
+  border: 1.5px dashed color-mix(in srgb, var(--c) 45%, var(--qse-border));
+  border-radius: 10px;
+  padding: 6px 7px;
+}
+.qse-gate-spacer { width: 34px; flex-shrink: 0; }
+
 /* --- Built-in Slidev layout fixes ---
    @slidev/client's two-cols-header and two-cols layouts both ship with zero
    column-gap by default (two-cols-header's own usage comment even flags this

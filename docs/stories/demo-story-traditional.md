@@ -13,12 +13,12 @@
 > routing, made concrete instead of asserted.
 >
 > Every case below is implemented and **passing** in
-> `app/web/e2e/traditional/payment-traditional.spec.ts` — one single spec
+> `app/web/uitests/traditional/payment-traditional.spec.ts` — one single spec
 > file, on purpose (see below) — not illustrative snippets like some of the
 > code in `demo-story.md`, real specs. Run them:
 >
 > ```
-> cd app/web && npx playwright test e2e/traditional
+> cd app/web && npx playwright test uitests/traditional
 > ```
 >
 > The workshop exercise: read the two docs side by side, then refactor

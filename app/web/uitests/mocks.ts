@@ -1,18 +1,7 @@
 import type { Page } from "@playwright/test";
+import { DEFAULT_FLIGHT } from "./helpers/test-data";
 
-export const DEFAULT_FLIGHT = {
-  id: 1,
-  flightNumber: "QQ101",
-  origin: "BKK",
-  destination: "SIN",
-  departureTime: "2026-10-24T08:00:00Z",
-  arrivalTime: "2026-10-24T09:30:00Z",
-  basePriceMinor: 810000,
-  currency: "THB",
-  availableSeats: 50,
-  status: "scheduled",
-  durationMinutes: 90,
-};
+export { DEFAULT_FLIGHT };
 
 export const DEFAULT_BOOKING_REF = "TB7X2K";
 
@@ -55,7 +44,8 @@ export async function mockCreateBooking(
         body: JSON.stringify({
           status: "PENDING",
           expiresAt,
-          totalAmountMinor: 931500,
+          // DEFAULT_FLIGHT.basePriceMinor (810000) + 15% tax, rounded.
+          totalAmountMinor: Math.round(DEFAULT_FLIGHT.basePriceMinor * 1.15),
         }),
       });
     }

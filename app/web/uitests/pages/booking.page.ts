@@ -1,8 +1,5 @@
-import { expect, type Page } from "@playwright/test";
-
-const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
-
-export { UUID_RE };
+import type { Page } from "@playwright/test";
+import { DEFAULT_FLIGHT } from "../helpers/test-data";
 
 export class BookingPage {
   readonly page: Page;
@@ -31,6 +28,10 @@ export class BookingPage {
     return this.page.getByRole("button", { name: /continue to payment/i });
   }
 
+  flightNumber(code: string) {
+    return this.page.getByText(code);
+  }
+
   async goto(params?: {
     flightId?: number;
     flightNumber?: string;
@@ -42,13 +43,13 @@ export class BookingPage {
     passengers?: number;
   }) {
     const p = {
-      flightId: String(params?.flightId ?? 1),
-      flightNumber: params?.flightNumber ?? "QQ101",
-      origin: params?.origin ?? "BKK",
-      destination: params?.destination ?? "SIN",
-      departureTime: params?.departureTime ?? "2026-10-24T08:00:00Z",
-      price: String(params?.price ?? 810000),
-      currency: params?.currency ?? "THB",
+      flightId: String(params?.flightId ?? DEFAULT_FLIGHT.id),
+      flightNumber: params?.flightNumber ?? DEFAULT_FLIGHT.flightNumber,
+      origin: params?.origin ?? DEFAULT_FLIGHT.origin,
+      destination: params?.destination ?? DEFAULT_FLIGHT.destination,
+      departureTime: params?.departureTime ?? DEFAULT_FLIGHT.departureTime,
+      price: String(params?.price ?? DEFAULT_FLIGHT.basePriceMinor),
+      currency: params?.currency ?? DEFAULT_FLIGHT.currency,
       passengers: String(params?.passengers ?? 1),
     };
     const query = new URLSearchParams(p);
@@ -87,13 +88,5 @@ export class BookingPage {
 
   getTokenFromUrl(): string | null {
     return new URL(this.page.url()).searchParams.get("bookingToken");
-  }
-
-  async expectOnBookingPage() {
-    await expect(this.page).toHaveURL(/\/bookings\/new/);
-  }
-
-  async expectFlightVisible(flightNumber: string) {
-    await expect(this.page.getByText(flightNumber)).toBeVisible();
   }
 }

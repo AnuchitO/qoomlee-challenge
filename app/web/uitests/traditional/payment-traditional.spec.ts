@@ -42,11 +42,12 @@ test.describe("Payment — E2E cases (identical to the pyramid version)", () => 
     await mockAllServices(page);
 
     await flightResultsPage.goto({ origin: "BKK", destination: "SIN", departure: "2026-10-24" });
-    await flightResultsPage.expectFlightVisible("QQ101", "BKK", "SIN");
+    await expect(flightResultsPage.flightNumber("QQ101")).toBeVisible({ timeout: 5000 });
+    await expect(flightResultsPage.route("BKK", "SIN")).toBeVisible();
 
     await flightResultsPage.selectFlight();
-    await bookingPage.expectOnBookingPage();
-    await bookingPage.expectFlightVisible("QQ101");
+    await expect(page).toHaveURL(/\/bookings\/new/);
+    await expect(bookingPage.flightNumber("QQ101")).toBeVisible();
 
     await bookingPage.fillAndSubmit({
       firstName: "Jane",
@@ -54,7 +55,8 @@ test.describe("Payment — E2E cases (identical to the pyramid version)", () => 
       email: "jane.doe@test.com",
       phone: "0800000000",
     });
-    await paymentPage.expectOnPaymentPage(DEFAULT_BOOKING_REF);
+    await expect(page).toHaveURL(/\/payment/, { timeout: 5000 });
+    await expect(page).toHaveURL(new RegExp(`ref=${DEFAULT_BOOKING_REF}`));
 
     await paymentPage.fillAndPay({
       name: "Jane Doe",
@@ -63,10 +65,11 @@ test.describe("Payment — E2E cases (identical to the pyramid version)", () => 
       cvv: "123",
     });
 
-    await confirmationPage.expectConfirmed({
-      bookingRef: DEFAULT_BOOKING_REF,
-      passengerName: "jane",
-    });
+    await confirmationPage.waitForConfirmationPage();
+    await expect(page).toHaveURL(new RegExp(`ref=${DEFAULT_BOOKING_REF}`));
+    await expect(confirmationPage.heading).toBeVisible();
+    await expect(confirmationPage.bookingRef(DEFAULT_BOOKING_REF)).toBeVisible();
+    await expect(confirmationPage.passengerName("jane")).toBeVisible();
   });
 
   test("Given a booking that's already CONFIRMED (e.g. back-button after paying), When the payment page loads, Then it redirects straight to the confirmation page — no card form, no second charge", async ({

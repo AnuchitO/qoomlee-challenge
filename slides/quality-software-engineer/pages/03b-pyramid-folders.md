@@ -18,8 +18,14 @@ layout: center
 
 <div class="qse-timeline-item" style="border-left-color: var(--qse-coral);">
 <div class="time" style="color: var(--qse-coral);">E2E</div>
-<div><code>app/web/e2e/*.spec.ts</code> + <code>e2e/pages/*.page.ts</code></div>
+<div><code>app/web/e2e/*.spec.ts</code> — real backend, no mocks</div>
 <div><code>make test-e2e</code></div>
+</div>
+
+<div class="qse-timeline-item" style="border-left-color: var(--qse-coral);">
+<div class="time" style="color: var(--qse-coral);">UI</div>
+<div><code>app/web/uitests/*.spec.ts</code> + <code>uitests/pages/*.page.ts</code> — mocked backend</div>
+<div><code>make test-ui</code></div>
 </div>
 
 <div class="qse-timeline-item" style="border-left-color: var(--qse-secondary);">

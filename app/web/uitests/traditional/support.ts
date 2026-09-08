@@ -1,5 +1,5 @@
 /**
- * Shared plumbing for app/web/e2e/traditional/** — see
+ * Shared plumbing for app/web/uitests/traditional/** — see
  * docs/stories/demo-story-traditional.md for what this folder is and why it
  * exists (short version: it's the "before" suite for a test-pyramid
  * refactoring workshop — every case from docs/stories/demo-story.md forced

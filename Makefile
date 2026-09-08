@@ -207,10 +207,16 @@ test-frontend:
 	cd app/web && bun run test
 	@echo -e "  $(GREEN)✓$(RESET)  Frontend unit tests complete"
 
-.PHONY: test-e2e # Run frontend E2E tests (Playwright — requires running stack on :3000)
+.PHONY: test-ui # Run frontend UI tests (Playwright, mocked backend — requires frontend dev server on :3000)
+test-ui:
+	@echo -e "$(BOLD)Running frontend UI tests (Playwright, mocked backend)...$(RESET)"
+	@echo -e "  $(DIM)Note: requires frontend dev server on :3000 (started automatically if not already running)$(RESET)"
+	cd app/web && bun run test:ui
+
+.PHONY: test-e2e # Run real E2E tests (Playwright, real backend — requires 'make up' + real Omise test keys, see app/web/e2e/README.md)
 test-e2e:
-	@echo -e "$(BOLD)Running frontend E2E tests (Playwright)...$(RESET)"
-	@echo -e "  $(DIM)Note: requires 'make up' and frontend dev server on :3000$(RESET)"
+	@echo -e "$(BOLD)Running real E2E tests (Playwright, real backend)...$(RESET)"
+	@echo -e "  $(DIM)Note: requires 'make up' (full docker-compose stack) and real Omise test keys in .env$(RESET)"
 	cd app/web && bun run test:e2e
 
 .PHONY: test-integration # Run integration tests with real DB (testcontainers-go, requires Docker)
@@ -396,7 +402,10 @@ lint-docker:
 	@echo -e "  $(GREEN)✓$(RESET)  Dockerfiles pass hadolint"
 
 .PHONY: ci # Full CI pipeline — fmt-check, lint, security, unit + integration tests, coverage
-ci: fmt-check lint lint-security test-unit test-integration test-cover test-e2e
+# test-e2e (the real-backend tier) is deliberately NOT in the default CI
+# pipeline — it needs real Omise test keys, not just Docker. Run it
+# separately before a merge; see app/web/e2e/README.md.
+ci: fmt-check lint lint-security test-unit test-integration test-cover test-ui
 	@echo -e "  $(GREEN)✓$(RESET)  CI pipeline passed"
 
 # ====================================================================================

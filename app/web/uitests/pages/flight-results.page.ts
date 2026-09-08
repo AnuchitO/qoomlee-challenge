@@ -1,4 +1,4 @@
-import { expect, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 export class FlightResultsPage {
   readonly page: Page;
@@ -41,10 +41,5 @@ export class FlightResultsPage {
 
   async selectFlight() {
     await this.selectButton.click();
-  }
-
-  async expectFlightVisible(flightNumber: string, origin: string, destination: string) {
-    await expect(this.flightNumber(flightNumber)).toBeVisible({ timeout: 5000 });
-    await expect(this.route(origin, destination)).toBeVisible();
   }
 }

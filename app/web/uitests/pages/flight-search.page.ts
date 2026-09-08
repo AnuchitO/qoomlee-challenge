@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
+import { airportLabel } from "../helpers/test-data";
 
 export class FlightSearchPage {
   readonly page: Page;
@@ -103,10 +104,6 @@ export class FlightSearchPage {
   }
 
   selectedAirport(code: string) {
-    const labels: Record<string, string> = {
-      BKK: "Bangkok (BKK)",
-      SIN: "Singapore (SIN)",
-    };
-    return this.visibleText(labels[code] ?? code);
+    return this.visibleText(airportLabel(code));
   }
 }

@@ -51,16 +51,11 @@ export class PaymentPage {
   }
 
   async fillAndPay(card: { name: string; number: string; expiry: string; cvv: string }) {
+    // Readiness check, not a business assertion: the countdown is the signal
+    // the payment page has finished loading and the form is interactive.
     await expect(this.countdown).toBeVisible({ timeout: 5000 });
     await this.fillCardDetails(card);
     await this.agreeToTerms();
     await this.pay();
-  }
-
-  async expectOnPaymentPage(bookingRef?: string) {
-    await expect(this.page).toHaveURL(/\/payment/, { timeout: 5000 });
-    if (bookingRef) {
-      await expect(this.page).toHaveURL(new RegExp(`ref=${bookingRef}`));
-    }
   }
 }

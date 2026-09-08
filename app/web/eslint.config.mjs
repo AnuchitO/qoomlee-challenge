@@ -16,8 +16,10 @@ const eslintConfig = defineConfig([
     },
   },
   {
-    // The logger wrapper is the single allowed place to call console.*.
-    files: ["lib/logger/logger.ts"],
+    // The logger wrapper is the single allowed place to call console.* in
+    // application source. Test-infra scripts (Playwright global setup) are
+    // CLI-adjacent, not app code, and console output there is the point.
+    files: ["lib/logger/logger.ts", "e2e/global-setup.ts"],
     rules: {
       "no-console": "off",
     },

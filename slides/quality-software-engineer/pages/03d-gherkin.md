@@ -33,5 +33,5 @@ Scenario: Declined card leaves the booking pending
 ```
 
 <div class="qse-card mt-3 text-sm" style="max-width: 900px; margin: 0.75rem auto 0;">
-This scenario is already automated: <code>app/web/e2e/traveller-searches-books-and-pays.spec.ts</code> drives the happy path with Playwright, real test cards straight from <code>services/payment</code>. QE writes the Gherkin — plain enough for a PM to review — SDET turns each line into a Page Object call. Same collaboration as the Test Pyramid: one scenario, two tiers.
+This scenario is already automated: <code>app/web/uitests/traveller-searches-books-and-pays.spec.ts</code> drives the happy path with Playwright, real test cards straight from <code>services/payment</code>. QE writes the Gherkin — plain enough for a PM to review — SDET turns each line into a Page Object call. Same collaboration as the Test Pyramid: one scenario, two tiers.
 </div>

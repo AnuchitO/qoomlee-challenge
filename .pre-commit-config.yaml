@@ -1,3 +1,8 @@
+# `pre-commit install` (no -t flag, e.g. via `make setup`) installs both hook
+# types below. Hooks run on pre-commit unless they set their own `stages:`.
+default_install_hook_types: [pre-commit, pre-push]
+default_stages: [pre-commit]
+
 repos:
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.21.2
@@ -47,3 +52,10 @@ repos:
         entry: hadolint
         language: system
         files: Dockerfile.*
+
+      - id: mutation-test
+        name: mutation testing (gremlins — qoomlee + payment)
+        entry: make test-mutation
+        language: system
+        pass_filenames: false
+        stages: [pre-push]

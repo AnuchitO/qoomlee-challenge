@@ -1,0 +1,20 @@
+# Gremlins mutation testing config — https://gremlins.dev
+#
+# Run:   make test-mutation-payment   (from repo root)
+#        gremlins unleash .           (from this directory)
+#
+# Only mutants covered by a test are executed, so this reuses the existing
+# payment-service unit test suite (services/payment/**/*_test.go, no build
+# tags) — it doesn't add new tests, it grades how well the existing ones
+# would catch a bug.
+unleash:
+  # Each worker spawns its own `go test` process; letting workers ==
+  # NumCPU (the default) oversubscribes the machine — every test binary
+  # also wants all CPUs — and mutants spuriously report TIMED OUT under
+  # contention instead of KILLED/LIVED. Capping both keeps runs stable.
+  workers: 4
+  test-cpu: 2
+  # cmd/main.go is wiring-only (no unit tests target it); excluding it keeps
+  # the report focused on business logic instead of "NOT COVERED" noise.
+  exclude-files:
+    - cmd/main\.go

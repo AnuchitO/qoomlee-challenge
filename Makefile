@@ -30,6 +30,7 @@ FRONTEND_URL        ?= http://localhost:3000
 DATE      ?= 2026-06-15
 SERVICES  := qoomlee payment
 SVC_DIR   := services
+GREMLINS_VERSION ?= v0.6.0
 
 # ── Colors ───────────────────────────────────────────────────────────────────
 BOLD   := \033[1m
@@ -73,6 +74,10 @@ setup: _check-compose deps
 	  (echo -e "  $(CYAN)→$(RESET)  installing gitleaks" && \
 	   brew install gitleaks 2>/dev/null && echo -e "  $(GREEN)✓$(RESET)  gitleaks installed" || \
 	   echo -e "  $(YELLOW)⚠  install gitleaks manually: brew install gitleaks$(RESET)")
+	@command -v gremlins >/dev/null 2>&1 && echo -e "  $(GREEN)✓$(RESET)  gremlins already installed" || \
+	  (echo -e "  $(CYAN)→$(RESET)  installing gremlins" && \
+	   go install github.com/go-gremlins/gremlins/cmd/gremlins@$(GREMLINS_VERSION) && \
+	   echo -e "  $(GREEN)✓$(RESET)  gremlins installed")
 	@[ -d app/web/node_modules ] && echo -e "  $(GREEN)✓$(RESET)  app/web/node_modules already installed" || \
 	  (echo -e "  $(CYAN)→$(RESET)  running bun install (app/web)" && \
 	   cd app/web && bun install && echo -e "  $(GREEN)✓$(RESET)  app/web dependencies installed")
@@ -272,11 +277,18 @@ test-visual:
 	@echo -e "$(BOLD)Running visual regression tests...$(RESET)"
 	cd app/web && bunx playwright test e2e/visual
 
-.PHONY: test-mutation # Run go-mutesting on the payment package
-test-mutation:
-	@command -v go-mutesting >/dev/null 2>&1 || \
-	  (echo -e "$(RED)go-mutesting not installed — run: go install github.com/avito-tech/go-mutesting/cmd/go-mutesting@latest$(RESET)" && exit 1)
-	cd $(SVC_DIR)/payment && go-mutesting ./payment/...
+.PHONY: test-mutation # Run gremlins mutation testing on qoomlee-service and payment-service
+test-mutation: test-mutation-qoomlee test-mutation-payment
+
+.PHONY: test-mutation-qoomlee # Run gremlins mutation testing on qoomlee-service only
+test-mutation-qoomlee: _check-gremlins
+	@echo -e "$(BOLD)qoomlee-service mutation testing (gremlins)$(RESET)"
+	cd $(SVC_DIR)/qoomlee && gremlins unleash .
+
+.PHONY: test-mutation-payment # Run gremlins mutation testing on payment-service only
+test-mutation-payment: _check-gremlins
+	@echo -e "$(BOLD)payment-service mutation testing (gremlins)$(RESET)"
+	cd $(SVC_DIR)/payment && gremlins unleash .
 
 .PHONY: test-security # OWASP ZAP baseline scan against the running stack + dependency audits
 test-security: _require-stack lint-security
@@ -648,6 +660,7 @@ versions:
 	@echo -e "  go        $$(go version 2>/dev/null || echo 'not found')"
 	@echo -e "  k6        $$(k6 version 2>/dev/null | head -1 || echo 'not installed — make install-tools')"
 	@echo -e "  jq        $$(jq --version 2>/dev/null || echo 'not found — brew install jq')"
+	@echo -e "  gremlins  $$(gremlins version 2>/dev/null | head -1 || echo 'not installed — make setup')"
 	@echo -e "  d2        $$(d2 --version 2>/dev/null || echo 'not installed — brew install d2')"
 
 .PHONY: diagrams # Render D2 diagrams to SVG  (requires: brew install d2)
@@ -682,6 +695,11 @@ _check-env:
 	  (echo -e "$(RED)ERROR: INTERNAL_TOKEN is empty in .env$(RESET)" && \
 	   echo -e "       Run: $(BOLD)openssl rand -hex 32$(RESET) and set the value" && \
 	   exit 1) || true
+
+.PHONY: _check-gremlins
+_check-gremlins:
+	@command -v gremlins >/dev/null 2>&1 || \
+	  (echo -e "$(RED)gremlins not installed — run: go install github.com/go-gremlins/gremlins/cmd/gremlins@$(GREMLINS_VERSION)$(RESET)" && exit 1)
 
 .PHONY: _require-stack
 _require-stack:
